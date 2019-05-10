@@ -5,6 +5,7 @@ from Map import Map
 from Tile import Tile
 from TiledMap import TiledMap
 from threading import Thread
+from DrawTools import *
 
 # for Threading
 def proccess_mouse_events():
@@ -24,6 +25,12 @@ def proccess_mouse_events():
 		if(ev == "Left"):
 			tiled_screen.set_map_value(CHANGED_POSITIONS, 1)
 			CHANGED_POSITIONS = []
+		elif(ev == "Right"):
+			flood_list = flood_fill(tiled_screen, get_grid_square(list(pg.mouse.get_pos())), 1, [])
+			if(not flood_list):
+				continue
+			tiled_screen.set_map_value(flood_list, 1)
+			flood_list = []
 		sleep(0.01)
 
 # for Threading
@@ -55,8 +62,8 @@ def handle_mouse(ev):
 			CHANGED_POSITIONS.append(get_grid_square(list(pg.mouse.get_pos())))
 			HOLD_LCLICK = True
 
-	#elif(ev.type == pg.MOUSEBUTTONDOWN and ev.button == 3): # Right Click
-	#	mouse_events.append("Right")	
+	elif(ev.type == pg.MOUSEBUTTONDOWN and ev.button == 3): # Right Click
+		mouse_events.append("Right")	
 
 	elif(ev.type == pg.QUIT):
 		QUIT = True
