@@ -11,6 +11,8 @@ def proccess_mouse_events():
 	global mouse_events
 	global tiled_screen
 	global QUIT
+	global screen
+	global CHANGED_POSITIONS
 
 	while(not QUIT):
 		try:
@@ -19,10 +21,9 @@ def proccess_mouse_events():
 			sleep(0.01)
 			continue
 
-		# Location check
-		if(ev[0] == "Left" and ev[1][1]<=4*WIN_HEIGHT/5):
-			pos = get_grid_square((ev[1][0],ev[1][1]))
-			tiled_screen.set_map_value([pos[1],pos[0]], 1)
+		if(ev == "Left"):
+			tiled_screen.set_map_value(CHANGED_POSITIONS, 1)
+			CHANGED_POSITIONS = []
 		sleep(0.01)
 
 # for Threading
@@ -34,30 +35,43 @@ def screen_refresh():
 		sleep(TICKRATE)
 
 def get_grid_square(pos):
-	return [int(pos[0]/TILE_SIZE), int(pos[1]/TILE_SIZE)]
+	return [int(pos[1]/TILE_SIZE), int(pos[0]/TILE_SIZE)]
 
 
 def handle_mouse(ev):
 	global QUIT
 	global HOLD_LCLICK
+	global CHANGED_POSITIONS
 
 	if(ev.type == pg.MOUSEMOTION and HOLD_LCLICK): # Draw continuum
-		mouse_events.append(["Left", pg.mouse.get_pos()])	
+		CHANGED_POSITIONS.append(get_grid_square(list(pg.mouse.get_pos())))
+
 	elif(ev.type == pg.MOUSEBUTTONUP and ev.button == 1):
-		HOLD_LCLICK = False		
-	elif(ev.type == pg.MOUSEBUTTONDOWN and ev.button == 1): # Draw Click
-		HOLD_LCLICK = True
-		mouse_events.append(["Left", pg.mouse.get_pos()])				
-	elif(ev.type == pg.MOUSEBUTTONDOWN and ev.button == 3): # Right Click
-		mouse_events.append(["Right", pg.mouse.get_pos()])	
+		HOLD_LCLICK = False	
+		mouse_events.append("Left")
+
+	elif(ev.type == pg.MOUSEBUTTONDOWN and ev.button == 1): # Left Click
+		if(pg.mouse.get_pos()[1] <= 4*WIN_HEIGHT/5): # On TiledMap
+			CHANGED_POSITIONS.append(get_grid_square(list(pg.mouse.get_pos())))
+			HOLD_LCLICK = True
+
+	#elif(ev.type == pg.MOUSEBUTTONDOWN and ev.button == 3): # Right Click
+	#	mouse_events.append("Right")	
+
 	elif(ev.type == pg.QUIT):
 		QUIT = True
 
 def handle_keyboard(ev):
 	global QUIT
+	global tiled_screen
 
-	if(ev.key == 27): # ESC
+	mods = pg.key.get_mods()
+
+	if(pg.key.name(ev.key) == "escape"): # ESC
 		QUIT = True
+	elif(pg.key.name(ev.key) == "z" and mods & pg.KMOD_CTRL): # Ctrl + Z
+		tiled_screen.undo_map()
+
 
 mouse_events = []
 
@@ -69,6 +83,7 @@ TILE_SIZE = 32
 threads = []
 QUIT = False
 HOLD_LCLICK = False
+CHANGED_POSITIONS = []
 
 info = pg.display.Info()
 WIN_WIDTH = info.current_w

@@ -1,4 +1,5 @@
 from Tile import Tile
+from Map import Map
 import pygame as pg
 from threading import Thread
 
@@ -16,17 +17,29 @@ class TiledMap():
 	def __getitem__(self, i):
 		return self.map_.grid[i]
 
-	def update_map(self, new_map):
-		self.map_ = new_map
-		self.needs_draw = True
-
-	def set_map_value(self, pos, val):
-		if(self.map_.grid[pos[0]][pos[1]] == val):
+	# Ctrl + Z function. Changes back to undomap
+	def undo_map(self):
+		if(self.undomap == None):
 			return
-		self.map_.grid[pos[0]][pos[1]] = val
-		self.map_.draw_grid[pos[0]][pos[1]] = True
+		self.map_ = Map(None, oldmap=self.undomap)
+		self.map_.gen_draw_grid()
+		self.undomap = None
 		self.needs_draw = True
 
+	# Set a single value of grid
+	# pos_list is a list of changed positions
+	def set_map_value(self, pos_list, val):
+		self.undomap = Map(None, oldmap=self.map_)
+
+		for pos in pos_list:
+			if(self.map_.grid[pos[0]][pos[1]] == val):
+				continue
+
+			self.map_.grid[pos[0]][pos[1]] = val
+			self.map_.draw_grid[pos[0]][pos[1]] = True
+			self.needs_draw = True
+
+	# Draws all blits to screen all grid
 	def draw_all(self, screen, pos=[0,0], size=32):
 		for i in range(0,len(self.map_.grid)):
 			for j in range(0,len(self.map_.grid[i])):
@@ -35,6 +48,7 @@ class TiledMap():
 		self.needs_draw = False
 		screen.blit(self.bev_.surf, pos)
 
+	# Draws and blits gridded screen
 	def draw_grid(self, screen, pos=[0,0], size=32):
 		for i in range(0, self.bev_.surf.get_width(), size):
 			pg.draw.line(self.bev_.surf, pg.Color(200,200,200,255), (i,0), (i,self.bev_.surf.get_height()))
@@ -42,6 +56,7 @@ class TiledMap():
 			pg.draw.line(self.bev_.surf, pg.Color(200,200,200,255), (0,j), (self.bev_.surf.get_width(),j))
 		screen.blit(self.bev_.surf, pos)
 
+	# Thread control function to update changed blocks
 	def update_tiles(self, screen, size=32):
 		threads = []
 		if(not self.needs_draw):

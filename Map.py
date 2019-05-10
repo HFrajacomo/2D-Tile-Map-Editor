@@ -1,21 +1,32 @@
 from Tile import Tile
+#from copy import deepcopy
 
 class Map:
 	grid = []
 	draw_grid = []
 	name = ""
 
-	def __init__(self, mapdata, mapname=""):
-		self.name = mapname
 
-		if(len(mapdata) < 30 or len(mapdata[0]) < 13):
-			new_grid =  self.get_submatrix(mapdata, [0,0], 30, 13)
-			self.grid = new_grid
+	def __init__(self, mapdata, mapname="", oldmap=None):
+		# Standard construction
+		if(oldmap == None):
+			self.name = mapname
+
+			if(len(mapdata) < 30 or len(mapdata[0]) < 13):
+				new_grid =  self.get_submatrix(mapdata, [0,0], 30, 13)
+				self.grid = new_grid
+			else:
+				self.grid = mapdata
+				
+			self.gen_draw_grid()
+
+		# Copy via an older map
 		else:
-			self.grid = mapdata
-			
-		self.gen_draw_grid()
+			self.name = oldmap.name
+			self.grid = [x[:] for x in oldmap.grid]
+			self.draw_grid = [x[:] for x in oldmap.draw_grid]
 
+	# Generates draw_grid matrix
 	def gen_draw_grid(self, val=True):
 		self.draw_grid = []
 		for i in range(0,len(self.grid)):
@@ -23,6 +34,8 @@ class Map:
 			for j in range(0,len(self.grid[0])):
 				self.draw_grid[-1].append(val)
 
+	# Returns a submatrix of map.grid
+	# non_circular changes to filling with -1 and rolling around map
 	def get_region(self, pos, radius_x, radius_y, non_circular=True):
 		sub_matrix = []
 		for i in range(pos[1] - radius_y, pos[1] + radius_y+1):
@@ -48,6 +61,7 @@ class Map:
 					sub_matrix[-1].append(-1)
 		return sub_matrix
 
+	# Formatted print for map.grid
 	def quick_print(self):
 		for i in range(0, len(self.grid)):
 			for j in range(0, len(self.grid[i])):
@@ -63,6 +77,7 @@ class Map:
 			for j in range(0,len(self.grid[i])):
 				bevel.surf.blit(Tile(self.grid[i][j]).image, (j*size, i*size))
 
+	# Returns submatrix of a given matrix
 	def get_submatrix(self, matrix, pos, radius_x, radius_y, non_circular=True):
 		sub_matrix = []
 		for i in range(pos[1] - radius_y, pos[1] + radius_y+1):
