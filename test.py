@@ -4,7 +4,7 @@ from Bevel import Bevel
 from Map import Map
 from Tile import Tile
 from TiledMap import TiledMap
-from threading import Thread
+from threading import Thread, Event
 from DrawTools import *
 
 # for Threading
@@ -36,10 +36,14 @@ def proccess_mouse_events():
 # for Threading
 def screen_refresh():
 	global QUIT
+	global DRAW_GRID
+	global LOCK
 
 	while(not QUIT):
-		tiled_screen.update_tiles(screen)
-		sleep(TICKRATE)
+		LOCK.clear()
+		tiled_screen.update_tiles(screen, draw_grid=DRAW_GRID)
+		LOCK.set()
+		sleep(FPS)
 
 def get_grid_square(pos):
 	return [int(pos[1]/TILE_SIZE), int(pos[0]/TILE_SIZE)]
@@ -71,11 +75,19 @@ def handle_mouse(ev):
 def handle_keyboard(ev):
 	global QUIT
 	global tiled_screen
+	global DRAW_GRID
+	global LOCK
 
 	mods = pg.key.get_mods()
 
 	if(pg.key.name(ev.key) == "escape"): # ESC
 		QUIT = True
+	elif(pg.key.name(ev.key) == "tab"): # Tab
+		DRAW_GRID = not DRAW_GRID
+		if(not DRAW_GRID):
+			LOCK.clear()
+			tiled_screen.clear_grid(screen)
+			LOCK.set()
 	elif(pg.key.name(ev.key) == "z" and mods & pg.KMOD_CTRL): # Ctrl + Z
 		tiled_screen.undo_map()
 
@@ -85,12 +97,16 @@ mouse_events = []
 pg.init()
 screen = pg.display.set_mode((0,0), pg.FULLSCREEN | pg.HWSURFACE)
 pg.display.set_caption("Chrono Quest")
-TICKRATE = 1/60
+FPS = 1/60
+TICKRATE = 1/20
 TILE_SIZE = 32
 threads = []
 QUIT = False
 HOLD_LCLICK = False
 CHANGED_POSITIONS = []
+DRAW_GRID = False
+LOCK = Event()
+LOCK.set()
 
 info = pg.display.Info()
 WIN_WIDTH = info.current_w
@@ -123,4 +139,4 @@ while(not QUIT):
 			handle_mouse(ev)
 		elif(ev.type in [pg.KEYDOWN]):
 			handle_keyboard(ev)
-	sleep(TICKRATE)
+	sleep(FPS/3)

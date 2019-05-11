@@ -1,6 +1,7 @@
 from Tile import Tile
 from Map import Map
 import pygame as pg
+from time import sleep
 from threading import Thread
 
 class TiledMap():
@@ -48,16 +49,25 @@ class TiledMap():
 		self.needs_draw = False
 		screen.blit(self.bev_.surf, pos)
 
-	# Draws and blits gridded screen
+	# Clears grid
+	def clear_grid(self, screen):
+		self.bev_.surf.fill(pg.Color(0,0,0,255))
+		sleep(0.02)
+		screen.blit(self.bev_.surf, (0,0))
+
+		for i in range(0,len(self.map_.grid)):
+			for j in range(0,len(self.map_.grid[0])):
+				self.map_.draw_grid[i][j] = True
+
+	# Draws gridded screen
 	def draw_grid(self, screen, pos=[0,0], size=32):
 		for i in range(0, self.bev_.surf.get_width(), size):
-			pg.draw.line(self.bev_.surf, pg.Color(200,200,200,255), (i,0), (i,self.bev_.surf.get_height()))
+			pg.draw.line(screen, pg.Color(200,200,200,255), (i,0), (i,self.bev_.surf.get_height()))
 		for j in range(0, self.bev_.surf.get_height(), size):
-			pg.draw.line(self.bev_.surf, pg.Color(200,200,200,255), (0,j), (self.bev_.surf.get_width(),j))
-		screen.blit(self.bev_.surf, pos)
+			pg.draw.line(screen, pg.Color(200,200,200,255), (0,j), (self.bev_.surf.get_width(),j))
 
 	# Thread control function to update changed blocks
-	def update_tiles(self, screen, size=32):
+	def update_tiles(self, screen, size=32, draw_grid=False):
 		threads = []
 		if(not self.needs_draw):
 			return
@@ -69,6 +79,9 @@ class TiledMap():
 
 		for th in threads:
 			th.join()
+
+		if(draw_grid):
+			self.draw_grid(screen)
 		pg.display.flip()
 
 	# Multi-threaded accelerated function

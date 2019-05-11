@@ -1,3 +1,7 @@
+import sys
+
+sys.setrecursionlimit(8000)
+
 def flood_fill(TiledMap, pos, tile_id, out_list):
 	old_id = TiledMap.map_.grid[pos[0]][pos[1]]
 
@@ -7,13 +11,13 @@ def flood_fill(TiledMap, pos, tile_id, out_list):
 
 	out_list.append(pos)
 
-	if(pos[0]>=0 and TiledMap[pos[0]-1][pos[1]] != tile_id):
+	if(pos[0]>=0 and flood_check(TiledMap, pos, tile_id, out_list, x=-1)):
 		sec_flood_fill(TiledMap, [pos[0]-1, pos[1]], tile_id, out_list)
-	if(pos[0] < len(TiledMap.map_.grid) and TiledMap[pos[0]][pos[1]] != tile_id):
+	if(pos[0] < len(TiledMap.map_.grid)-1 and flood_check(TiledMap, pos, tile_id, out_list, x=1)):
 		sec_flood_fill(TiledMap, [pos[0]+1, pos[1]], tile_id, out_list)
-	if(pos[1]>=0 and TiledMap[pos[0]][pos[1]] != tile_id):
+	if(pos[1]>0 and flood_check(TiledMap, pos, tile_id, out_list, y=-1)):
 		sec_flood_fill(TiledMap, [pos[0], pos[1]-1], tile_id, out_list)
-	if(pos[1] < len(TiledMap.map_.grid[0]) and TiledMap[pos[0]][pos[1]] != tile_id):
+	if(pos[1] < len(TiledMap.map_.grid[0])-1 and flood_check(TiledMap, pos, tile_id, out_list, y=1)):
 		sec_flood_fill(TiledMap, [pos[0], pos[1]+1], tile_id, out_list)
 
 	return out_list
