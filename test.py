@@ -4,6 +4,7 @@ from Bevel import Bevel
 from Map import Map
 from Tile import Tile
 from TiledMap import TiledMap
+from TileButtonArray import TileButtonArray
 from threading import Thread, Event
 from DrawTools import *
 
@@ -14,6 +15,7 @@ def proccess_mouse_events():
 	global QUIT
 	global screen
 	global CHANGED_POSITIONS
+	global SELECTED_TILE
 
 	while(not QUIT):
 		try:
@@ -23,13 +25,13 @@ def proccess_mouse_events():
 			continue
 
 		if(ev == "Left"):
-			tiled_screen.set_map_value(CHANGED_POSITIONS, 1)
+			tiled_screen.set_map_value(CHANGED_POSITIONS, SELECTED_TILE)
 			CHANGED_POSITIONS = []
 		elif(ev == "Right"):
-			flood_list = flood_fill(tiled_screen, get_grid_square(list(pg.mouse.get_pos())), 1, [])
+			flood_list = flood_fill(tiled_screen, get_grid_square(list(pg.mouse.get_pos())), SELECTED_TILE, [])
 			if(not flood_list):
 				continue
-			tiled_screen.set_map_value(flood_list, 1)
+			tiled_screen.set_map_value(flood_list, SELECTED_TILE)
 			flood_list = []
 		sleep(0.01)
 
@@ -53,6 +55,8 @@ def handle_mouse(ev):
 	global QUIT
 	global HOLD_LCLICK
 	global CHANGED_POSITIONS
+	global tbarray
+	global SELECTED_TILE
 
 	if(ev.type == pg.MOUSEMOTION and HOLD_LCLICK): # Draw continuum
 		CHANGED_POSITIONS.append(get_grid_square(list(pg.mouse.get_pos())))
@@ -65,6 +69,11 @@ def handle_mouse(ev):
 		if(pg.mouse.get_pos()[1] <= 4*WIN_HEIGHT/5): # On TiledMap
 			CHANGED_POSITIONS.append(get_grid_square(list(pg.mouse.get_pos())))
 			HOLD_LCLICK = True
+		else:  # In button stream
+			for button in tbarray:
+				if(button.click(pg.mouse.get_pos()) != None):
+					SELECTED_TILE = button.click(pg.mouse.get_pos())
+					break
 
 	elif(ev.type == pg.MOUSEBUTTONDOWN and ev.button == 3): # Right Click
 		mouse_events.append("Right")	
@@ -107,6 +116,7 @@ CHANGED_POSITIONS = []
 DRAW_GRID = False
 LOCK = Event()
 LOCK.set()
+SELECTED_TILE = 2
 
 info = pg.display.Info()
 WIN_WIDTH = info.current_w
@@ -114,16 +124,21 @@ WIN_HEIGHT = info.current_h
 
 m = Map([[1,1,1,1,1,1,1,1,1,1,1],[1,0,1,0,1,0,1,0,1,0,1], [1,1,1,1,1,1,1,1,1,1,1]])
 
+# Bevels
 tiles_bev = Bevel(6*WIN_WIDTH/8, WIN_HEIGHT/5, pg.Color(200,200,200,255))
 map_bev = Bevel(WIN_WIDTH, 4*WIN_HEIGHT/5, pg.Color(55,25,25,255))
 sel_bev = Bevel(WIN_WIDTH/8, WIN_HEIGHT/5, pg.Color(150,150,150,255))
 but_bev = Bevel(WIN_WIDTH/8, WIN_HEIGHT/5, pg.Color(40,150,40,255))
 
+# Draw Bevels
 tiles_bev.draw(screen, [WIN_WIDTH/8,4*WIN_HEIGHT/5])
 sel_bev.draw(screen, [0,4*WIN_HEIGHT/5])
 but_bev.draw(screen, [7*WIN_WIDTH/8, 4*WIN_HEIGHT/5])
 
 tiled_screen = TiledMap(map_bev, m)
+
+# TileButtonArray
+tbarray = TileButtonArray(tiles_bev, [WIN_WIDTH/8 +40,4*WIN_HEIGHT/5])
 
 threads.append(Thread(target=screen_refresh))
 threads.append(Thread(target=proccess_mouse_events))
@@ -132,6 +147,7 @@ for th in threads:
 	th.start()
 
 pg.display.flip()
+tbarray.draw_buttons(screen)
 
 while(not QUIT):
 	for ev in pg.event.get():

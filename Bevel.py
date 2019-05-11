@@ -11,3 +11,6 @@ class Bevel:
 
 	def draw(self, screen, pos):
 		screen.blit(self.surf, (pos[0], pos[1]))
+
+	def get_size(self):
+		return self.surf.get_size()
