@@ -86,6 +86,7 @@ def handle_keyboard(ev):
 	global tiled_screen
 	global DRAW_GRID
 	global LOCK
+	global tbarray
 
 	mods = pg.key.get_mods()
 
@@ -99,6 +100,10 @@ def handle_keyboard(ev):
 			LOCK.set()
 	elif(pg.key.name(ev.key) == "z" and mods & pg.KMOD_CTRL): # Ctrl + Z
 		tiled_screen.undo_map()
+	elif(pg.key.name(ev.key) == "q"):
+		tbarray.change_page(screen, forward=False)
+	elif(pg.key.name(ev.key) == "e"):
+		tbarray.change_page(screen)
 
 
 mouse_events = []
@@ -125,15 +130,15 @@ WIN_HEIGHT = info.current_h
 m = Map([[1,1,1,1,1,1,1,1,1,1,1],[1,0,1,0,1,0,1,0,1,0,1], [1,1,1,1,1,1,1,1,1,1,1]])
 
 # Bevels
-tiles_bev = Bevel(6*WIN_WIDTH/8, WIN_HEIGHT/5, pg.Color(200,200,200,255))
-map_bev = Bevel(WIN_WIDTH, 4*WIN_HEIGHT/5, pg.Color(55,25,25,255))
-sel_bev = Bevel(WIN_WIDTH/8, WIN_HEIGHT/5, pg.Color(150,150,150,255))
-but_bev = Bevel(WIN_WIDTH/8, WIN_HEIGHT/5, pg.Color(40,150,40,255))
+tiles_bev = Bevel(6*WIN_WIDTH/8, WIN_HEIGHT/5, pg.Color(200,200,200,255), (WIN_WIDTH/8,4*WIN_HEIGHT/5))
+map_bev = Bevel(WIN_WIDTH, 4*WIN_HEIGHT/5, pg.Color(55,25,25,255), (0,0))
+sel_bev = Bevel(WIN_WIDTH/8, WIN_HEIGHT/5, pg.Color(150,150,150,255), (0,4*WIN_HEIGHT/5))
+but_bev = Bevel(WIN_WIDTH/8, WIN_HEIGHT/5, pg.Color(40,150,40,255), (7*WIN_WIDTH/8, 4*WIN_HEIGHT/5))
 
 # Draw Bevels
-tiles_bev.draw(screen, [WIN_WIDTH/8,4*WIN_HEIGHT/5])
-sel_bev.draw(screen, [0,4*WIN_HEIGHT/5])
-but_bev.draw(screen, [7*WIN_WIDTH/8, 4*WIN_HEIGHT/5])
+tiles_bev.draw(screen)
+sel_bev.draw(screen)
+but_bev.draw(screen)
 
 tiled_screen = TiledMap(map_bev, m)
 
