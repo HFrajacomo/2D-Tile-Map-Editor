@@ -13,11 +13,11 @@ def flood_fill(TiledMap, pos, tile_id, out_list):
 
 	if(pos[0]>=0 and flood_check(TiledMap, pos, tile_id, out_list, x=-1)):
 		sec_flood_fill(TiledMap, [pos[0]-1, pos[1]], tile_id, out_list)
-	if(pos[0] < len(TiledMap.map_.grid)-1 and flood_check(TiledMap, pos, tile_id, out_list, x=1)):
+	if(pos[0] < len(TiledMap.map_.grid)-2 and flood_check(TiledMap, pos, tile_id, out_list, x=1)):
 		sec_flood_fill(TiledMap, [pos[0]+1, pos[1]], tile_id, out_list)
 	if(pos[1]>0 and flood_check(TiledMap, pos, tile_id, out_list, y=-1)):
 		sec_flood_fill(TiledMap, [pos[0], pos[1]-1], tile_id, out_list)
-	if(pos[1] < len(TiledMap.map_.grid[0])-1 and flood_check(TiledMap, pos, tile_id, out_list, y=1)):
+	if(pos[1] < len(TiledMap.map_.grid[0])-2 and flood_check(TiledMap, pos, tile_id, out_list, y=1)):
 		sec_flood_fill(TiledMap, [pos[0], pos[1]+1], tile_id, out_list)
 
 	return out_list

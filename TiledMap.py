@@ -30,10 +30,14 @@ class TiledMap():
 	# Set a single value of grid
 	# pos_list is a list of changed positions
 	def set_map_value(self, pos_list, val):
+
 		self.undomap = Map(None, oldmap=self.map_)
 
 		for pos in pos_list:
-			if(self.map_.grid[pos[0]][pos[1]] == val):
+			try:
+				if(self.map_.grid[pos[0]][pos[1]] == val):
+					continue
+			except:
 				continue
 
 			self.map_.grid[pos[0]][pos[1]] = val
