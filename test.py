@@ -8,6 +8,7 @@ from SelectionPanel import SelectionPanel
 from TileButtonArray import TileButtonArray
 from threading import Thread, Event
 from DrawTools import *
+from ControlButton import *
 
 # for Threading
 def proccess_mouse_events():
@@ -58,8 +59,10 @@ def handle_mouse(ev):
 	global CHANGED_POSITIONS
 	global tbarray
 	global slpan
+	global ctrlbtnarray
 	global screen
 	global LOCK
+	global tiled_screen
 
 	if(ev.type == pg.MOUSEMOTION and HOLD_LCLICK): # Draw continuum
 		CHANGED_POSITIONS.append(get_grid_square(list(pg.mouse.get_pos())))
@@ -82,6 +85,13 @@ def handle_mouse(ev):
 				LOCK.clear()
 				slpan.draw_selected(screen)
 				LOCK.set()
+				return
+			for but in ctrlbtnarray:
+				if(but.click(pg.mouse.get_pos())):
+					m = but.action(tiled_screen.map_)
+					if(m != None):
+						tiled_screen.load_map(m)
+					return
 	elif(ev.type == pg.MOUSEBUTTONDOWN and ev.button == 3): # Right Click
 		mouse_events.append("Right")	
 
@@ -130,8 +140,10 @@ def handle_keyboard(ev):
 mouse_events = []
 
 pg.init()
-screen = pg.display.set_mode((0,0), pg.FULLSCREEN | pg.HWSURFACE)
+
+screen = pg.display.set_mode((0,0), pg.FULLSCREEN | pg.HWSURFACE | pg.DOUBLEBUF) 
 pg.display.set_caption("Chrono Quest")
+
 FPS = 1/60
 TICKRATE = 1/20
 TILE_SIZE = 32
@@ -147,7 +159,7 @@ info = pg.display.Info()
 WIN_WIDTH = info.current_w
 WIN_HEIGHT = info.current_h
 
-m = Map([[1,1,1,1,1,1,1,1,1,1,1],[1,0,1,0,1,0,1,0,1,0,1], [1,1,1,1,1,1,1,1,1,1,1]])
+m = Map([[0]])
 
 # Bevels
 tiles_bev = Bevel(6*WIN_WIDTH/8, WIN_HEIGHT/5, pg.Color(200,200,200,255), (WIN_WIDTH/8,4*WIN_HEIGHT/5))
@@ -160,6 +172,13 @@ tiles_bev.draw(screen)
 sel_bev.draw(screen)
 but_bev.draw(screen)
 
+# Buttons
+save_btn = SaveButton(screen, (7*WIN_WIDTH/8 + 58, 4*WIN_HEIGHT/5 + 12), "save_btn.png", saveas=False)
+saveas_btn = SaveButton(screen, (7*WIN_WIDTH/8 + 58, 4*WIN_HEIGHT/5 + 76), "saveas_btn.png")
+load_btn = LoadButton(screen, (7*WIN_WIDTH/8 + 58, 4*WIN_HEIGHT/5 + 140), "load_btn.png")
+ctrlbtnarray = [save_btn, saveas_btn, load_btn]
+
+# Tiled Display
 tiled_screen = TiledMap(map_bev, m)
 
 # TileButtonArray

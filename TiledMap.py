@@ -27,10 +27,15 @@ class TiledMap():
 		self.undomap = None
 		self.needs_draw = True
 
+	# Loads map from Control Button
+	def load_map(self, new_map):
+		self.map_ = new_map
+		self.needs_draw = True
+		self.map_.gen_draw_grid()
+
 	# Set a single value of grid
 	# pos_list is a list of changed positions
 	def set_map_value(self, pos_list, val):
-
 		self.undomap = Map(None, oldmap=self.map_)
 
 		for pos in pos_list:

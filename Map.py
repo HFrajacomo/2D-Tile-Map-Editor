@@ -1,18 +1,16 @@
 from Tile import Tile
-#from copy import deepcopy
 
 class Map:
 	grid = []
 	draw_grid = []
 	name = ""
 
-
 	def __init__(self, mapdata, mapname="", oldmap=None):
 		# Standard construction
 		if(oldmap == None):
 			self.name = mapname
 
-			if(len(mapdata) < 30 or len(mapdata[0]) < 13):
+			if(len(mapdata) < 27 or len(mapdata[0]) < 61):
 				new_grid =  self.get_submatrix(mapdata, [0,0], 30, 13)
 				self.grid = new_grid
 			else:
