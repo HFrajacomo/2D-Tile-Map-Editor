@@ -4,6 +4,7 @@ from Bevel import Bevel
 from Map import Map
 from Tile import Tile
 from TiledMap import TiledMap
+from SelectionPanel import SelectionPanel
 from TileButtonArray import TileButtonArray
 from threading import Thread, Event
 from DrawTools import *
@@ -15,7 +16,7 @@ def proccess_mouse_events():
 	global QUIT
 	global screen
 	global CHANGED_POSITIONS
-	global SELECTED_TILE
+	global slpan
 
 	while(not QUIT):
 		try:
@@ -25,13 +26,13 @@ def proccess_mouse_events():
 			continue
 
 		if(ev == "Left"):
-			tiled_screen.set_map_value(CHANGED_POSITIONS, SELECTED_TILE)
+			tiled_screen.set_map_value(CHANGED_POSITIONS, slpan.get())
 			CHANGED_POSITIONS = []
 		elif(ev == "Right"):
-			flood_list = flood_fill(tiled_screen, get_grid_square(list(pg.mouse.get_pos())), SELECTED_TILE, [])
+			flood_list = flood_fill(tiled_screen, get_grid_square(list(pg.mouse.get_pos())), slpan.get(), [])
 			if(not flood_list):
 				continue
-			tiled_screen.set_map_value(flood_list, SELECTED_TILE)
+			tiled_screen.set_map_value(flood_list, slpan.get())
 			flood_list = []
 		sleep(0.01)
 
@@ -56,7 +57,9 @@ def handle_mouse(ev):
 	global HOLD_LCLICK
 	global CHANGED_POSITIONS
 	global tbarray
-	global SELECTED_TILE
+	global slpan
+	global screen
+	global LOCK
 
 	if(ev.type == pg.MOUSEMOTION and HOLD_LCLICK): # Draw continuum
 		CHANGED_POSITIONS.append(get_grid_square(list(pg.mouse.get_pos())))
@@ -69,12 +72,16 @@ def handle_mouse(ev):
 		if(pg.mouse.get_pos()[1] <= 4*WIN_HEIGHT/5): # On TiledMap
 			CHANGED_POSITIONS.append(get_grid_square(list(pg.mouse.get_pos())))
 			HOLD_LCLICK = True
-		else:  # In button stream
-			for button in tbarray:
+		else:  # In panels
+			for button in tbarray: # in Tiles Bevel
 				if(button.click(pg.mouse.get_pos()) != None):
-					SELECTED_TILE = button.click(pg.mouse.get_pos())
-					break
-
+					slpan.update_selected(button.click(pg.mouse.get_pos()))
+					slpan.draw_tiles(screen)
+					return
+			if(slpan.click(screen, pg.mouse.get_pos())): # Checks and handles Selection panel clicks
+				LOCK.clear()
+				slpan.draw_selected(screen)
+				LOCK.set()
 	elif(ev.type == pg.MOUSEBUTTONDOWN and ev.button == 3): # Right Click
 		mouse_events.append("Right")	
 
@@ -87,9 +94,10 @@ def handle_keyboard(ev):
 	global DRAW_GRID
 	global LOCK
 	global tbarray
+	global slpan
+	global screen
 
 	mods = pg.key.get_mods()
-
 	if(pg.key.name(ev.key) == "escape"): # ESC
 		QUIT = True
 	elif(pg.key.name(ev.key) == "tab"): # Tab
@@ -98,7 +106,20 @@ def handle_keyboard(ev):
 			LOCK.clear()
 			tiled_screen.clear_grid(screen)
 			LOCK.set()
-	elif(pg.key.name(ev.key) == "z" and mods & pg.KMOD_CTRL): # Ctrl + Z
+
+	# Number keys
+	try:
+		num = int(pg.key.name(ev.key))
+		if(num != 0):
+			slpan.select(int(pg.key.name(ev.key))-1)
+			LOCK.clear()
+			slpan.draw_selected(screen)
+			LOCK.set()
+			return
+	except:
+		pass
+
+	if(pg.key.name(ev.key) == "z" and mods & pg.KMOD_CTRL): # Ctrl + Z
 		tiled_screen.undo_map()
 	elif(pg.key.name(ev.key) == "q"):
 		tbarray.change_page(screen, forward=False)
@@ -121,7 +142,6 @@ CHANGED_POSITIONS = []
 DRAW_GRID = False
 LOCK = Event()
 LOCK.set()
-SELECTED_TILE = 2
 
 info = pg.display.Info()
 WIN_WIDTH = info.current_w
@@ -145,6 +165,10 @@ tiled_screen = TiledMap(map_bev, m)
 # TileButtonArray
 tbarray = TileButtonArray(tiles_bev, [WIN_WIDTH/8 +40,4*WIN_HEIGHT/5])
 
+# SelectionPanel
+slpan = SelectionPanel(sel_bev, (8,4*WIN_HEIGHT/5))
+slpan.draw_selected(screen)
+
 threads.append(Thread(target=screen_refresh))
 threads.append(Thread(target=proccess_mouse_events))
 
@@ -156,6 +180,7 @@ tbarray.draw_buttons(screen)
 
 while(not QUIT):
 	for ev in pg.event.get():
+		LOCK.wait()
 		if(ev.type in [pg.QUIT, pg.MOUSEBUTTONDOWN, pg.MOUSEMOTION, pg.MOUSEBUTTONUP]):
 			handle_mouse(ev)
 		elif(ev.type in [pg.KEYDOWN]):

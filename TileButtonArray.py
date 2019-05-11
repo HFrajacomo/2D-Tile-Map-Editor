@@ -49,15 +49,9 @@ class TileButtonArray:
 			self.buttons.append(TileButton((h_value, pos[1] + v_spac + (int(size + v_spac))*row*scaling), size, int(line.split("\t")[0])))
 			j += 1
 
-	def __iter__(self):
-		return self.buttons
-
-	def __getitem__(self, i):
-		return self.buttons[i]
 
 	def __iter__(self):
 		return iter(self.buttons)
-
 
 	def draw_buttons(self, screen):
 		for b in self.buttons:
