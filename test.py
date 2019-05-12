@@ -30,12 +30,15 @@ def proccess_mouse_events():
 			tiled_screen.set_map_value(CHANGED_POSITIONS, slpan.get())
 			CHANGED_POSITIONS = []
 		elif(ev == "Right"):
-			flood_list = flood_fill(tiled_screen, get_grid_square(list(pg.mouse.get_pos())), slpan.get(), [])
+			flood_list = flood_fill(tiled_screen, tupsum(tuple(get_grid_square(pg.mouse.get_pos())), tiled_screen.win_cord), slpan.get(), [])
 			if(not flood_list):
 				continue
 			tiled_screen.set_map_value(flood_list, slpan.get())
 			flood_list = []
 		sleep(0.01)
+
+def tupsum(tuple1, tuple2):
+	return (tuple1[0]+tuple2[1], tuple1[1]+tuple2[0])
 
 # for Threading
 def screen_refresh():
@@ -77,7 +80,7 @@ def handle_mouse(ev):
 			LOCK.set()
 
 	if(ev.type == pg.MOUSEMOTION and HOLD_LCLICK): # Draw continuum
-		CHANGED_POSITIONS.append(get_grid_square(list(pg.mouse.get_pos())))
+		CHANGED_POSITIONS.append(tupsum(get_grid_square(pg.mouse.get_pos()), tiled_screen.win_cord))
 
 	elif(ev.type == pg.MOUSEBUTTONUP and ev.button == 1):
 		HOLD_LCLICK = False	
@@ -85,7 +88,7 @@ def handle_mouse(ev):
 
 	elif(ev.type == pg.MOUSEBUTTONDOWN and ev.button == 1): # Left Click
 		if(pg.mouse.get_pos()[1] <= 4*WIN_HEIGHT/5): # On TiledMap
-			CHANGED_POSITIONS.append(get_grid_square(list(pg.mouse.get_pos())))
+			CHANGED_POSITIONS.append(tupsum(get_grid_square(pg.mouse.get_pos()), tiled_screen.win_cord))
 			HOLD_LCLICK = True
 		else:  # In panels
 			for button in tbarray: # in Tiles Bevel
@@ -148,6 +151,14 @@ def handle_keyboard(ev):
 	elif(pg.key.name(ev.key) == "e"):
 		tbarray.change_page(screen)
 
+	elif(pg.key.name(ev.key) == "a"):
+		tiled_screen.win_move(dx=-1)
+	elif(pg.key.name(ev.key) == "d"):
+		tiled_screen.win_move(dx=1)
+	elif(pg.key.name(ev.key) == "s"):
+		tiled_screen.win_move(dy=1)
+	elif(pg.key.name(ev.key) == "w"):
+		tiled_screen.win_move(dy=-1)
 
 mouse_events = []
 

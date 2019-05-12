@@ -20,6 +20,47 @@ class TiledMap():
 	def __getitem__(self, i):
 		return self.map_.grid[i]
 
+	# Moves windowed view
+	def win_move(self, dx=0, dy=0):
+		new_x = self.win_cord[0] + dx
+		new_y = self.win_cord[1] + dy 
+
+		if(new_x < 0):
+			for i in range(new_x, 0):
+				for j in range(len(self.map_.grid)):
+					self.map_.grid[j].insert(0, -1)
+					self.map_.draw_grid[j].insert(0, True)
+			new_x = 0
+
+		elif(new_x >= len(self.map_.grid[0]) - 60):
+			for i in range(new_x, len(self.map_.grid[0])-61, -1):
+				for j in range(len(self.map_.grid)):
+					self.map_.grid[j].append(-1)
+					self.map_.draw_grid[j].append(True)
+			new_x = len(self.map_.grid[0])-61
+
+		if(new_y < 0):
+			for i in range(new_y, 0):
+				self.map_.grid.insert(0, [])
+				self.map_.draw_grid.insert(0, [])
+				for j in range(len(self.map_.grid[1])):
+					self.map_.grid[0].append(-1)
+					self.map_.draw_grid[0].append(True)
+			new_y = 0
+
+		elif(new_y >= len(self.map_.grid)-26):
+			for i in range(new_y, len(self.map_.grid)-27, -1):
+				self.map_.grid.append([])
+				self.map_.draw_grid.append([])
+				for j in range(len(self.map_.grid[1])):
+					self.map_.grid[-1].append(-1)
+					self.map_.draw_grid[-1].append(True)
+			new_y = len(self.map_.grid)-27
+
+		self.map_.gen_draw_grid()
+		self.win_cord = (new_x, new_y)
+		self.needs_draw = True
+
 	# Ctrl + Z function. Changes back to undomap
 	def undo_map(self):
 		if(self.undomap == None):
@@ -42,13 +83,13 @@ class TiledMap():
 
 		for pos in pos_list:
 			try:
-				if(self.map_.grid[pos[0]+self.win_cord[0]][pos[1]+self.win_cord[1]] == val):
+				if(self.map_.grid[pos[0]][pos[1]] == val):
 					continue
 			except:
 				continue
 
-			self.map_.grid[pos[0]+self.win_cord[0]][pos[1]+self.win_cord[1]] = val
-			self.map_.draw_grid[pos[0]+self.win_cord[0]][pos[1]+self.win_cord[1]] = True
+			self.map_.grid[pos[0]][pos[1]] = val
+			self.map_.draw_grid[pos[0]][pos[1]] = True
 			self.needs_draw = True
 
 	# Draws all blits to screen all grid
@@ -99,13 +140,18 @@ class TiledMap():
 
 	# Multi-threaded accelerated function
 	def update_row(self, screen, i, direc, size=32):
+		new_i = i - self.win_cord[1]
 		if(direc):
+			k = 0
 			for j in range(self.win_cord[0],self.win_cord[0]+30):
 				if(self.map_.draw_grid[i][j]):
 					self.map_.draw_grid[i][j] = False
-					screen.blit(Tile(self.map_.grid[i][j]).image, (j*size, i*size))
+					screen.blit(Tile(self.map_.grid[i][j]).image, (k*size, new_i*size))
+				k +=1
 		else:
+			k = 59
 			for j in range(self.win_cord[0]+59,self.win_cord[0]-1,-1):
 				if(self.map_.draw_grid[i][j]):
 					self.map_.draw_grid[i][j] = False
-					screen.blit(Tile(self.map_.grid[i][j]).image, (j*size, i*size))
+					screen.blit(Tile(self.map_.grid[i][j]).image, (k*size, new_i*size))
+				k -=1
