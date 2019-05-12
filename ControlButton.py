@@ -36,7 +36,7 @@ class SaveButton(Button):
 	def save(self, map_):
 		# Save as
 		if(map_.name == "" or self.saveas):
-			name = filesavebox(title="Save Map")
+			name = filesavebox(title="Save Map", default="Maps\\")
 			if(name != None):
 				file = open(os.path.splitext(name)[0] + ".map", "w")
 				file.write(">" + os.path.splitext(os.path.basename(name))[0] + "\n")
@@ -62,7 +62,7 @@ class LoadButton(Button):
 		return self.load()
 
 	def load(self):	
-		filename = fileopenbox(title="Load map", filetypes=["*.map"])
+		filename = fileopenbox(title="Load map", filetypes=["*.map"], default="Maps\\")
 		map_name = ""
 		map_data = []
 		if(filename != None):

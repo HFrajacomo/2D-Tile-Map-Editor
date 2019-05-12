@@ -37,7 +37,10 @@ class SelectionPanel:
 		return False
 
 	def select(self, i):
+		if(i>8 or i<0):
+			return False
 		self.selected = i
+		return True
 
 	def draw_tiles(self, screen):
 		for i in range(len(self.button_pos)):

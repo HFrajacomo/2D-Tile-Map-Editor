@@ -5,6 +5,7 @@ from time import sleep
 from threading import Thread
 
 class TiledMap():
+	win_cord = (0,0)
 	map_ = ""  # Sub-map for Tiled Window
 	undomap = None # Ctrl + Z Accessed
 	bev_ = ""  # Bevel object of the Tiled Window
@@ -14,6 +15,7 @@ class TiledMap():
 		self.bev_ = bevel
 		self.map_ = map_obj
 		self.needs_draw = True
+		self.win_cord = (0,0)
 
 	def __getitem__(self, i):
 		return self.map_.grid[i]
@@ -40,19 +42,19 @@ class TiledMap():
 
 		for pos in pos_list:
 			try:
-				if(self.map_.grid[pos[0]][pos[1]] == val):
+				if(self.map_.grid[pos[0]+self.win_cord[0]][pos[1]+self.win_cord[1]] == val):
 					continue
 			except:
 				continue
 
-			self.map_.grid[pos[0]][pos[1]] = val
-			self.map_.draw_grid[pos[0]][pos[1]] = True
+			self.map_.grid[pos[0]+self.win_cord[0]][pos[1]+self.win_cord[1]] = val
+			self.map_.draw_grid[pos[0]+self.win_cord[0]][pos[1]+self.win_cord[1]] = True
 			self.needs_draw = True
 
 	# Draws all blits to screen all grid
 	def draw_all(self, screen, pos=[0,0], size=32):
-		for i in range(0,len(self.map_.grid)):
-			for j in range(0,len(self.map_.grid[i])):
+		for i in range(self.win_cord[1],self.win_cord[1]+27):
+			for j in range(self.win_cord[0],self.win_cord[0]+60):
 				self.bev_.surf.blit(Tile(self.map_.grid[i][j]).image, (j*size, i*size))
 		self.map_.gen_draw_grid(val=False)
 		self.needs_draw = False
@@ -68,6 +70,8 @@ class TiledMap():
 			for j in range(0,len(self.map_.grid[0])):
 				self.map_.draw_grid[i][j] = True
 
+		self.update_tiles(screen)
+
 	# Draws gridded screen
 	def draw_grid(self, screen, pos=[0,0], size=32):
 		for i in range(0, self.bev_.surf.get_width(), size):
@@ -80,7 +84,7 @@ class TiledMap():
 		threads = []
 		if(not self.needs_draw):
 			return
-		for i in range(0,len(self.map_.grid)):
+		for i in range(self.win_cord[1], self.win_cord[1]+27):
 			threads.append(Thread(target=self.update_row, args=(screen, i, True)))
 			threads[-1].start()
 			threads.append(Thread(target=self.update_row, args=(screen, i, False)))
@@ -96,12 +100,12 @@ class TiledMap():
 	# Multi-threaded accelerated function
 	def update_row(self, screen, i, direc, size=32):
 		if(direc):
-			for j in range(0,int(len(self.map_.grid[0])/2)):
+			for j in range(self.win_cord[0],self.win_cord[0]+30):
 				if(self.map_.draw_grid[i][j]):
 					self.map_.draw_grid[i][j] = False
 					screen.blit(Tile(self.map_.grid[i][j]).image, (j*size, i*size))
 		else:
-			for j in range(len(self.map_.grid[0])-1,-1,-1):
+			for j in range(self.win_cord[0]+59,self.win_cord[0]-1,-1):
 				if(self.map_.draw_grid[i][j]):
 					self.map_.draw_grid[i][j] = False
 					screen.blit(Tile(self.map_.grid[i][j]).image, (j*size, i*size))

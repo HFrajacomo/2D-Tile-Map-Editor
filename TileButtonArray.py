@@ -32,10 +32,8 @@ class TileButtonArray:
 
 		self.page_number = int(len(lines)/self.n)
 
-
 		j = 0
 		row = 0
-
 		
 		for line in lines:
 			h_value = pos[0] + (j)*size*scaling + (j)*self.h_spacing

@@ -66,15 +66,15 @@ def handle_mouse(ev):
 
 	# Scroll function
 	if(ev.type == pg.MOUSEBUTTONDOWN and ev.button == 4):
-		slpan.select(slpan.selected-1)
-		LOCK.clear()
-		slpan.draw_selected(screen)
-		LOCK.set()
+		if(slpan.select(slpan.selected-1)):
+			LOCK.clear()
+			slpan.draw_selected(screen)
+			LOCK.set()
 	elif(ev.type == pg.MOUSEBUTTONDOWN and ev.button == 5):
-		slpan.select(slpan.selected+1)
-		LOCK.clear()
-		slpan.draw_selected(screen)
-		LOCK.set()
+		if(slpan.select(slpan.selected+1)):
+			LOCK.clear()
+			slpan.draw_selected(screen)
+			LOCK.set()
 
 	if(ev.type == pg.MOUSEMOTION and HOLD_LCLICK): # Draw continuum
 		CHANGED_POSITIONS.append(get_grid_square(list(pg.mouse.get_pos())))
@@ -133,10 +133,10 @@ def handle_keyboard(ev):
 	try:
 		num = int(pg.key.name(ev.key))
 		if(num != 0):
-			slpan.select(int(pg.key.name(ev.key))-1)
-			LOCK.clear()
-			slpan.draw_selected(screen)
-			LOCK.set()
+			if(slpan.select(int(pg.key.name(ev.key))-1)):
+				LOCK.clear()
+				slpan.draw_selected(screen)
+				LOCK.set()
 			return
 	except:
 		pass
