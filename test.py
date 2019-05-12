@@ -66,6 +66,8 @@ def handle_mouse(ev):
 	global screen
 	global LOCK
 	global tiled_screen
+	global HOLD_MCLICK
+	global SELECTED_TILE
 
 	# Scroll function
 	if(ev.type == pg.MOUSEBUTTONDOWN and ev.button == 4):
@@ -78,6 +80,17 @@ def handle_mouse(ev):
 			LOCK.clear()
 			slpan.draw_selected(screen)
 			LOCK.set()
+
+	# Mid Click
+	if(ev.type == pg.MOUSEBUTTONDOWN and ev.button == 2):
+		HOLD_MCLICK = True
+		SELECTED_TILE = get_grid_square(pg.mouse.get_pos())
+
+	elif(ev.type == pg.MOUSEBUTTONUP and ev.button == 2 and HOLD_MCLICK):
+		HOLD_MCLICK = False
+		new_square = get_grid_square(pg.mouse.get_pos())
+		dxy = (SELECTED_TILE[0] - new_square[0], SELECTED_TILE[1] - new_square[1])
+		tiled_screen.win_move(dx= dxy[1], dy= dxy[0])
 
 	if(ev.type == pg.MOUSEMOTION and HOLD_LCLICK): # Draw continuum
 		CHANGED_POSITIONS.append(tupsum(get_grid_square(pg.mouse.get_pos()), tiled_screen.win_cord))
@@ -103,9 +116,10 @@ def handle_mouse(ev):
 				return
 			for but in ctrlbtnarray:
 				if(but.click(pg.mouse.get_pos())):
-					m = but.action(tiled_screen.map_)
+					m, cord = but.action(tiled_screen)
 					if(m != None):
 						tiled_screen.load_map(m)
+						tiled_screen.win_cord = cord
 					return
 	elif(ev.type == pg.MOUSEBUTTONDOWN and ev.button == 3): # Right Click
 		mouse_events.append("Right")	
@@ -146,6 +160,16 @@ def handle_keyboard(ev):
 
 	if(pg.key.name(ev.key) == "z" and mods & pg.KMOD_CTRL): # Ctrl + Z
 		tiled_screen.undo_map()
+
+	elif(pg.key.name(ev.key) == "a" and mods & pg.KMOD_SHIFT):
+		tiled_screen.win_move(dx=-30)	
+	elif(pg.key.name(ev.key) == "d" and mods & pg.KMOD_SHIFT):
+		tiled_screen.win_move(dx=30)
+	elif(pg.key.name(ev.key) == "s" and mods & pg.KMOD_SHIFT):
+		tiled_screen.win_move(dy=30)
+	elif(pg.key.name(ev.key) == "w" and mods & pg.KMOD_SHIFT):
+		tiled_screen.win_move(dy=-30)
+
 	elif(pg.key.name(ev.key) == "q"):
 		tbarray.change_page(screen, forward=False)
 	elif(pg.key.name(ev.key) == "e"):
@@ -173,6 +197,8 @@ TILE_SIZE = 32
 threads = []
 QUIT = False
 HOLD_LCLICK = False
+HOLD_MCLICK = False
+SELECTED_TILE = (0,0)
 CHANGED_POSITIONS = []
 DRAW_GRID = False
 LOCK = Event()

@@ -30,23 +30,23 @@ class SaveButton(Button):
 
 		screen.blit(self.image, self.pos)
 
-	def action(self, map_):
-		self.save(map_)
+	def action(self, tiledmap):
+		return self.save(tiledmap), None
 
-	def save(self, map_):
+	def save(self, tiledmap):
 		# Save as
-		if(map_.name == "" or self.saveas):
+		if(tiledmap.map_.name == "" or self.saveas):
 			name = filesavebox(title="Save Map", default="Maps\\")
 			if(name != None):
 				file = open(os.path.splitext(name)[0] + ".map", "w")
-				file.write(">" + os.path.splitext(os.path.basename(name))[0] + "\n")
-				for row in map_.grid:
+				file.write(">" + os.path.splitext(os.path.basename(name))[0] + "\t" + str(tiledmap.win_cord) + "\n")
+				for row in tiledmap.map_.grid:
 					file.write(",".join([str(x) for x in row]) + "\n")
 		# Save
 		else:
-			file = open(map_.name + ".map", "w")
-			file.write(">" + map_.name + "\n")
-			for row in map_.grid:
+			file = open("Maps\\" + tiledmap.map_.name + ".map", "w")
+			file.write(">" + tiledmap.map_.name + "\t" + str(tiledmap.win_cord) + "\n")
+			for row in tiledmap.map_.grid:
 				file.write(",".join([str(x) for x in row]) + "\n")
 			file.close()
 
@@ -58,7 +58,7 @@ class LoadButton(Button):
 
 		screen.blit(self.image, self.pos)
 
-	def action(self, map_):
+	def action(self, tiledmap):
 		return self.load()
 
 	def load(self):	
@@ -71,8 +71,9 @@ class LoadButton(Button):
 			file.close()
 			for i in range(len(lines)):
 				if(i == 0):
-					map_name = lines[i][1:].replace("\n", "")
+					map_name = lines[i][1:].split("\t")[0]
+					map_cord =(int(lines[i][1:].split("\t")[1].split(",")[0].replace("(", "")), int(lines[i][1:].split("\t")[1].split(",")[1].replace(")", "")))
 				else:
 					map_data.append([int(x) for x in lines[i].split(",")])
 
-			return Map(map_data, mapname=map_name)
+			return Map(map_data, mapname=map_name), map_cord
