@@ -77,3 +77,19 @@ class LoadButton(Button):
 					map_data.append([int(x) for x in lines[i].split(",")])
 
 			return Map(map_data, mapname=map_name), map_cord
+
+class NewButton(Button):
+
+	def __init__(self, screen, pos, img_name):
+		self.pos = pos
+		self.image = pg.image.load("Images\\" + img_name)
+		self.hitbox = pg.Rect(pos, (self.image.get_width(), self.image.get_height()))
+
+		screen.blit(self.image, self.pos)
+
+	def action(self, tiledmap):
+		return self.new(tiledmap), None
+
+	def new(self, tiledmap):
+		tiledmap.win_cord = (0,0)
+		tiledmap.load_map(Map([[-1]], mapname=""))

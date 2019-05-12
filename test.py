@@ -208,7 +208,7 @@ info = pg.display.Info()
 WIN_WIDTH = info.current_w
 WIN_HEIGHT = info.current_h
 
-m = Map([[0]])
+m = Map([[-1]])
 
 # Bevels
 tiles_bev = Bevel(6*WIN_WIDTH/8, WIN_HEIGHT/5, pg.Color(200,200,200,255), (WIN_WIDTH/8,4*WIN_HEIGHT/5))
@@ -222,10 +222,11 @@ sel_bev.draw(screen)
 but_bev.draw(screen)
 
 # Buttons
-save_btn = SaveButton(screen, (7*WIN_WIDTH/8 + 58, 4*WIN_HEIGHT/5 + 12), "save_btn.png", saveas=False)
-saveas_btn = SaveButton(screen, (7*WIN_WIDTH/8 + 58, 4*WIN_HEIGHT/5 + 76), "saveas_btn.png")
-load_btn = LoadButton(screen, (7*WIN_WIDTH/8 + 58, 4*WIN_HEIGHT/5 + 140), "load_btn.png")
-ctrlbtnarray = [save_btn, saveas_btn, load_btn]
+save_btn = SaveButton(screen, (7*WIN_WIDTH/8 + 30, 4*WIN_HEIGHT/5 + 12), "save_btn.png", saveas=False)
+saveas_btn = SaveButton(screen, (7*WIN_WIDTH/8 + 30, 4*WIN_HEIGHT/5 + 76), "saveas_btn.png")
+load_btn = LoadButton(screen, (7*WIN_WIDTH/8 + 30, 4*WIN_HEIGHT/5 + 140), "load_btn.png")
+new_btn = NewButton(screen, (7*WIN_WIDTH/8 + 159, 4*WIN_HEIGHT/5 + 44), "new_btn.png")
+ctrlbtnarray = [save_btn, saveas_btn, load_btn, new_btn]
 
 # Tiled Display
 tiled_screen = TiledMap(map_bev, m)
