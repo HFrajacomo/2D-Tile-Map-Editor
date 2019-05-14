@@ -1,12 +1,16 @@
 import pygame as pg
+import sys
 from time import sleep
+from threading import Thread, Event
+
+sys.path.append('MapEditor\\')
+
 from Bevel import Bevel
 from Map import Map
 from Tile import Tile
 from TiledMap import TiledMap
 from SelectionPanel import SelectionPanel
 from TileButtonArray import TileButtonArray
-from threading import Thread, Event
 from DrawTools import *
 from ControlButton import *
 
@@ -40,11 +44,13 @@ def proccess_mouse_events():
 def tupsum(tuple1, tuple2):
 	return (tuple1[0]+tuple2[1], tuple1[1]+tuple2[0])
 
+
 # for Threading
 def screen_refresh():
 	global QUIT
 	global DRAW_GRID
 	global LOCK
+	global test
 
 	while(not QUIT):
 		LOCK.clear()
@@ -127,6 +133,7 @@ def handle_mouse(ev):
 	elif(ev.type == pg.QUIT):
 		QUIT = True
 
+
 def handle_keyboard(ev):
 	global QUIT
 	global tiled_screen
@@ -144,6 +151,7 @@ def handle_keyboard(ev):
 		if(not DRAW_GRID):
 			LOCK.clear()
 			tiled_screen.clear_grid(screen)
+			test.set_
 			LOCK.set()
 
 	# Number keys
@@ -183,6 +191,16 @@ def handle_keyboard(ev):
 		tiled_screen.win_move(dy=1)
 	elif(pg.key.name(ev.key) == "w"):
 		tiled_screen.win_move(dy=-1)
+	elif(pg.key.name(ev.key) == "p"):
+		tiled_screen.bev_.surf.fill((0,0,0), special_flags=pg.BLEND_ADD)
+		tiled_screen.bev_.surf.set_alpha(20)
+		screen.blit(tiled_screen.bev_.surf, (0,0))
+	elif(pg.key.name(ev.key) == "o"):
+		tiled_screen.bev_.surf.fill((255,255,255), special_flags=pg.BLEND_ADD)
+		tiled_screen.bev_.surf.set_alpha(20)
+		screen.blit(tiled_screen.bev_.surf, (0,0))
+	elif(pg.key.name(ev.key) == "r"):
+		tiled_screen.map_.gen_draw_grid()
 
 mouse_events = []
 
@@ -237,6 +255,9 @@ tbarray = TileButtonArray(tiles_bev, [WIN_WIDTH/8 +40,4*WIN_HEIGHT/5])
 # SelectionPanel
 slpan = SelectionPanel(sel_bev, (8,4*WIN_HEIGHT/5))
 slpan.draw_selected(screen)
+
+# TEST
+
 
 threads.append(Thread(target=screen_refresh))
 threads.append(Thread(target=proccess_mouse_events))
