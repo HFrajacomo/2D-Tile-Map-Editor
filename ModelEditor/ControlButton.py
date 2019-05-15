@@ -33,6 +33,7 @@ class SaveButton(Button):
 		name = filesavebox(title="Save Model", default="ModelEditor\\Models\\")
 		if(name != None):
 			surface = screen.subsurface(pg.Rect((tup[0]/2-64, tup[1]/2-64), (128,128)))
+			surface = pg.transform.scale(surface, (32,32))
 			pg.image.save(surface, name + ".png")
 
 
@@ -55,7 +56,11 @@ class LoadButton(Button):
 		if(filename == None):
 			return None, None
 
-		image = pg.transform.scale(pg.image.load(filename), (128,128))
+		if(not self.code):
+			image = pg.transform.scale(pg.image.load(filename), (128,128))
+		else:
+			image = pg.transform.scale(pg.image.load(filename), (256*2,512*2))
+
 		image = image.convert_alpha()
 
 
@@ -64,16 +69,22 @@ class LoadButton(Button):
 class NewButton(Button):
 	code = False
 
-	def __init__(self, screen, pos, img_name):
+	def __init__(self, screen, pos, img_name, code):
 		self.pos = pos
+		self.code = code
 		self.image = pg.image.load("ModelEditor\\Images\\" + img_name)
 		self.hitbox = pg.Rect(pos, (self.image.get_width(), self.image.get_height()))
 
 		screen.blit(self.image, self.pos)
 
 	def action(self, screen, tup, surface):
-		return self.new(surface), None
+		return None, self.new(surface)
 
 	def new(self, surface):
 		surface.fill((0,0,0))
 		surface.convert_alpha()
+
+		if(self.code):
+			return None, "newmodel"
+		else:
+			return None, "newtile"

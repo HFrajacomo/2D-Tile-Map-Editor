@@ -24,16 +24,21 @@ def update_model():
 	FILTER_SURFACE.fill((0,0,0))
 	FILTER_SURFACE.fill((r_box.get_value(),g_box.get_value(),b_box.get_value()), special_flags=pg.BLEND_ADD)
 	FILTER_SURFACE.set_alpha(a_box.get_value())	
-	if(not EDITORMODE):
+	if(not EDITORMODE): # Tile
 		screen.blit(MODEL_SURFACE, (WIN_WIDTH/2-64, WIN_HEIGHT/2-64))
 		screen.blit(FILTER_SURFACE, (WIN_WIDTH/2-64, WIN_HEIGHT/2-64))		
 		pg.display.update(pg.Rect((WIN_WIDTH/2-64, WIN_HEIGHT/2-64), (128,128)))
+	else: # Model
+		screen.blit(MODEL_SURFACE, (WIN_WIDTH/2-256, WIN_HEIGHT/2-512))
+		screen.blit(FILTER_SURFACE, (WIN_WIDTH/2-256, WIN_HEIGHT/2-512))		
+		pg.display.update(pg.Rect((WIN_WIDTH/2-256, WIN_HEIGHT/2-512), (256*2,512*2)))	
 
 
 def handle_mouse(ev):
 	global MODEL_SURFACE
 	global FILTER_SURFACE
 	global screen
+	global EDITORMODE
 
 	if(ev.type == pg.MOUSEBUTTONDOWN and ev.button == 1): # Left Click
 		for but in btnarray:
@@ -41,12 +46,33 @@ def handle_mouse(ev):
 				img, cod = but.action(screen, (WIN_WIDTH, WIN_HEIGHT), MODEL_SURFACE)	
 				if(img != None):
 					EDITORMODE = cod
+					if(EDITORMODE == False):
+						FILTER_SURFACE = pg.transform.scale(pg.image.load("ModelEditor\\Images\\none.png"), (128,128))
+					else:
+						FILTER_SURFACE = pg.transform.scale(pg.image.load("ModelEditor\\Images\\none.png"), (256*2,512*2))		
 					MODEL_SURFACE = img
 					r_box.reset(screen)
 					g_box.reset(screen)
 					b_box.reset(screen)
 					a_box.reset(screen)
 					update_model()
+				elif(cod == "newtile"):
+					EDITORMODE = False
+					FILTER_SURFACE = pg.transform.scale(pg.image.load("ModelEditor\\Images\\none.png"), (128,128))
+					r_box.reset(screen)
+					g_box.reset(screen)
+					b_box.reset(screen)
+					a_box.reset(screen)
+					update_model()	
+				elif(cod == "newmodel"):	
+					EDITORMODE = True
+					FILTER_SURFACE = pg.transform.scale(pg.image.load("ModelEditor\\Images\\none.png"), (256,512))		
+					r_box.reset(screen)
+					g_box.reset(screen)
+					b_box.reset(screen)
+					a_box.reset(screen)
+					update_model()	
+
 
 def handle_keyboard(ev):
 	global QUIT
@@ -170,8 +196,8 @@ b_box = IntegerBox(32, (7*WIN_WIDTH/8 + 30, 150), (0,0,255))
 b_box.change_value(screen, 0)
 
 # Control Buttons
-newtil_btn = NewButton(screen, (7*WIN_WIDTH/8 + 60, WIN_HEIGHT/2 + 20), "newtile_btn.png")
-newmod_btn = NewButton(screen, (7*WIN_WIDTH/8 + 60, WIN_HEIGHT/2 + 100), "newmodel_btn.png")
+newtil_btn = NewButton(screen, (7*WIN_WIDTH/8 + 60, WIN_HEIGHT/2 + 20), "newtile_btn.png", False)
+newmod_btn = NewButton(screen, (7*WIN_WIDTH/8 + 60, WIN_HEIGHT/2 + 100), "newmodel_btn.png", True)
 loadtile_btn = LoadButton(screen, (7*WIN_WIDTH/8 + 60, WIN_HEIGHT/2 + 180), "loadtile_btn.png", False)
 loadmodel_btn = LoadButton(screen, (7*WIN_WIDTH/8 + 60, WIN_HEIGHT/2 + 260), "loadmodel_btn.png", True)
 save_btn = SaveButton(screen, (7*WIN_WIDTH/8 + 60, WIN_HEIGHT/2 + 340), "save_btn.png")
