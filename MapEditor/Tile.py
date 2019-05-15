@@ -16,8 +16,8 @@ class Tile:
 
 def get_tile_index(id):
 	if(id <= 0):
-		return "Tiles\\none.png"
+		return "MapEditor\\Tiles\\none.png"
 
-	ref = open("Tiles\\Tile_ref", "r")
+	ref = open("MapEditor\\Tiles\\Tile_ref", "r")
 	data = ref.read()
-	return "Tiles\\" + data.split("\n")[id].split("\t")[1]
+	return "MapEditor\\Tiles\\" + data.split("\n")[id].split("\t")[1]

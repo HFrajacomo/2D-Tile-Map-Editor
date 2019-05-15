@@ -26,7 +26,7 @@ class TileButtonArray:
 		self.scaling = scaling
 		self.current_page = 0
 
-		file = open("Tiles\\Tile_ref", "r")
+		file = open("MapEditor\\Tiles\\Tile_ref", "r")
 		lines = file.readlines()
 		file.close()
 
@@ -68,7 +68,7 @@ class TileButtonArray:
 			self.current_page -= 1
 
 
-		file = open("Tiles\\Tile_ref", "r")
+		file = open("MapEditor\\Tiles\\Tile_ref", "r")
 		lines = file.readlines()
 		file.close()
 

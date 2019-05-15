@@ -144,6 +144,7 @@ def handle_keyboard(ev):
 	global screen
 
 	mods = pg.key.get_mods()
+
 	if(pg.key.name(ev.key) == "escape"): # ESC
 		QUIT = True
 	elif(pg.key.name(ev.key) == "tab"): # Tab
@@ -151,7 +152,6 @@ def handle_keyboard(ev):
 		if(not DRAW_GRID):
 			LOCK.clear()
 			tiled_screen.clear_grid(screen)
-			test.set_
 			LOCK.set()
 
 	# Number keys
@@ -191,6 +191,7 @@ def handle_keyboard(ev):
 		tiled_screen.win_move(dy=1)
 	elif(pg.key.name(ev.key) == "w"):
 		tiled_screen.win_move(dy=-1)
+		
 	elif(pg.key.name(ev.key) == "p"):
 		tiled_screen.bev_.surf.fill((0,0,0), special_flags=pg.BLEND_ADD)
 		tiled_screen.bev_.surf.set_alpha(20)
@@ -207,7 +208,7 @@ mouse_events = []
 pg.init()
 
 screen = pg.display.set_mode((0,0), pg.FULLSCREEN | pg.HWSURFACE | pg.DOUBLEBUF) 
-pg.display.set_caption("Chrono Quest")
+pg.display.set_caption("Map Editor")
 
 FPS = 1/60
 TICKRATE = 1/20

@@ -25,7 +25,7 @@ class SaveButton(Button):
 	def __init__(self, screen, pos, img_name, saveas=True):
 		self.saveas = saveas
 		self.pos = pos
-		self.image = pg.image.load("Images\\" + img_name)
+		self.image = pg.image.load("MapEditor\\Images\\" + img_name)
 		self.hitbox = pg.Rect(pos, (self.image.get_width(), self.image.get_height()))
 
 		screen.blit(self.image, self.pos)
@@ -36,7 +36,7 @@ class SaveButton(Button):
 	def save(self, tiledmap):
 		# Save as
 		if(tiledmap.map_.name == "" or self.saveas):
-			name = filesavebox(title="Save Map", default="Maps\\")
+			name = filesavebox(title="Save Map", default="MapEditor\\Maps\\")
 			if(name != None):
 				file = open(os.path.splitext(name)[0] + ".map", "w")
 				file.write(">" + os.path.splitext(os.path.basename(name))[0] + "\t" + str(tiledmap.win_cord) + "\n")
@@ -53,7 +53,7 @@ class SaveButton(Button):
 class LoadButton(Button):
 	def __init__(self, screen, pos, img_name):
 		self.pos = pos
-		self.image = pg.image.load("Images\\" + img_name)
+		self.image = pg.image.load("MapEditor\\Images\\" + img_name)
 		self.hitbox = pg.Rect(pos, (self.image.get_width(), self.image.get_height()))
 
 		screen.blit(self.image, self.pos)
@@ -62,7 +62,7 @@ class LoadButton(Button):
 		return self.load()
 
 	def load(self):	
-		filename = fileopenbox(title="Load map", filetypes=["*.map"], default="Maps\\")
+		filename = fileopenbox(title="Load map", filetypes=["*.map"], default="MapEditor\\Maps\\")
 		map_name = ""
 		map_data = []
 		if(filename != None):
@@ -82,7 +82,7 @@ class NewButton(Button):
 
 	def __init__(self, screen, pos, img_name):
 		self.pos = pos
-		self.image = pg.image.load("Images\\" + img_name)
+		self.image = pg.image.load("MapEditor\\Images\\" + img_name)
 		self.hitbox = pg.Rect(pos, (self.image.get_width(), self.image.get_height()))
 
 		screen.blit(self.image, self.pos)
