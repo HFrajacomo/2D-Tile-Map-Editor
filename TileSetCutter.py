@@ -27,11 +27,13 @@ argv[2] = tile size
 '''
 
 filename = sys.argv[1]
+if(filename == "h" or filename == "help"):
+	print("TileSetCutter(filename, tile_size)")
+	exit()
+
 size = int(sys.argv[2])
 surf_array = []
-file = open("Tiles\\Tile_ref", "r")
-count = int(file.readlines()[-1].split("\t")[0]) + 1
-file.close()
+count = 0
 
 tileset = pg.image.load(filename)
 for i in range(0, tileset.get_height(), size):
@@ -39,9 +41,6 @@ for i in range(0, tileset.get_height(), size):
 		surf_array.append(tileset.subsurface(pg.Rect((i,j), (size,size))))
 
 
-file = open("Tiles\\Tile_ref", "a")
-
 for element in surf_array:
-	pg.image.save(element, "Tiles\\" + strcode(count) + ".png")
-	file.write("\n" + str(count) + "\t" + strcode(count) + ".png")
+	pg.image.save(element, "ChoppedTiles\\" + strcode(count) + ".png")
 	count += 1
