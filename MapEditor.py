@@ -13,6 +13,7 @@ from SelectionPanel import SelectionPanel
 from TileButtonArray import TileButtonArray
 from DrawTools import *
 from ControlButton import *
+from Obj import Obj
 
 # for Threading
 def proccess_mouse_events():
@@ -22,6 +23,7 @@ def proccess_mouse_events():
 	global screen
 	global CHANGED_POSITIONS
 	global slpan
+	global TILEMODE
 
 	while(not QUIT):
 		try:
@@ -31,13 +33,13 @@ def proccess_mouse_events():
 			continue
 
 		if(ev == "Left"):
-			tiled_screen.set_map_value(CHANGED_POSITIONS, slpan.get())
+			tiled_screen.set_map_value(CHANGED_POSITIONS, slpan.get(), TILEMODE)
 			CHANGED_POSITIONS = []
 		elif(ev == "Right"):
 			flood_list = flood_fill(tiled_screen, tupsum(tuple(get_grid_square(pg.mouse.get_pos())), tiled_screen.win_cord), slpan.get(), [])
 			if(not flood_list):
 				continue
-			tiled_screen.set_map_value(flood_list, slpan.get())
+			tiled_screen.set_map_value(flood_list, slpan.get(), TILEMODE)
 			flood_list = []
 		sleep(0.01)
 
@@ -74,6 +76,7 @@ def handle_mouse(ev):
 	global tiled_screen
 	global HOLD_MCLICK
 	global SELECTED_TILE
+	global TILEMODE
 
 	# Scroll function
 	if(ev.type == pg.MOUSEBUTTONDOWN and ev.button == 4):
@@ -110,14 +113,21 @@ def handle_mouse(ev):
 			CHANGED_POSITIONS.append(tupsum(get_grid_square(pg.mouse.get_pos()), tiled_screen.win_cord))
 			HOLD_LCLICK = True
 		else:  # In panels
-			for button in tbarray: # in Tiles Bevel
-				if(button.click(pg.mouse.get_pos()) != None):
-					slpan.update_selected(button.click(pg.mouse.get_pos()))
-					slpan.draw_tiles(screen)
-					return
+			if(TILEMODE):
+				for button in tbarray: # in Tiles Bevel
+					if(button.click(pg.mouse.get_pos()) != None):
+						slpan.update_selected(button.click(pg.mouse.get_pos()))
+						slpan.draw_tiles(screen, True)
+						return
+			else:
+				for button in obarray: # in Objects Bevel
+					if(button.click(pg.mouse.get_pos()) != None):
+						slpan.update_selected(button.click(pg.mouse.get_pos()))
+						slpan.draw_tiles(screen, False)
+						return				
 			if(slpan.click(screen, pg.mouse.get_pos())): # Checks and handles Selection panel clicks
 				LOCK.clear()
-				slpan.draw_selected(screen)
+				slpan.draw_selected(screen, TILEMODE)
 				LOCK.set()
 				return
 			for but in ctrlbtnarray:
@@ -140,8 +150,10 @@ def handle_keyboard(ev):
 	global DRAW_GRID
 	global LOCK
 	global tbarray
+	global obarray
 	global slpan
 	global screen
+	global TILEMODE
 
 	mods = pg.key.get_mods()
 
@@ -160,7 +172,7 @@ def handle_keyboard(ev):
 		if(num != 0):
 			if(slpan.select(int(pg.key.name(ev.key))-1)):
 				LOCK.clear()
-				slpan.draw_selected(screen)
+				slpan.draw_selected(screen, TILEMODE)
 				LOCK.set()
 			return
 	except:
@@ -168,7 +180,15 @@ def handle_keyboard(ev):
 
 	if(pg.key.name(ev.key) == "z" and mods & pg.KMOD_CTRL): # Ctrl + Z
 		tiled_screen.undo_map()
-
+	elif(mods & pg.KMOD_ALT):
+		TILEMODE = not TILEMODE
+		slpan.clear(screen, TILEMODE)
+		if(TILEMODE):
+			tbarray.bevel.draw(screen)
+			tbarray.draw_buttons(screen)
+		else:
+			obarray.bevel.draw(screen)
+			obarray.draw_buttons(screen)
 	elif(pg.key.name(ev.key) == "a" and mods & pg.KMOD_SHIFT):
 		tiled_screen.win_move(dx=-30)	
 	elif(pg.key.name(ev.key) == "d" and mods & pg.KMOD_SHIFT):
@@ -179,9 +199,15 @@ def handle_keyboard(ev):
 		tiled_screen.win_move(dy=-30)
 
 	elif(pg.key.name(ev.key) == "q"):
-		tbarray.change_page(screen, forward=False)
+		if(TILEMODE):
+			tbarray.change_page(screen, forward=False)
+		else:
+			obarray.change_page(screen, forward=False)
 	elif(pg.key.name(ev.key) == "e"):
-		tbarray.change_page(screen)
+		if(TILEMODE):
+			tbarray.change_page(screen)
+		else:
+			obarray.change_page(screen)
 
 	elif(pg.key.name(ev.key) == "a"):
 		tiled_screen.win_move(dx=-1)
@@ -220,6 +246,7 @@ HOLD_MCLICK = False
 SELECTED_TILE = (0,0)
 CHANGED_POSITIONS = []
 DRAW_GRID = False
+TILEMODE = True
 LOCK = Event()
 LOCK.set()
 
@@ -227,7 +254,7 @@ info = pg.display.Info()
 WIN_WIDTH = info.current_w
 WIN_HEIGHT = info.current_h
 
-m = Map([[-1]])
+m = Map([[-1]], [[-1]])
 
 # Bevels
 tiles_bev = Bevel(6*WIN_WIDTH/8, WIN_HEIGHT/5, pg.Color(200,200,200,255), (WIN_WIDTH/8,4*WIN_HEIGHT/5))
@@ -251,13 +278,12 @@ ctrlbtnarray = [save_btn, saveas_btn, load_btn, new_btn]
 tiled_screen = TiledMap(map_bev, m)
 
 # TileButtonArray
-tbarray = TileButtonArray(tiles_bev, [WIN_WIDTH/8 +40,4*WIN_HEIGHT/5])
+tbarray = TileButtonArray(tiles_bev, [WIN_WIDTH/8 +40,4*WIN_HEIGHT/5], mode=True)
+obarray = TileButtonArray(tiles_bev, [WIN_WIDTH/8 +40,4*WIN_HEIGHT/5], mode=False)
 
 # SelectionPanel
 slpan = SelectionPanel(sel_bev, (8,4*WIN_HEIGHT/5))
-slpan.draw_selected(screen)
-
-# TEST
+slpan.draw_selected(screen, TILEMODE)
 
 
 threads.append(Thread(target=screen_refresh))

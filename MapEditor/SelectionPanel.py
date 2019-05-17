@@ -1,6 +1,7 @@
 from Tile import Tile
 import pygame as pg
 from time import sleep
+from Obj import Obj
 
 class SelectionPanel:
 	bevel = None
@@ -26,6 +27,12 @@ class SelectionPanel:
 	def __iter__(self):
 		return iter(self.hitboxes)
 
+	def clear(self, screen, mode):
+		self.selections = [0,0,0,0,0,0,0,0,0]
+		self.selected = 0
+		self.draw_tiles(screen, mode)
+		self.draw_selected(screen, mode)
+
 	def get(self):
 		return self.selections[self.selected]
 	
@@ -42,15 +49,19 @@ class SelectionPanel:
 		self.selected = i
 		return True
 
-	def draw_tiles(self, screen):
+	def draw_tiles(self, screen, mode):
 		for i in range(len(self.button_pos)):
-			screen.blit(Tile(self.selections[i], scaling=self.scaling).image, self.button_pos[i])
+			if(mode):
+				screen.blit(Tile(self.selections[i], scaling=self.scaling).image, self.button_pos[i])
+			else:
+				screen.blit(Obj(self.selections[i], scaling=self.scaling).image, self.button_pos[i])
+
 
 	# Actual draw function for selection panel
-	def draw_selected(self, screen):
+	def draw_selected(self, screen, mode):
 		rectangle = pg.Rect((self.button_pos[self.selected][0]-2, self.button_pos[self.selected][1]-2), (self.scaling*self.panelsize+3, self.scaling*self.panelsize+3))
 		self.bevel.draw(screen)
-		self.draw_tiles(screen)
+		self.draw_tiles(screen, mode)
 		pg.draw.rect(screen, pg.Color(255,0,0,255), rectangle, 2)
 
 	# Insert new tile into selection

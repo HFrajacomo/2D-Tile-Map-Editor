@@ -1,7 +1,7 @@
 import pygame as pg
 
 
-class Tile:
+class Obj:
 	image = []
 	size = 32
 
@@ -16,9 +16,8 @@ class Tile:
 
 def get_tile_index(id):
 	if(id <= 0):
-		return "MapEditor\\Tiles\\none.png"
+		return "MapEditor\\Objects\\none.png"
 
-	ref = open("MapEditor\\Tiles\\Tile_ref", "r")
+	ref = open("MapEditor\\Objects\\Obj_ref", "r")
 	data = ref.read()
-	ref.close()
-	return "MapEditor\\Tiles\\" + data.split("\n")[id].split("\t")[1]
+	return "MapEditor\\Objects\\" + data.split("\n")[id].split("\t")[1]

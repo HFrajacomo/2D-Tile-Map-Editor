@@ -3,6 +3,7 @@ from Map import Map
 import pygame as pg
 from time import sleep
 from threading import Thread
+from Obj import Obj
 
 class TiledMap():
 	win_cord = (0,0)
@@ -29,6 +30,7 @@ class TiledMap():
 			for i in range(new_x, 0):
 				for j in range(len(self.map_.grid)):
 					self.map_.grid[j].insert(0, -1)
+					self.map_.obj_grid[j].insert(0, -1)
 					self.map_.draw_grid[j].insert(0, True)
 			new_x = 0
 
@@ -36,24 +38,29 @@ class TiledMap():
 			for i in range(new_x, len(self.map_.grid[0])-61, -1):
 				for j in range(len(self.map_.grid)):
 					self.map_.grid[j].append(-1)
+					self.map_.obj_grid[j].append(-1)
 					self.map_.draw_grid[j].append(True)
 			new_x = len(self.map_.grid[0])-61
 
 		if(new_y < 0):
 			for i in range(new_y, 0):
 				self.map_.grid.insert(0, [])
+				self.map_.obj_grid.insert(0, [])
 				self.map_.draw_grid.insert(0, [])
 				for j in range(len(self.map_.grid[1])):
 					self.map_.grid[0].append(-1)
+					self.map_.obj_grid[0].append(-1)
 					self.map_.draw_grid[0].append(True)
 			new_y = 0
 
 		elif(new_y >= len(self.map_.grid)-26):
 			for i in range(new_y, len(self.map_.grid)-27, -1):
 				self.map_.grid.append([])
+				self.map_.obj_grid.append([])
 				self.map_.draw_grid.append([])
 				for j in range(len(self.map_.grid[1])):
 					self.map_.grid[-1].append(-1)
+					self.map_.obj_grid[-1].append(-1)
 					self.map_.draw_grid[-1].append(True)
 			new_y = len(self.map_.grid)-27
 
@@ -65,7 +72,7 @@ class TiledMap():
 	def undo_map(self):
 		if(self.undomap == None):
 			return
-		self.map_ = Map(None, oldmap=self.undomap)
+		self.map_ = Map(None, None, oldmap=self.undomap)
 		self.map_.gen_draw_grid()
 		self.undomap = None
 		self.needs_draw = True
@@ -78,17 +85,24 @@ class TiledMap():
 
 	# Set a single value of grid
 	# pos_list is a list of changed positions
-	def set_map_value(self, pos_list, val):
-		self.undomap = Map(None, oldmap=self.map_)
+	def set_map_value(self, pos_list, val, tile_mode):
+		self.undomap = Map(None, None, oldmap=self.map_)
 
 		for pos in pos_list:
 			try:
-				if(self.map_.grid[pos[0]][pos[1]] == val):
-					continue
+				if(tile_mode):
+					if(self.map_.grid[pos[0]][pos[1]] == val):
+						continue
+				else:
+					if(self.map_.obj_grid[pos[0]][pos[1]] == val):
+						continue
 			except:
 				continue
 
-			self.map_.grid[pos[0]][pos[1]] = val
+			if(tile_mode):
+				self.map_.grid[pos[0]][pos[1]] = val
+			else:
+				self.map_.obj_grid[pos[0]][pos[1]] = val
 			self.map_.draw_grid[pos[0]][pos[1]] = True
 			self.needs_draw = True
 
@@ -97,6 +111,7 @@ class TiledMap():
 		for i in range(self.win_cord[1],self.win_cord[1]+27):
 			for j in range(self.win_cord[0],self.win_cord[0]+60):
 				self.bev_.surf.blit(Tile(self.map_.grid[i][j]).image, (j*size, i*size))
+				self.bev_.surf.blit(Obj(self.map_.obj_grid[i][j].image, (j*size, i*size)))
 		self.map_.gen_draw_grid(val=False)
 		self.needs_draw = False
 		screen.blit(self.bev_.surf, pos)
@@ -147,6 +162,8 @@ class TiledMap():
 				if(self.map_.draw_grid[i][j]):
 					self.map_.draw_grid[i][j] = False
 					screen.blit(Tile(self.map_.grid[i][j]).image, (k*size, new_i*size))
+					screen.blit(Obj(self.map_.obj_grid[i][j]).image, (k*size, new_i*size))
+
 				k +=1
 		else:
 			k = 59
@@ -154,4 +171,5 @@ class TiledMap():
 				if(self.map_.draw_grid[i][j]):
 					self.map_.draw_grid[i][j] = False
 					screen.blit(Tile(self.map_.grid[i][j]).image, (k*size, new_i*size))
+					screen.blit(Obj(self.map_.obj_grid[i][j]).image, (k*size, new_i*size))
 				k -=1
