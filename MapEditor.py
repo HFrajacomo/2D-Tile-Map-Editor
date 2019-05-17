@@ -82,12 +82,12 @@ def handle_mouse(ev):
 	if(ev.type == pg.MOUSEBUTTONDOWN and ev.button == 4):
 		if(slpan.select(slpan.selected-1)):
 			LOCK.clear()
-			slpan.draw_selected(screen)
+			slpan.draw_selected(screen, TILEMODE)
 			LOCK.set()
 	elif(ev.type == pg.MOUSEBUTTONDOWN and ev.button == 5):
 		if(slpan.select(slpan.selected+1)):
 			LOCK.clear()
-			slpan.draw_selected(screen)
+			slpan.draw_selected(screen, TILEMODE)
 			LOCK.set()
 
 	# Mid Click
@@ -123,7 +123,7 @@ def handle_mouse(ev):
 				for button in obarray: # in Objects Bevel
 					if(button.click(pg.mouse.get_pos()) != None):
 						slpan.update_selected(button.click(pg.mouse.get_pos()))
-						slpan.draw_tiles(screen, False)
+						slpan.draw_selected(screen, False)
 						return				
 			if(slpan.click(screen, pg.mouse.get_pos())): # Checks and handles Selection panel clicks
 				LOCK.clear()
