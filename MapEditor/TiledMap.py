@@ -162,7 +162,8 @@ class TiledMap():
 				if(self.map_.draw_grid[i][j]):
 					self.map_.draw_grid[i][j] = False
 					screen.blit(Tile(self.map_.grid[i][j]).image, (k*size, new_i*size))
-					screen.blit(Obj(self.map_.obj_grid[i][j]).image, (k*size, new_i*size))
+					if(self.map_.obj_grid[i][j] != 0):
+						screen.blit(Obj(self.map_.obj_grid[i][j]).image, (k*size, new_i*size))
 
 				k +=1
 		else:
@@ -171,5 +172,6 @@ class TiledMap():
 				if(self.map_.draw_grid[i][j]):
 					self.map_.draw_grid[i][j] = False
 					screen.blit(Tile(self.map_.grid[i][j]).image, (k*size, new_i*size))
-					screen.blit(Obj(self.map_.obj_grid[i][j]).image, (k*size, new_i*size))
+					if(self.map_.obj_grid[i][j] != 0):
+						screen.blit(Obj(self.map_.obj_grid[i][j]).image, (k*size, new_i*size))
 				k -=1
