@@ -1,4 +1,5 @@
 from Tile import Tile
+from Obj import Obj
 import pygame as pg
 
 class TileButton:
@@ -9,13 +10,24 @@ class TileButton:
 	size = 0
 
 
-	def __init__(self, pos, size, tile_id, scaling=2):
+	def __init__(self, pos, size, tile_id, mode, scaling=2):
 		self.hitbox = pg.Rect(pos, (size,size))
 		self.pos = pos
 		self.tid = tile_id
-		self.img = Tile(tile_id).image
+
+		if(mode):
+			self.img = Tile(tile_id).image
+		else:
+			self.img = Obj(tile_id).image
+
 		self.size = size
 		self.scale(scaling)
+
+	def __str__(self):
+		return str(self.tid)
+
+	def __repr__(self):
+		return str(self.tid)
 
 	def __int__(self):
 		return self.tid
