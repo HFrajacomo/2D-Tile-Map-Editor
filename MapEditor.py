@@ -14,6 +14,7 @@ from TileButtonArray import TileButtonArray
 from DrawTools import *
 from ControlButton import *
 from Obj import Obj
+from CoordBox import CoordBox
 
 
 # for Threading
@@ -99,6 +100,7 @@ def handle_mouse(ev):
 	global HOLD_MCLICK
 	global SELECTED_TILE
 	global TILEMODE
+	global coordenates
 
 	# Scroll function
 	if(ev.type == pg.MOUSEBUTTONDOWN and ev.button == 4):
@@ -124,7 +126,11 @@ def handle_mouse(ev):
 		tiled_screen.win_move(dx= dxy[1], dy= dxy[0])
 
 	if(ev.type == pg.MOUSEMOTION and HOLD_LCLICK): # Draw continuum
+		coordenates.change_value(screen, get_grid_square(pg.mouse.get_pos()), tiled_screen)		
 		CHANGED_POSITIONS.append(tupsum(get_grid_square(pg.mouse.get_pos()), tiled_screen.win_cord))
+
+	elif(ev.type == pg.MOUSEMOTION): # Move Coordenates
+		coordenates.change_value(screen, get_grid_square(pg.mouse.get_pos()), tiled_screen)
 
 	elif(ev.type == pg.MOUSEBUTTONUP and ev.button == 1):
 		HOLD_LCLICK = False	
@@ -211,8 +217,6 @@ def handle_keyboard(ev):
 			return
 	except:
 		pass
-
-
 
 
 	if(pg.key.name(ev.key) == "z" and mods & pg.KMOD_CTRL): # Ctrl + Z
@@ -321,10 +325,10 @@ sel_bev.draw(screen)
 but_bev.draw(screen)
 
 # Buttons
-save_btn = SaveButton(screen, (7*WIN_WIDTH/8 + 30, 4*WIN_HEIGHT/5 + 12), "save_btn.png", saveas=False)
-saveas_btn = SaveButton(screen, (7*WIN_WIDTH/8 + 30, 4*WIN_HEIGHT/5 + 76), "saveas_btn.png")
-load_btn = LoadButton(screen, (7*WIN_WIDTH/8 + 30, 4*WIN_HEIGHT/5 + 140), "load_btn.png")
-new_btn = NewButton(screen, (7*WIN_WIDTH/8 + 159, 4*WIN_HEIGHT/5 + 44), "new_btn.png")
+save_btn = SaveButton(screen, (7*WIN_WIDTH/8 + 5, 4*WIN_HEIGHT/5 + 12), "save_btn.png", saveas=False)
+saveas_btn = SaveButton(screen, (7*WIN_WIDTH/8 + 5, 4*WIN_HEIGHT/5 + 76), "saveas_btn.png")
+load_btn = LoadButton(screen, (7*WIN_WIDTH/8 + 5, 4*WIN_HEIGHT/5 + 140), "load_btn.png")
+new_btn = NewButton(screen, (7*WIN_WIDTH/8 + 134, 4*WIN_HEIGHT/5 + 12), "new_btn.png")
 ctrlbtnarray = [save_btn, saveas_btn, load_btn, new_btn]
 
 # Tiled Display
@@ -340,6 +344,9 @@ slpan.draw_selected(screen, TILEMODE)
 
 # Light Surface Indicator
 light_ind = pg.Surface((WIN_WIDTH/8, WIN_HEIGHT/5))
+
+# CoordBox
+coordenates = CoordBox(30, (7*WIN_WIDTH/8 + 134, 4*WIN_HEIGHT/5 + 156) ,pg.Color(40,150,40,255))
 
 
 threads.append(Thread(target=screen_refresh))
