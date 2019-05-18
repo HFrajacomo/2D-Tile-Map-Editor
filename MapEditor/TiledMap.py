@@ -4,6 +4,7 @@ import pygame as pg
 from time import sleep
 from threading import Thread
 from Obj import Obj
+from Light import Light
 
 class TiledMap():
 	win_cord = (0,0)
@@ -30,7 +31,8 @@ class TiledMap():
 			for i in range(new_x, 0):
 				for j in range(len(self.map_.grid)):
 					self.map_.grid[j].insert(0, -1)
-					self.map_.obj_grid[j].insert(0, -1)
+					self.map_.obj_grid[j].insert(0, 0)
+					self.map_.light_grid[j].insert(0, 0)
 					self.map_.draw_grid[j].insert(0, True)
 			new_x = 0
 
@@ -38,7 +40,8 @@ class TiledMap():
 			for i in range(new_x, len(self.map_.grid[0])-61, -1):
 				for j in range(len(self.map_.grid)):
 					self.map_.grid[j].append(-1)
-					self.map_.obj_grid[j].append(-1)
+					self.map_.obj_grid[j].append(0)
+					self.map_.light_grid[j].append(0)
 					self.map_.draw_grid[j].append(True)
 			new_x = len(self.map_.grid[0])-61
 
@@ -46,10 +49,12 @@ class TiledMap():
 			for i in range(new_y, 0):
 				self.map_.grid.insert(0, [])
 				self.map_.obj_grid.insert(0, [])
+				self.map_.light_grid.insert(0, [])
 				self.map_.draw_grid.insert(0, [])
 				for j in range(len(self.map_.grid[1])):
 					self.map_.grid[0].append(-1)
-					self.map_.obj_grid[0].append(-1)
+					self.map_.obj_grid[0].append(0)
+					self.map_.light_grid[0].append(0)
 					self.map_.draw_grid[0].append(True)
 			new_y = 0
 
@@ -57,10 +62,12 @@ class TiledMap():
 			for i in range(new_y, len(self.map_.grid)-27, -1):
 				self.map_.grid.append([])
 				self.map_.obj_grid.append([])
+				self.map_.light_grid.append([])
 				self.map_.draw_grid.append([])
 				for j in range(len(self.map_.grid[1])):
 					self.map_.grid[-1].append(-1)
-					self.map_.obj_grid[-1].append(-1)
+					self.map_.obj_grid[-1].append(0)
+					self.map_.light_grid[-1].append(0)
 					self.map_.draw_grid[-1].append(True)
 			new_y = len(self.map_.grid)-27
 
@@ -72,7 +79,7 @@ class TiledMap():
 	def undo_map(self):
 		if(self.undomap == None):
 			return
-		self.map_ = Map(None, None, oldmap=self.undomap)
+		self.map_ = Map(None, None, None, oldmap=self.undomap)
 		self.map_.gen_draw_grid()
 		self.undomap = None
 		self.needs_draw = True
@@ -86,7 +93,7 @@ class TiledMap():
 	# Set a single value of grid
 	# pos_list is a list of changed positions
 	def set_map_value(self, pos_list, val, tile_mode):
-		self.undomap = Map(None, None, oldmap=self.map_)
+		self.undomap = Map(None, None, None, oldmap=self.map_)
 
 		for pos in pos_list:
 			try:
@@ -103,6 +110,21 @@ class TiledMap():
 				self.map_.grid[pos[0]][pos[1]] = val
 			else:
 				self.map_.obj_grid[pos[0]][pos[1]] = val
+			self.map_.draw_grid[pos[0]][pos[1]] = True
+			self.needs_draw = True
+
+	# Set values of light level to light_grid
+	def set_light_level(self, pos_list, val):
+		self.undomap = Map(None, None, None, oldmap=self.map_)
+
+		for pos in pos_list:
+			try:
+				if(self.map_.light_grid[pos[0]][pos[1]] == val):
+					continue
+			except:
+				continue	
+
+			self.map_.light_grid[pos[0]][pos[1]] = val	
 			self.map_.draw_grid[pos[0]][pos[1]] = True
 			self.needs_draw = True
 
@@ -136,14 +158,14 @@ class TiledMap():
 			pg.draw.line(screen, pg.Color(200,200,200,255), (0,j), (self.bev_.surf.get_width(),j))
 
 	# Thread control function to update changed blocks
-	def update_tiles(self, screen, size=32, draw_grid=False):
+	def update_tiles(self, screen, lightmode=False, size=32, draw_grid=False):
 		threads = []
 		if(not self.needs_draw):
 			return
 		for i in range(self.win_cord[1], self.win_cord[1]+27):
-			threads.append(Thread(target=self.update_row, args=(screen, i, True)))
+			threads.append(Thread(target=self.update_row, args=(screen, i, True, lightmode)))
 			threads[-1].start()
-			threads.append(Thread(target=self.update_row, args=(screen, i, False)))
+			threads.append(Thread(target=self.update_row, args=(screen, i, False, lightmode)))
 			threads[-1].start()
 
 		for th in threads:
@@ -154,7 +176,7 @@ class TiledMap():
 		pg.display.flip()
 
 	# Multi-threaded accelerated function
-	def update_row(self, screen, i, direc, size=32):
+	def update_row(self, screen, i, direc, lightmode, size=32):
 		new_i = i - self.win_cord[1]
 		if(direc):
 			k = 0
@@ -164,7 +186,9 @@ class TiledMap():
 					screen.blit(Tile(self.map_.grid[i][j]).image, (k*size, new_i*size))
 					if(self.map_.obj_grid[i][j] != 0):
 						screen.blit(Obj(self.map_.obj_grid[i][j]).image, (k*size, new_i*size))
-
+					if(self.map_.light_grid[i][j] != 0 and lightmode):
+						screen.blit(Light(self.map_.light_grid[i][j]).image, (k*size, new_i*size))
+					
 				k +=1
 		else:
 			k = 59
@@ -174,4 +198,7 @@ class TiledMap():
 					screen.blit(Tile(self.map_.grid[i][j]).image, (k*size, new_i*size))
 					if(self.map_.obj_grid[i][j] != 0):
 						screen.blit(Obj(self.map_.obj_grid[i][j]).image, (k*size, new_i*size))
+					if(self.map_.light_grid[i][j] != 0 and lightmode):
+						screen.blit(Light(self.map_.light_grid[i][j]).image, (k*size, new_i*size))
+
 				k -=1

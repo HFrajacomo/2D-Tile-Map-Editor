@@ -15,6 +15,7 @@ from DrawTools import *
 from ControlButton import *
 from Obj import Obj
 
+
 # for Threading
 def proccess_mouse_events():
 	global mouse_events
@@ -24,6 +25,8 @@ def proccess_mouse_events():
 	global CHANGED_POSITIONS
 	global slpan
 	global TILEMODE
+	global LIGHTMODE
+	global SELECTED_LIGHT
 
 	while(not QUIT):
 		try:
@@ -33,14 +36,32 @@ def proccess_mouse_events():
 			continue
 
 		if(ev == "Left"):
-			tiled_screen.set_map_value(CHANGED_POSITIONS, slpan.get(), TILEMODE)
-			CHANGED_POSITIONS = []
+			if(LIGHTMODE):
+				tiled_screen.set_light_level(CHANGED_POSITIONS, SELECTED_LIGHT)
+				CHANGED_POSITIONS = []	
+			else:		
+				tiled_screen.set_map_value(CHANGED_POSITIONS, slpan.get(), TILEMODE)
+				CHANGED_POSITIONS = []
 		elif(ev == "Right"):
-			flood_list = flood_fill(tiled_screen, tupsum(tuple(get_grid_square(pg.mouse.get_pos())), tiled_screen.win_cord), slpan.get(), [])
+
+			# Flood mode 'Tile_Object_Light model'
+			mode = 0
+			if(LIGHTMODE):
+				mode = 2
+			elif(TILEMODE):
+				mode = 0
+			else:
+				mode = 1
+
+			flood_list = flood_fill(tiled_screen, tupsum(tuple(get_grid_square(pg.mouse.get_pos())), tiled_screen.win_cord), SELECTED_LIGHT, mode, [])
 			if(not flood_list):
 				continue
-			tiled_screen.set_map_value(flood_list, slpan.get(), TILEMODE)
-			flood_list = []
+			if(LIGHTMODE):
+				tiled_screen.set_light_level(flood_list, SELECTED_LIGHT)
+				flood_list = []				
+			else:
+				tiled_screen.set_map_value(flood_list, slpan.get(), TILEMODE)
+				flood_list = []
 		sleep(0.01)
 
 def tupsum(tuple1, tuple2):
@@ -53,10 +74,11 @@ def screen_refresh():
 	global DRAW_GRID
 	global LOCK
 	global test
+	global LIGHTMODE
 
 	while(not QUIT):
 		LOCK.clear()
-		tiled_screen.update_tiles(screen, draw_grid=DRAW_GRID)
+		tiled_screen.update_tiles(screen, draw_grid=DRAW_GRID, lightmode=LIGHTMODE)
 		LOCK.set()
 		sleep(FPS)
 
@@ -154,6 +176,9 @@ def handle_keyboard(ev):
 	global slpan
 	global screen
 	global TILEMODE
+	global LIGHTMODE
+	global light_ind
+	global SELECTED_LIGHT
 
 	mods = pg.key.get_mods()
 
@@ -165,6 +190,15 @@ def handle_keyboard(ev):
 			LOCK.clear()
 			tiled_screen.clear_grid(screen)
 			LOCK.set()
+	elif(pg.key.name(ev.key) == "space"):
+		LIGHTMODE = not LIGHTMODE
+		tiled_screen.map_.gen_draw_grid()
+		if(LIGHTMODE):
+			light_ind.fill((SELECTED_LIGHT,SELECTED_LIGHT, SELECTED_LIGHT))
+			screen.blit(light_ind, (0,4*WIN_HEIGHT/5))
+		else:
+			sel_bev.draw(screen)
+			slpan.draw_selected(screen, TILEMODE)
 
 	# Number keys
 	try:
@@ -177,6 +211,9 @@ def handle_keyboard(ev):
 			return
 	except:
 		pass
+
+
+
 
 	if(pg.key.name(ev.key) == "z" and mods & pg.KMOD_CTRL): # Ctrl + Z
 		tiled_screen.undo_map()
@@ -228,6 +265,18 @@ def handle_keyboard(ev):
 		screen.blit(tiled_screen.bev_.surf, (0,0))
 	elif(pg.key.name(ev.key) == "r"):
 		tiled_screen.map_.gen_draw_grid()
+	elif(pg.key.name(ev.key) == "z" and LIGHTMODE):
+		SELECTED_LIGHT = 255
+		light_ind.fill((0,0,0))
+		screen.blit(light_ind, (0,4*WIN_HEIGHT/5))		
+	elif(pg.key.name(ev.key) == "x" and LIGHTMODE):
+		SELECTED_LIGHT = 128
+		light_ind.fill((128,128, 128))
+		screen.blit(light_ind, (0,4*WIN_HEIGHT/5))	
+	elif(pg.key.name(ev.key) == "c" and LIGHTMODE):
+		SELECTED_LIGHT = 0
+		light_ind.fill((255,255, 255))
+		screen.blit(light_ind, (0,4*WIN_HEIGHT/5))	
 
 mouse_events = []
 
@@ -246,6 +295,10 @@ HOLD_MCLICK = False
 SELECTED_TILE = (0,0)
 CHANGED_POSITIONS = []
 DRAW_GRID = False
+
+LIGHTMODE = False
+SELECTED_LIGHT = 255
+
 TILEMODE = True
 LOCK = Event()
 LOCK.set()
@@ -254,7 +307,7 @@ info = pg.display.Info()
 WIN_WIDTH = info.current_w
 WIN_HEIGHT = info.current_h
 
-m = Map([[-1]], [[-1]])
+m = Map([[0]], [[0]], [[0]])
 
 # Bevels
 tiles_bev = Bevel(6*WIN_WIDTH/8, WIN_HEIGHT/5, pg.Color(200,200,200,255), (WIN_WIDTH/8,4*WIN_HEIGHT/5))
@@ -284,6 +337,9 @@ obarray = TileButtonArray(tiles_bev, [WIN_WIDTH/8 +40,4*WIN_HEIGHT/5], mode=Fals
 # SelectionPanel
 slpan = SelectionPanel(sel_bev, (8,4*WIN_HEIGHT/5))
 slpan.draw_selected(screen, TILEMODE)
+
+# Light Surface Indicator
+light_ind = pg.Surface((WIN_WIDTH/8, WIN_HEIGHT/5))
 
 
 threads.append(Thread(target=screen_refresh))
