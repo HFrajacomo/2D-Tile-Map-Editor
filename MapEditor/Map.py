@@ -5,9 +5,10 @@ class Map:
 	grid = []
 	obj_grid = []
 	draw_grid = []
+	light_grid = []
 	name = ""
 
-	def __init__(self, mapdata, objdata, mapname="", oldmap=None):
+	def __init__(self, mapdata, objdata, lightdata, mapname="", oldmap=None):
 		# Standard construction
 		if(oldmap == None):
 			self.name = mapname
@@ -26,6 +27,13 @@ class Map:
 			else:
 				self.obj_grid = objdata
 
+			# Light_grid
+			if(len(lightdata) < 27 or len(lightdata[0]) < 61):
+				new_grid =  self.get_submatrix(lightdata, [0,0], 30, 13)
+				self.light_grid = new_grid
+			else:
+				self.light_grid = lightdata
+
 			self.gen_draw_grid()
 
 		# Copy via an older map
@@ -33,6 +41,7 @@ class Map:
 			self.name = oldmap.name
 			self.grid = [x[:] for x in oldmap.grid]
 			self.obj_grid = [x[:] for x in oldmap.obj_grid]
+			self.light_grid = [x[:] for x in oldmap.light_grid]
 			self.draw_grid = [x[:] for x in oldmap.draw_grid]
 
 	# Generates draw_grid matrix
@@ -85,7 +94,7 @@ class Map:
 		for i in range(0,len(self.grid)):
 			for j in range(0,len(self.grid[i])):
 				bevel.surf.blit(Tile(self.grid[i][j]).image, (j*size, i*size))
-				bevel.surf.blit(TIle(self.obj_grid[i][j].image, (j*size, i*size)))
+				bevel.surf.blit(Obj(self.obj_grid[i][j].image, (j*size, i*size)))
 
 	# Returns submatrix of a given matrix
 	def get_submatrix(self, matrix, pos, radius_x, radius_y, non_circular=True):
