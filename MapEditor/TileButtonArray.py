@@ -30,6 +30,7 @@ class TileButtonArray:
 
 		j = 0
 		row = 0
+		i = 0
 		
 		for line in lines:
 			h_value = pos[0] + (j)*size*scaling + (j)*self.h_spacing
@@ -42,10 +43,11 @@ class TileButtonArray:
 				break
 
 			if(self.tilemode):
-				self.buttons.append(TileButton((h_value, pos[1] + v_spac + (int(size + v_spac))*row*scaling), size, int(line.split("\t")[0]), True))
+				self.buttons.append(TileButton((h_value, pos[1] + v_spac + (int(size + v_spac))*row*scaling), size, i, True))
 			else:
-				self.buttons.append(TileButton((h_value, pos[1] + v_spac + (int(size + v_spac))*row*scaling), size, int(line.split("\t")[0]), False))
+				self.buttons.append(TileButton((h_value, pos[1] + v_spac + (int(size + v_spac))*row*scaling), size, i, False))
 
+			i += 1
 			j += 1
 
 

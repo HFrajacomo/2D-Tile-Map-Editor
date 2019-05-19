@@ -34,7 +34,7 @@ for r,d,f in os.walk("ChoppedTiles\\"):
 		if(file == "Tile_ref" or file == "Obj_ref" or file in already_assigned):
 			continue
 
-		ref_file.write("\n" + str(count) + "\t" + file)
+		ref_file.write("\n" + file.split(".")[0])
 		count += 1
 ref_file.close()
 

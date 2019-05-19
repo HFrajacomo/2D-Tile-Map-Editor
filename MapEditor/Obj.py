@@ -20,4 +20,4 @@ def get_tile_index(id):
 
 	ref = open("MapEditor\\Objects\\Obj_ref", "r")
 	data = ref.read()
-	return "MapEditor\\Objects\\" + data.split("\n")[id].split("\t")[1]
+	return "MapEditor\\Objects\\" + data.split("\n")[id] + ".png"
