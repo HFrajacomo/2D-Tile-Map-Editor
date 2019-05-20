@@ -54,7 +54,9 @@ class TileButtonArray:
 	def __iter__(self):
 		return iter(self.buttons)
 
-	def draw_buttons(self, screen):
+	def draw_buttons(self, screen, tilemode):
+		if(not tilemode):
+			self.bevel.draw(screen)
 		for b in self.buttons:
 			b.draw(screen)
 
@@ -100,4 +102,4 @@ class TileButtonArray:
 
 		if(self.current_page == self.page_number):
 			self.bevel.draw(screen)
-		self.draw_buttons(screen)
+		self.draw_buttons(screen, tilemode)

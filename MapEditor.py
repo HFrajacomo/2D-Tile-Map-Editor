@@ -226,10 +226,10 @@ def handle_keyboard(ev):
 		slpan.clear(screen, TILEMODE)
 		if(TILEMODE):
 			tbarray.bevel.draw(screen)
-			tbarray.draw_buttons(screen)
+			tbarray.draw_buttons(screen, TILEMODE)
 		else:
 			obarray.bevel.draw(screen)
-			obarray.draw_buttons(screen)
+			obarray.draw_buttons(screen, TILEMODE)
 	elif(pg.key.name(ev.key) == "a" and mods & pg.KMOD_SHIFT):
 		tiled_screen.win_move(dx=-30)	
 	elif(pg.key.name(ev.key) == "d" and mods & pg.KMOD_SHIFT):
@@ -358,7 +358,7 @@ for th in threads:
 	th.start()
 
 pg.display.flip()
-tbarray.draw_buttons(screen)
+tbarray.draw_buttons(screen, TILEMODE)
 
 while(not QUIT):
 	for ev in pg.event.get():
