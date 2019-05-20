@@ -20,11 +20,11 @@ else:
 	exit()
 
 ref_file = open("ChoppedTiles\\" + assign_dir, "r")
-count = int(ref_file.readlines()[-1].split("\t")[0]) + 1
+count = len(ref_file.readlines())
 ref_file.seek(0)
 
 for line in ref_file.readlines():
-	already_assigned.append(line.split("\t")[1].replace("\n", ""))
+	already_assigned.append(line.replace("\n", ""))
 ref_file.close()
 
 ref_file = open("ChoppedTiles\\" + assign_dir, "a")

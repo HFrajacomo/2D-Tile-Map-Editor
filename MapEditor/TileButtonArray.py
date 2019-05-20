@@ -58,7 +58,7 @@ class TileButtonArray:
 		for b in self.buttons:
 			b.draw(screen)
 
-	def change_page(self, screen, forward=True):
+	def change_page(self, screen, tilemode, forward=True):
 		self.buttons = []
 
 		if(self.current_page == 0 and not forward):
@@ -70,7 +70,7 @@ class TileButtonArray:
 		else:
 			self.current_page -= 1
 
-		if(not self.tilemode):
+		if(self.tilemode):
 			file = open("MapEditor\\Tiles\\Tile_ref", "r")
 			lines = file.readlines()
 			file.close()
@@ -81,7 +81,6 @@ class TileButtonArray:
 
 		j = 0
 		row = 0
-
 
 		for i in range(self.current_page*self.n, (self.current_page+1)*self.n):
 			if(i >= len(lines)):
@@ -95,7 +94,8 @@ class TileButtonArray:
 
 			if(row >= 4):
 				break
-			self.buttons.append(TileButton((h_value, self.pos[1] + self.v_spacing + (int(self.size + self.v_spacing))*row*self.scaling), self.size, int(lines[i].split("\t")[0])))
+			self.buttons.append(TileButton((h_value, self.pos[1] + self.v_spacing + (int(self.size + self.v_spacing))*row*self.scaling), self.size, i, tilemode))
+
 			j += 1		
 
 		if(self.current_page == self.page_number):

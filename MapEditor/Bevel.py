@@ -14,5 +14,8 @@ class Bevel:
 	def draw(self, screen):
 		screen.blit(self.surf, self.pos)
 
+	def update(self, screen):
+		pg.display.update(pg.Rect(self.pos, self.surf.get_size()))
+
 	def get_size(self):
 		return self.surf.get_size()

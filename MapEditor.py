@@ -241,14 +241,14 @@ def handle_keyboard(ev):
 
 	elif(pg.key.name(ev.key) == "q"):
 		if(TILEMODE):
-			tbarray.change_page(screen, forward=False)
+			tbarray.change_page(screen, TILEMODE, forward=False)
 		else:
-			obarray.change_page(screen, forward=False)
+			obarray.change_page(screen, TILEMODE, forward=False)
 	elif(pg.key.name(ev.key) == "e"):
 		if(TILEMODE):
-			tbarray.change_page(screen)
+			tbarray.change_page(screen, TILEMODE)
 		else:
-			obarray.change_page(screen)
+			obarray.change_page(screen, TILEMODE)
 
 	elif(pg.key.name(ev.key) == "a"):
 		tiled_screen.win_move(dx=-1)
@@ -258,7 +258,9 @@ def handle_keyboard(ev):
 		tiled_screen.win_move(dy=1)
 	elif(pg.key.name(ev.key) == "w"):
 		tiled_screen.win_move(dy=-1)
-		
+
+	elif(pg.key.name(ev.key) == "f" and not LIGHTMODE): # Debug feature
+		tiled_screen.draw_all(screen)
 	elif(pg.key.name(ev.key) == "p"):
 		tiled_screen.bev_.surf.fill((0,0,0), special_flags=pg.BLEND_ADD)
 		tiled_screen.bev_.surf.set_alpha(20)

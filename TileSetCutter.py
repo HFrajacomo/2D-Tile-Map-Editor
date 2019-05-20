@@ -38,7 +38,10 @@ count = 0
 tileset = pg.image.load(filename)
 for i in range(0, tileset.get_height(), size):
 	for j in range(0, tileset.get_width(), size):
-		surf_array.append(tileset.subsurface(pg.Rect((i,j), (size,size))))
+		try:
+			surf_array.append(tileset.subsurface(pg.Rect((i,j), (size,size))))
+		except:
+			pass
 
 
 for element in surf_array:

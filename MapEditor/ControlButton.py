@@ -118,4 +118,4 @@ class NewButton(Button):
 
 	def new(self, tiledmap):
 		tiledmap.win_cord = (0,0)
-		tiledmap.load_map(Map([[0]], [[0]], mapname=""))
+		tiledmap.load_map(Map([[0]], [[0]], [[0]], mapname=""))

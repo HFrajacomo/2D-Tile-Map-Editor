@@ -130,13 +130,21 @@ class TiledMap():
 
 	# Draws all blits to screen all grid
 	def draw_all(self, screen, pos=[0,0], size=32):
+		self.bev_.surf.fill((0,0,0))
 		for i in range(self.win_cord[1],self.win_cord[1]+27):
 			for j in range(self.win_cord[0],self.win_cord[0]+60):
 				self.bev_.surf.blit(Tile(self.map_.grid[i][j]).image, (j*size, i*size))
-				self.bev_.surf.blit(Obj(self.map_.obj_grid[i][j].image, (j*size, i*size)))
+		
+		for i in range(self.win_cord[1],self.win_cord[1]+27):
+			for j in range(self.win_cord[0],self.win_cord[0]+60):
+				if(self.map_.obj_grid[i][j] > 0):
+					self.bev_.surf.blit(Obj(self.map_.obj_grid[i][j]).image, (j*size, i*size))
+
 		self.map_.gen_draw_grid(val=False)
 		self.needs_draw = False
 		screen.blit(self.bev_.surf, pos)
+		self.bev_.draw(screen)
+		self.bev_.update(screen)
 
 	# Clears grid
 	def clear_grid(self, screen):
@@ -156,6 +164,7 @@ class TiledMap():
 			pg.draw.line(screen, pg.Color(200,200,200,255), (i,0), (i,self.bev_.surf.get_height()))
 		for j in range(0, self.bev_.surf.get_height(), size):
 			pg.draw.line(screen, pg.Color(200,200,200,255), (0,j), (self.bev_.surf.get_width(),j))
+
 
 	# Thread control function to update changed blocks
 	def update_tiles(self, screen, lightmode=False, size=32, draw_grid=False):
