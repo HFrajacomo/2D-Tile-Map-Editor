@@ -127,19 +127,17 @@ class Map:
 	# CTRL + C Function
 	def copy(self, start, end, tilemode):
 
-		print(start)
-		print(end)
 
 		# Handling position problems
-		if(end[0] < start[0] and start[1] > end[1]):
+		if(end[1] < start[1] and start[0] > end[0]):
 			aux = start.copy()
 			start = end.copy()
 			end = aux
-		elif(end[0] < start[0] and start[1] < end[1]):
+		elif(end[1] < start[1] and start[0] < end[0]):
 			aux = start.copy()
-			start = [end[0], aux[1]]
-			end = [aux[0], end[1]]
-		elif(end[0] < start[0]):
+			start = [end[1], aux[0]]
+			end = [aux[1], end[0]]
+		elif(end[1] < start[1]):
 			aux = start.copy()
 			start = end.copy()
 			end = aux
