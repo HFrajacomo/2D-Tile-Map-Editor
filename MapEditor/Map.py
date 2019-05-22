@@ -121,3 +121,61 @@ class Map:
 				except IndexError:
 					sub_matrix[-1].append(-1)
 		return sub_matrix
+
+	# returns a subregion of tilemode matrix.
+	# Start and End are grid positions
+	# CTRL + C Function
+	def copy(self, start, end, tilemode):
+
+		print(start)
+		print(end)
+
+		# Handling position problems
+		if(end[0] < start[0] and start[1] > end[1]):
+			aux = start.copy()
+			start = end.copy()
+			end = aux
+		elif(end[0] < start[0] and start[1] < end[1]):
+			aux = start.copy()
+			start = [end[0], aux[1]]
+			end = [aux[0], end[1]]
+		elif(end[0] < start[0]):
+			aux = start.copy()
+			start = end.copy()
+			end = aux
+
+		outmatrix = []
+
+		for j in range(start[1], end[1]+1):
+			outmatrix.append([])
+			for i in range(start[0], end[0]+1):
+				if(tilemode):
+					outmatrix[-1].append(self.grid[i][j])
+				else:
+					outmatrix[-1].append(self.obj_grid[i][j])
+
+		return outmatrix
+
+	# Pastes Matrix in tilemode grid position
+	# CTRL + V Function
+	def paste(self, matrix, pos, tilemode):
+		k = 0
+		l = 0
+
+		for j in range(pos[1], pos[1] + len(matrix)):
+			k = 0
+			for i in range(pos[0], pos[0] + len(matrix[0])):
+				if(tilemode):
+					try:
+						self.grid[i][j] = matrix[l][k]
+						self.draw_grid[i][j] = True
+					except:
+						pass
+				else:
+					try:
+						self.obj_grid[i][j] = matrix[l][k]
+						self.draw_grid[i][j] = True
+					except:
+						pass
+				k += 1
+			l += 1

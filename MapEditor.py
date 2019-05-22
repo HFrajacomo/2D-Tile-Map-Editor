@@ -101,6 +101,8 @@ def handle_mouse(ev):
 	global SELECTED_TILE
 	global TILEMODE
 	global coordenates
+	global SELECTPOS
+	global SELECTING
 
 	# Scroll function
 	if(ev.type == pg.MOUSEBUTTONDOWN and ev.button == 4):
@@ -138,8 +140,11 @@ def handle_mouse(ev):
 
 	elif(ev.type == pg.MOUSEBUTTONDOWN and ev.button == 1): # Left Click
 		if(pg.mouse.get_pos()[1] <= 4*WIN_HEIGHT/5): # On TiledMap
-			CHANGED_POSITIONS.append(tupsum(get_grid_square(pg.mouse.get_pos()), tiled_screen.win_cord))
-			HOLD_LCLICK = True
+			if(SELECTING):
+				SELECTPOS.append(get_grid_square(pg.mouse.get_pos()))
+			else:
+				CHANGED_POSITIONS.append(tupsum(get_grid_square(pg.mouse.get_pos()), tiled_screen.win_cord))
+				HOLD_LCLICK = True
 		else:  # In panels
 			if(TILEMODE):
 				for button in tbarray: # in Tiles Bevel
@@ -185,6 +190,9 @@ def handle_keyboard(ev):
 	global LIGHTMODE
 	global light_ind
 	global SELECTED_LIGHT
+	global SELECTING
+	global SELECTPOS
+	global CLIPBOARD_COPY
 
 	mods = pg.key.get_mods()
 
@@ -219,9 +227,22 @@ def handle_keyboard(ev):
 		pass
 
 
+	# CTRL Handling
 	if(pg.key.name(ev.key) == "z" and mods & pg.KMOD_CTRL): # Ctrl + Z
 		tiled_screen.undo_map()
-	elif(mods & pg.KMOD_ALT):
+	elif(pg.key.name(ev.key) == "c" and mods & pg.KMOD_CTRL): # Ctrl + C
+		try:
+			CLIPBOARD_COPY = tiled_screen.map_.copy(SELECTPOS[-2], SELECTPOS[-1], TILEMODE)
+		except:
+			pass
+	elif(pg.key.name(ev.key) == "v" and mods & pg.KMOD_CTRL): # Ctrl + V
+		if(len(CLIPBOARD_COPY) > 0 and len(CLIPBOARD_COPY[0])>0):
+			tiled_screen.map_.paste(CLIPBOARD_COPY, get_grid_square(pg.mouse.get_pos()), TILEMODE)
+
+	if(pg.key.name(ev.key) == "left ctrl" and ev.type == pg.KEYDOWN):
+			SELECTING = True
+
+	if(mods & pg.KMOD_ALT):
 		TILEMODE = not TILEMODE
 		slpan.clear(screen, TILEMODE)
 		if(TILEMODE):
@@ -230,6 +251,8 @@ def handle_keyboard(ev):
 		else:
 			obarray.bevel.draw(screen)
 			obarray.draw_buttons(screen, TILEMODE)
+
+
 	elif(pg.key.name(ev.key) == "a" and mods & pg.KMOD_SHIFT):
 		tiled_screen.win_move(dx=-30)	
 	elif(pg.key.name(ev.key) == "d" and mods & pg.KMOD_SHIFT):
@@ -282,6 +305,14 @@ def handle_keyboard(ev):
 		light_ind.fill((255,255, 255))
 		screen.blit(light_ind, (0,4*WIN_HEIGHT/5))	
 
+def handle_keyups(ev):
+	global SELECTPOS
+	global SELECTING
+
+	if(pg.key.name(ev.key) == "left ctrl"):
+		SELECTING = False
+		SELECTPOS = []
+
 mouse_events = []
 
 pg.init()
@@ -299,6 +330,10 @@ HOLD_MCLICK = False
 SELECTED_TILE = (0,0)
 CHANGED_POSITIONS = []
 DRAW_GRID = False
+
+SELECTPOS = []
+CLIPBOARD_COPY = []
+SELECTING = False
 
 LIGHTMODE = False
 SELECTED_LIGHT = 255
@@ -365,4 +400,6 @@ while(not QUIT):
 			handle_mouse(ev)
 		elif(ev.type in [pg.KEYDOWN]):
 			handle_keyboard(ev)
+		elif(ev.type in [pg.KEYUP]):
+			handle_keyups(ev)
 	sleep(FPS/3)
