@@ -211,3 +211,62 @@ class TiledMap():
 						screen.blit(Light(self.map_.light_grid[i][j]).image, (k*size, new_i*size))
 
 				k -=1
+
+	# returns a subregion of tilemode matrix.
+	# Start and End are grid positions
+	# CTRL + C Function
+	def copy(self, start, end, tilemode):
+
+		# Handling position problems
+		if(end[1] < start[1] and start[0] > end[0]):
+			aux = start.copy()
+			start = end.copy()
+			end = aux
+		elif(end[1] < start[1] and start[0] < end[0]):
+			aux = start.copy()
+			start = [end[1], aux[0]]
+			end = [aux[1], end[0]]
+		elif(end[1] < start[1]):
+			aux = start.copy()
+			start = end.copy()
+			end = aux
+
+		outmatrix = []
+
+		for j in range(start[1] + self.win_cord[0], end[1]+1+self.win_cord[0]):
+			outmatrix.append([])
+			for i in range(start[0] + self.win_cord[1], end[0]+1+self.win_cord[1]):
+				if(tilemode):
+					outmatrix[-1].append(self.map_.grid[i][j])
+				else:
+					outmatrix[-1].append(self.map_.obj_grid[i][j])
+
+		print(outmatrix)
+		return outmatrix
+
+	# Pastes Matrix in tilemode grid position
+	# CTRL + V Function
+	def paste(self, matrix, pos, tilemode):
+		k = 0
+		l = 0
+
+		print(self.win_cord[0])
+		print(self.win_cord[1])
+
+		for j in range(pos[1] + self.win_cord[0], pos[1] + self.win_cord[0] + len(matrix)):
+			k = 0
+			for i in range(pos[0] + self.win_cord[1], pos[0] + self.win_cord[1] + len(matrix[0])):
+				if(tilemode):
+					try:
+						self.map_.grid[i][j] = matrix[l][k]
+						self.map_.draw_grid[i][j] = True
+					except:
+						pass
+				else:
+					try:
+						self.map_.obj_grid[i][j] = matrix[l][k]
+						self.map_.draw_grid[i][j] = True
+					except:
+						pass
+				k += 1
+			l += 1

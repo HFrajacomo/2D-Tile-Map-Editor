@@ -232,15 +232,15 @@ def handle_keyboard(ev):
 		tiled_screen.undo_map()
 	elif(pg.key.name(ev.key) == "c" and mods & pg.KMOD_CTRL): # Ctrl + C
 		try:
-			CLIPBOARD_COPY = tiled_screen.map_.copy(SELECTPOS[-2], SELECTPOS[-1], TILEMODE)
+			CLIPBOARD_COPY = tiled_screen.copy(SELECTPOS[-2], SELECTPOS[-1], TILEMODE)
 		except:
 			pass
 	elif(pg.key.name(ev.key) == "v" and mods & pg.KMOD_CTRL): # Ctrl + V
 		if(len(CLIPBOARD_COPY) > 0 and len(CLIPBOARD_COPY[0])>0):
-			tiled_screen.map_.paste(CLIPBOARD_COPY, get_grid_square(pg.mouse.get_pos()), TILEMODE)
+			tiled_screen.paste(CLIPBOARD_COPY, get_grid_square(pg.mouse.get_pos()), TILEMODE)
 
 	if(pg.key.name(ev.key) == "left ctrl" and ev.type == pg.KEYDOWN):
-			SELECTING = True
+		SELECTING = True
 
 	if(mods & pg.KMOD_ALT):
 		TILEMODE = not TILEMODE
