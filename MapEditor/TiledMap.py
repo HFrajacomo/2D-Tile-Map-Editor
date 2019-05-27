@@ -241,7 +241,6 @@ class TiledMap():
 				else:
 					outmatrix[-1].append(self.map_.obj_grid[i][j])
 
-		print(outmatrix)
 		return outmatrix
 
 	# Pastes Matrix in tilemode grid position
@@ -250,8 +249,6 @@ class TiledMap():
 		k = 0
 		l = 0
 
-		print(self.win_cord[0])
-		print(self.win_cord[1])
 
 		for j in range(pos[1] + self.win_cord[0], pos[1] + self.win_cord[0] + len(matrix)):
 			k = 0
