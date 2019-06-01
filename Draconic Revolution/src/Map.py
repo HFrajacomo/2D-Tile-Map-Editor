@@ -55,29 +55,45 @@ class Map:
 	# Returns a submatrix of map.grid
 	# non_circular changes to filling with -1 and rolling around map
 	def get_region(self, pos, radius_x, radius_y, non_circular=True):
-		sub_matrix = []
+		sub_grid = []
+		sub_obj = []
+		sub_light = []
 		for i in range(pos[1] - radius_y, pos[1] + radius_y+1):
-			sub_matrix.append([])
+			sub_grid.append([])
+			sub_obj.append([])
+			sub_light.append([])
 			for j in range(pos[0] - radius_x, pos[0] + radius_x+1):
 				try:
 					if(non_circular and i<0 or j<0):
-						sub_matrix[-1].append(-1)
+						sub_grid[-1].append(-1)
+						sub_obj[-1].append(0)
+						sub_light[-1].append(0)
 					elif(non_circular and (i>len(self.grid)-1 or j>len(self.grid[0])-1)):
-						sub_matrix[-1].append(-1)
+						sub_grid[-1].append(-1)
+						sub_obj[-1].append(0)
+						sub_light[-1].append(0)
 					elif(not non_circular and i>=len(self.grid) and j>=len(self.grid[0])):
 						i -= len(self.grid)
 						j -= len(self.grid[0])
 					elif(not non_circular and i>=len(self.grid)):
 						i -= len(self.grid)
-						sub_matrix[-1].append(self.grid[i][j])
+						sub_grid[-1].append(self.grid[i][j])
+						sub_obj[-1].append(self.obj_grid[i][j])
+						sub_light[-1].append(self.light_grid[i][j])
 					elif(not non_circular and j>=len(self.grid[0])):
 						j -= len(self.grid[0])
-						sub_matrix[-1].append(self.grid[i][j])
+						sub_grid[-1].append(self.grid[i][j])
+						sub_obj[-1].append(self.obj_grid[i][j])
+						sub_light[-1].append(self.light_grid[i][j])					
 					else:
-						sub_matrix[-1].append(self.grid[i][j])
+						sub_grid[-1].append(self.grid[i][j])
+						sub_obj[-1].append(self.obj_grid[i][j])
+						sub_light[-1].append(self.light_grid[i][j])	
 				except IndexError:
-					sub_matrix[-1].append(-1)
-		return sub_matrix
+						sub_grid[-1].append(-1)
+						sub_obj[-1].append(0)
+						sub_light[-1].append(0)
+		return [sub_grid, sub_obj, sub_light]
 
 	# Formatted print for map.grid
 	def quick_print(self):

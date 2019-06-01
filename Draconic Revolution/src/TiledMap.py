@@ -7,6 +7,7 @@ from Obj import Obj
 from Light import Light
 
 class TiledMap():
+	surf = None
 	win_cord = (0,0)
 	map_ = ""  # Sub-map for Tiled Window
 	undomap = None # Ctrl + Z Accessed
@@ -18,9 +19,28 @@ class TiledMap():
 		self.map_ = map_obj
 		self.needs_draw = True
 		self.win_cord = (0,0)
+		self.surf = pg.Surface(((25*64),(25*64)))
 
-	def __getitem__(self, i):
-		return self.map_.grid[i]
+
+	# Blits a new region.
+	def build_surface(self, screen, discrete_pos, offset_pos):
+		chunk_radius = 25
+
+		print_map = self.map_.get_region(discrete_pos, chunk_radius, chunk_radius, non_circular=False)
+		tile_list = {}
+
+		for j in range(0,chunk_radius):
+			for i in range(0,chunk_radius):
+				# Get all tiles that appear
+				if(print_map[0][i][j] not in tile_list):
+					tile_list[print_map[0][i][j]] = Tile(print_map[0][i][j])
+
+		for j in range(0,chunk_radius):
+			for i in range(0,chunk_radius):				
+				# Blitting tile mapping
+				self.bev_.fullscreen.blit(tile_list[print_map[0][i][j]].image, ((j*64), (i*64)))
+		#screen.blit(self.surf, ((-32*chunk_radius), (-32*chunk_radius)))
+		screen.blit(self.bev_.fullscreen, (0, 0))
 
 	# Moves windowed view
 	def win_move(self, dx=0, dy=0):

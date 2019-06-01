@@ -25,5 +25,5 @@ def loadmap(filename):
 				elif(count_of_es == 2):
 					light_data.append([int(x) for x in lines[i].split(",")])
 
-		return Map(map_data, obj_data, light_data, mapname=map_name), map_cord
+		return Map(map_data, obj_data, light_data, mapname=map_name)
 	return None, None
