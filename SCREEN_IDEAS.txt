@@ -1,0 +1,27 @@
+Mini-Map:: 300x300		Static Buttons:: 90x75 each
+
+						Inventory
+						Skills
+						Configs
+						Combat Styles
+						Magic
+						Crafting
+						Tutorial
+						Quests
+
+
+
+Dynamic Buttons: 80x60 each
+
+Battle Bars
+Atributes
+Exp Tracking
+Combat Style
+Party
+Friends
+
+Dynamic Window:: 480x300
+
+Equipment:: 480x270
+
+Hotkey:: 480x150
