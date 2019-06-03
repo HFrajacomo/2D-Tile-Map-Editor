@@ -23,34 +23,31 @@ def handle_keyboard(ev):
 	global OFFSET_POS
 	global DISC_POS
 	global map_bev
+	global LOCK
 
+	clock.tick(10)
+
+	LOCK.clear()
 	if(pg.key.name(ev.key) == "escape"): # Quit test
 		QUIT = True
-	elif(pg.key.name(ev.key) == "s"):
-		OFFSET_POS = [OFFSET_POS[0], OFFSET_POS[1] - 64]
-		map_bev.scroll(screen, dx=0,dy=-64)
 	elif(pg.key.name(ev.key) == "w"):
-		OFFSET_POS = [OFFSET_POS[0], OFFSET_POS[1] + 64]
-		map_bev.scroll(screen,dx=0,dy=64)
-	elif(pg.key.name(ev.key) == "d"):
-		OFFSET_POS = [OFFSET_POS[0] - 64, OFFSET_POS[1]]
-		map_bev.scroll(screen,dx=-64,dy=0)
+		DISC_POS[1] -= 1
+	elif(pg.key.name(ev.key) == "s"):
+		DISC_POS[1] += 1
 	elif(pg.key.name(ev.key) == "a"):
-		OFFSET_POS = [OFFSET_POS[0] + 64, OFFSET_POS[1]]
-		map_bev.scroll(screen,dx=64,dy=0)
-	elif(pg.key.name(ev.key) == "h"):
-		OFFSET_POS = [OFFSET_POS[0], OFFSET_POS[1] -10]
-		map_bev.scroll(screen,dx=0,dy=-10)
+		DISC_POS[0] -= 1
+	elif(pg.key.name(ev.key) == "d"):
+		DISC_POS[0] += 1
 	elif(pg.key.name(ev.key) == "y"):
+		OFFSET_POS = [OFFSET_POS[0], OFFSET_POS[1] -10]
+	elif(pg.key.name(ev.key) == "h"):
 		OFFSET_POS = [OFFSET_POS[0], OFFSET_POS[1] +10]
-		map_bev.scroll(screen,dx=0,dy=10)
-	elif(pg.key.name(ev.key) == "j"):
-		OFFSET_POS = [OFFSET_POS[0] - 10, OFFSET_POS[1]]
-		map_bev.scroll(screen,dx=-10,dy=0)
 	elif(pg.key.name(ev.key) == "g"):
+		OFFSET_POS = [OFFSET_POS[0] - 10, OFFSET_POS[1]]
+	elif(pg.key.name(ev.key) == "j"):
 		OFFSET_POS = [OFFSET_POS[0] + 10, OFFSET_POS[1]]
-		map_bev.scroll(screen,dx=10,dy=0)
 	calculate_player_pos()
+	LOCK.set()
 
 def handle_keyups(ev):
 	pass
@@ -59,8 +56,6 @@ def handle_keyups(ev):
 def calculate_player_pos():
 	global DISC_POS
 	global OFFSET_POS
-	if(1):
-		return
 
 	if(OFFSET_POS[0]>=64):
 		DISC_POS[0] += 1
@@ -75,26 +70,17 @@ def calculate_player_pos():
 		DISC_POS[1] -= 1
 		OFFSET_POS[1] += 64
 
-'''
-def game_shifts(bev):
+def game_refresher():
 	global screen
-	global QUIT
-
-	while(not QUIT):
-		bev.update(screen)
-'''
-
-def game_refresher(bev, tiledmap):
-	global screen
+	global map_bev
 	global DISC_POS
 	global OFFSET_POS
 	global QUIT
-	tiledmap.build_surface(screen, DISC_POS, OFFSET_POS)
-	bev.update(screen)
-	#while(not QUIT):
-		#tiledmap.build_surface(screen, DISC_POS, OFFSET_POS)
-		#bev.update(screen)
-		#pg.display.flip()
+	global clock
+
+	while(not QUIT):
+		clock.tick(FPS)
+		map_bev.get_window(screen, DISC_POS, OFFSET_POS)
 
 pg.init()
 
@@ -108,10 +94,10 @@ threads = []
 QUIT = False
 GAMESTATE = 1
 OFFSET_POS = [0,0]
-DISC_POS = [30,20]
+DISC_POS = [100,100]
 
 # Map
-m = loadmap("map\\rendertest") # 21x15
+m = loadmap("map\\draconis") # 21x15
 
 # Bevels
 map_bev = ScreenBevel(1344, 960, (55,25,25,255), (0,0))  # Sobra x = 96 e y = 120
@@ -145,10 +131,19 @@ sleepbar_bev.draw(screen)
 # TiledMap
 tiled_map = TiledMap(map_bev, m)
 
+# Setup map
+
+map_bev.load_map(m)
+map_bev.build_map(screen, DISC_POS, m)
+
 # CLOCK
 clock = pg.time.Clock()
 
-threads.append(Thread(target=game_refresher, args=(map_bev, tiled_map)))
+# EVENT
+LOCK = Event()
+LOCK.set()
+
+threads.append(Thread(target=game_refresher))
 
 for th in threads:
 	th.start()

@@ -64,27 +64,30 @@ class Map:
 			sub_light.append([])
 			for j in range(pos[0] - radius_x, pos[0] + radius_x+1):
 				try:
-					if(non_circular and i<0 or j<0):
+					if((non_circular) and (i<0 or j<0)):
 						sub_grid[-1].append(-1)
 						sub_obj[-1].append(0)
 						sub_light[-1].append(0)
-					elif(non_circular and (i>len(self.grid)-1 or j>len(self.grid[0])-1)):
+					elif((non_circular) and ((i>len(self.grid)-1 or j>len(self.grid[0])-1))):
 						sub_grid[-1].append(-1)
 						sub_obj[-1].append(0)
 						sub_light[-1].append(0)
 					elif(not non_circular and i>=len(self.grid) and j>=len(self.grid[0])):
-						i -= len(self.grid)
-						j -= len(self.grid[0])
+						l = i - len(self.grid)
+						m = j - len(self.grid[0])
+						sub_grid[-1].append(self.grid[l][m])
+						sub_obj[-1].append(self.obj_grid[l][m])
+						sub_light[-1].append(self.light_grid[l][m])	
 					elif(not non_circular and i>=len(self.grid)):
-						i -= len(self.grid)
-						sub_grid[-1].append(self.grid[i][j])
-						sub_obj[-1].append(self.obj_grid[i][j])
-						sub_light[-1].append(self.light_grid[i][j])
+						l = i - len(self.grid)
+						sub_grid[-1].append(self.grid[l][j])
+						sub_obj[-1].append(self.obj_grid[l][j])
+						sub_light[-1].append(self.light_grid[l][j])
 					elif(not non_circular and j>=len(self.grid[0])):
-						j -= len(self.grid[0])
-						sub_grid[-1].append(self.grid[i][j])
-						sub_obj[-1].append(self.obj_grid[i][j])
-						sub_light[-1].append(self.light_grid[i][j])					
+						l = j - len(self.grid[0])
+						sub_grid[-1].append(self.grid[i][l])
+						sub_obj[-1].append(self.obj_grid[i][l])
+						sub_light[-1].append(self.light_grid[i][l])					
 					else:
 						sub_grid[-1].append(self.grid[i][j])
 						sub_obj[-1].append(self.obj_grid[i][j])
