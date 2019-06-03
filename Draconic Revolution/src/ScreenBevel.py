@@ -46,8 +46,62 @@ class ScreenBevel:
 	   		screen.blit(self.get_window([0,0]), (0,0))
 	    	pg.display.update(self.rect)
 	'''
-	def get_window(self, screen, discrete_pos, offset):
-		aux = self.fullscreen.subsurface(pg.Rect(((discrete_pos[0]*64 + offset[0] - 640), (discrete_pos[1]*64 + offset[1] - 448)), (1344, 960)))
+
+	# Blits the viewport
+	def get_window(self, screen, discrete_pos, offset, mapsize):
+		x_start = discrete_pos[0]*64 + offset[0] - 640
+		y_start = discrete_pos[1]*64 + offset[1] - 448
+
+		if(x_start < 0):
+			x_start = mapsize[0] + x_start
+		if(y_start < 0):
+			y_start = mapsize[1] + y_start
+		
+		x_end = x_start + 1344
+		y_end = y_start + 960
+
+
+
+		# Viewport inside fullscreen
+		if(x_start >= 0 and y_start >= 0 and x_end < mapsize[0] and y_end < mapsize[1]):
+			aux = self.fullscreen.subsurface(pg.Rect((x_start, y_start), (1344, 960)))
+		# Viewport going out onto x axis
+		elif(x_end >= mapsize[0] and y_start >= 0 and y_end < mapsize[1]):
+			x_remainder = x_end - mapsize[0] 
+			aux = self.fullscreen.subsurface(pg.Rect((x_start, y_start), (1344 - x_remainder, 960)))
+			aux2 = self.fullscreen.subsurface(pg.Rect((0, y_start), (x_remainder, 960)))
+			screen.blit(aux2, (1344 - x_remainder, 0))
+		# Viewport going out onto y axis
+		elif(y_end >= mapsize[1] and x_start >= 0 and x_end < mapsize[0]):
+			y_remainder = y_end - mapsize[1] 
+			aux = self.fullscreen.subsurface(pg.Rect((x_start, y_start), (1344, 960 - y_remainder)))
+			aux2 = self.fullscreen.subsurface(pg.Rect((x_start, 0), (1344, y_remainder)))
+			screen.blit(aux2, (0, 960 - y_remainder))
+		# Viewport going out onto xy
+		#elif(x_end >= mapsize[0] and y_end >- mapsize[1]):
+		else:
+			x_remainder = x_end - mapsize[0]
+			y_remainder = y_end - mapsize[1]
+			aux = self.fullscreen.subsurface(pg.Rect((x_start, y_start), (1344 - x_remainder, 960 - y_remainder)))
+			aux2 = self.fullscreen.subsurface(pg.Rect((0, y_start), (x_remainder, 960 - y_remainder)))
+			aux3 = self.fullscreen.subsurface(pg.Rect((x_start, 0), (1344 - x_remainder, y_remainder)))
+
+			# Fix diagonal blitting
+			if(x_start >= 0):
+				x_start = 0
+			else:
+				x_start = mapsize[0] - x_remainder
+			if(y_start >= 0):
+				y_start = 0
+			else:
+				y_start = mapsize[1] - y_remainder
+		
+
+			aux4 = self.fullscreen.subsurface(pg.Rect((x_start, y_start), (x_remainder, y_remainder)))
+			
+			screen.blit(aux2, (1344 - x_remainder, 0))
+			screen.blit(aux3, (0, 960 - y_remainder))
+			screen.blit(aux4, (1344 - x_remainder, 960 - y_remainder))			
 		screen.blit(aux, (0,0))
 		self.update(screen)
 

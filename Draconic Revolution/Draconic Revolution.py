@@ -12,6 +12,7 @@ from TiledMap import TiledMap
 from Obj import Obj
 from ServerHolder import *
 from ScreenBevel import ScreenBevel
+from CoordBox import CoordBox
 
 
 def handle_mouse(ev):
@@ -56,6 +57,10 @@ def handle_keyups(ev):
 def calculate_player_pos():
 	global DISC_POS
 	global OFFSET_POS
+	global tiled_map
+	global coordbox
+
+	mapsize = tiled_map.map_.get_size()
 
 	if(OFFSET_POS[0]>=64):
 		DISC_POS[0] += 1
@@ -70,6 +75,17 @@ def calculate_player_pos():
 		DISC_POS[1] -= 1
 		OFFSET_POS[1] += 64
 
+	if(DISC_POS[0] >= mapsize[0]):
+		DISC_POS[0] = 0
+	if(DISC_POS[0] < 0):
+		DISC_POS[0] = mapsize[0] - 1
+	if(DISC_POS[1] >= mapsize[1]):
+		DISC_POS[1] = 0
+	if(DISC_POS[1] < 0):
+		DISC_POS[1] = mapsize[1] - 1
+
+	coordbox.change_value(screen, DISC_POS, tiled_map)
+
 def game_refresher():
 	global screen
 	global map_bev
@@ -77,10 +93,11 @@ def game_refresher():
 	global OFFSET_POS
 	global QUIT
 	global clock
+	global tiled_map
 
 	while(not QUIT):
 		clock.tick(FPS)
-		map_bev.get_window(screen, DISC_POS, OFFSET_POS)
+		map_bev.get_window(screen, DISC_POS, OFFSET_POS, tiled_map.map_.get_pixel_size())
 
 pg.init()
 
@@ -94,7 +111,7 @@ threads = []
 QUIT = False
 GAMESTATE = 1
 OFFSET_POS = [0,0]
-DISC_POS = [100,100]
+DISC_POS = [20,200]
 
 # Map
 m = loadmap("map\\draconis") # 21x15
@@ -138,6 +155,9 @@ map_bev.build_map(screen, DISC_POS, m)
 
 # CLOCK
 clock = pg.time.Clock()
+
+# CoordBox
+coordbox = CoordBox(100, (1500, 200), (255,255,255))
 
 # EVENT
 LOCK = Event()

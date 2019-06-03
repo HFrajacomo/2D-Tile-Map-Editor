@@ -140,3 +140,11 @@ class Map:
 				except IndexError:
 					sub_matrix[-1].append(-1)
 		return sub_matrix
+
+	# Returns mapsize in pixels
+	def get_pixel_size(self):
+		return [len(self.grid)*64, len(self.grid[0])*64]
+
+	# Returns mapsize in discrete
+	def get_size(self):
+		return [len(self.grid), len(self.grid[0])]
