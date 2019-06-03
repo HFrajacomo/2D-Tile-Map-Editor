@@ -5,7 +5,7 @@ class Obj:
 	image = []
 	size = 32
 
-	def __init__(self, id, size=32, scaling=1):
+	def __init__(self, id, size=32, scaling=2):
 		self.size = size
 		self.image = pg.image.load(get_tile_index(id))
 		if(scaling != 1):
@@ -16,8 +16,8 @@ class Obj:
 
 def get_tile_index(id):
 	if(id <= 0):
-		return "MapEditor\\Objects\\none.png"
+		return "src\\Objects\\none.png"
 
-	ref = open("MapEditor\\Objects\\Obj_ref", "r")
+	ref = open("src\\Objects\\Obj_ref", "r")
 	data = ref.read()
-	return "MapEditor\\Objects\\" + data.split("\n")[id] + ".png"
+	return "src\\Objects\\" + data.split("\n")[id] + ".png"

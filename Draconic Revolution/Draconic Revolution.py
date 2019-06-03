@@ -24,34 +24,83 @@ def handle_keyboard(ev):
 	global OFFSET_POS
 	global DISC_POS
 	global map_bev
-	global LOCK
+	global movement
 
-	clock.tick(10)
+	clock.tick(FPS)
 
-	LOCK.clear()
 	if(pg.key.name(ev.key) == "escape"): # Quit test
 		QUIT = True
 	elif(pg.key.name(ev.key) == "w"):
-		DISC_POS[1] -= 1
+		movement["up"] = True
 	elif(pg.key.name(ev.key) == "s"):
-		DISC_POS[1] += 1
+		movement["down"] = True
 	elif(pg.key.name(ev.key) == "a"):
-		DISC_POS[0] -= 1
+		movement["left"] = True
 	elif(pg.key.name(ev.key) == "d"):
-		DISC_POS[0] += 1
+		movement["right"] = True
 	elif(pg.key.name(ev.key) == "y"):
-		OFFSET_POS = [OFFSET_POS[0], OFFSET_POS[1] -10]
+		movement["kup"] = True
 	elif(pg.key.name(ev.key) == "h"):
-		OFFSET_POS = [OFFSET_POS[0], OFFSET_POS[1] +10]
+		movement["kdown"] = True
 	elif(pg.key.name(ev.key) == "g"):
-		OFFSET_POS = [OFFSET_POS[0] - 10, OFFSET_POS[1]]
+		movement["kleft"] = True
 	elif(pg.key.name(ev.key) == "j"):
-		OFFSET_POS = [OFFSET_POS[0] + 10, OFFSET_POS[1]]
-	calculate_player_pos()
-	LOCK.set()
+		movement["kright"] = True
+
+def char_movement():
+	global movement
+	global clock
+	global DISC_POS
+	global OFFSET_POS
+	global QUIT
+	global LOCK
+
+	while(not QUIT):
+		clock.tick(10)
+
+		LOCK.clear()
+		if(movement["up"]):
+			DISC_POS[1] -= 1
+		if(movement["down"]):
+			DISC_POS[1] += 1
+		if(movement["left"]):
+			DISC_POS[0] -= 1
+		if(movement["right"]):
+			DISC_POS[0] += 1
+		if(movement["kup"]):
+			OFFSET_POS = [OFFSET_POS[0], OFFSET_POS[1] -10]
+		if(movement["kdown"]):
+			OFFSET_POS = [OFFSET_POS[0], OFFSET_POS[1] +10]
+		if(movement["kleft"]):
+			OFFSET_POS = [OFFSET_POS[0] - 10, OFFSET_POS[1]]
+		if(movement["kright"]):
+			OFFSET_POS = [OFFSET_POS[0] + 10, OFFSET_POS[1]]
+		calculate_player_pos()
+		LOCK.set()
 
 def handle_keyups(ev):
-	pass
+	global clock
+
+	clock.tick(FPS)
+
+	if(pg.key.name(ev.key) == "escape"): # Quit test
+		QUIT = True
+	elif(pg.key.name(ev.key) == "w"):
+		movement["up"] = False
+	elif(pg.key.name(ev.key) == "s"):
+		movement["down"] = False
+	elif(pg.key.name(ev.key) == "a"):
+		movement["left"] = False
+	elif(pg.key.name(ev.key) == "d"):
+		movement["right"] = False
+	elif(pg.key.name(ev.key) == "y"):
+		movement["kup"] = False
+	elif(pg.key.name(ev.key) == "h"):
+		movement["kdown"] = False
+	elif(pg.key.name(ev.key) == "g"):
+		movement["kleft"] = False
+	elif(pg.key.name(ev.key) == "j"):
+		movement["kright"] = False
 
 
 def calculate_player_pos():
@@ -111,7 +160,7 @@ threads = []
 QUIT = False
 GAMESTATE = 1
 OFFSET_POS = [0,0]
-DISC_POS = [20,200]
+DISC_POS = [40,50]
 
 # Map
 m = loadmap("map\\draconis") # 21x15
@@ -163,7 +212,11 @@ coordbox = CoordBox(100, (1500, 200), (255,255,255))
 LOCK = Event()
 LOCK.set()
 
+# Movement Dict
+movement = {"up":False, "down":False, "left":False, "right":False, "kup":False, "kdown":False, "kleft":False, "kright":False}
+
 threads.append(Thread(target=game_refresher))
+threads.append(Thread(target=char_movement))
 
 for th in threads:
 	th.start()

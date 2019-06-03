@@ -1,5 +1,7 @@
 import pygame as pg
 from Tile import *
+from Obj import Obj
+from Light import Light
 
 class ScreenBevel:
 	def __init__(self, width, height, rgb, pos):
@@ -60,8 +62,6 @@ class ScreenBevel:
 		x_end = x_start + 1344
 		y_end = y_start + 960
 
-
-
 		# Viewport inside fullscreen
 		if(x_start >= 0 and y_start >= 0 and x_end < mapsize[0] and y_end < mapsize[1]):
 			aux = self.fullscreen.subsurface(pg.Rect((x_start, y_start), (1344, 960)))
@@ -114,14 +114,23 @@ class ScreenBevel:
 	# Builds the entire map onto fullscreen
 	def build_map(self, screen, discrete_pos, map):
 		tile_list = {}
+		obj_list = {}
+		light_list = {}
 
 		for j in range(0,len(map.grid[0])):
 			for i in range(0,len(map.grid)):
 				# Get all tiles that appear
 				if(map.grid[i][j] not in tile_list):
-					tile_list[map.grid[i][j]] = Tile(map.grid[i][j])
+					tile_list[map.grid[i][j]] = Tile(map.grid[i][j]).image
+				if(map.obj_grid[i][j] not in obj_list):
+					obj_list[map.obj_grid[i][j]] = Obj(map.obj_grid[i][j]).image
+				if(map.light_grid[i][j] not in light_list):
+					light_list[map.light_grid[i][j]] = Light(map.light_grid[i][j]).image
 
 		for j in range(0,len(map.grid[0])):
 			for i in range(0,len(map.grid)):			
 				# Blitting tile mapping
-				self.fullscreen.blit(tile_list[map.grid[i][j]].image, ((j*64), (i*64)))
+				self.fullscreen.blit(tile_list[map.grid[i][j]], ((j*64), (i*64)))
+				self.fullscreen.blit(obj_list[map.obj_grid[i][j]], ((j*64), (i*64)))
+				if(not map.light_grid[i][j] <= 0):
+					self.fullscreen.blit(light_list[map.light_grid[i][j]], ((j*64), (i*64)))
