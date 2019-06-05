@@ -56,7 +56,7 @@ def char_movement():
 	global LOCK
 
 	while(not QUIT):
-		clock.tick(10)
+		clock.tick(60)
 
 		LOCK.clear()
 		if(movement["up"]):
@@ -68,13 +68,13 @@ def char_movement():
 		if(movement["right"]):
 			DISC_POS[0] += 1
 		if(movement["kup"]):
-			OFFSET_POS = [OFFSET_POS[0], OFFSET_POS[1] -10]
+			OFFSET_POS = [OFFSET_POS[0], OFFSET_POS[1] -8]
 		if(movement["kdown"]):
-			OFFSET_POS = [OFFSET_POS[0], OFFSET_POS[1] +10]
+			OFFSET_POS = [OFFSET_POS[0], OFFSET_POS[1] +8]
 		if(movement["kleft"]):
-			OFFSET_POS = [OFFSET_POS[0] - 10, OFFSET_POS[1]]
+			OFFSET_POS = [OFFSET_POS[0] - 8, OFFSET_POS[1]]
 		if(movement["kright"]):
-			OFFSET_POS = [OFFSET_POS[0] + 10, OFFSET_POS[1]]
+			OFFSET_POS = [OFFSET_POS[0] + 8, OFFSET_POS[1]]
 		calculate_player_pos()
 		LOCK.set()
 
@@ -143,10 +143,11 @@ def game_refresher():
 	global QUIT
 	global clock
 	global tiled_map
+	global inter_map
 
 	while(not QUIT):
-		clock.tick(FPS)
-		map_bev.get_window(screen, DISC_POS, OFFSET_POS, tiled_map.map_.get_pixel_size())
+		clock.tick(120)
+		map_bev.get_window(screen, DISC_POS, OFFSET_POS, tiled_map.map_.get_pixel_size(), inter_map)
 
 pg.init()
 
@@ -160,10 +161,9 @@ threads = []
 QUIT = False
 GAMESTATE = 1
 OFFSET_POS = [0,0]
-DISC_POS = [40,50]
-
+DISC_POS = [100,120]
 # Map
-m = loadmap("map\\draconis") # 21x15
+m, inter_map = loadmap("map\\draconis") # 21x15
 
 # Bevels
 map_bev = ScreenBevel(1344, 960, (55,25,25,255), (0,0))  # Sobra x = 96 e y = 120
@@ -198,7 +198,6 @@ sleepbar_bev.draw(screen)
 tiled_map = TiledMap(map_bev, m)
 
 # Setup map
-
 map_bev.load_map(m)
 map_bev.build_map(screen, DISC_POS, m)
 
@@ -208,7 +207,7 @@ clock = pg.time.Clock()
 # CoordBox
 coordbox = CoordBox(100, (1500, 200), (255,255,255))
 
-# EVENT
+# Event
 LOCK = Event()
 LOCK.set()
 

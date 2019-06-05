@@ -1,4 +1,5 @@
 from Map import Map
+from TileDictionary import *
 
 def loadmap(filename):
 	map_name = ""
@@ -25,5 +26,13 @@ def loadmap(filename):
 				elif(count_of_es == 2):
 					light_data.append([int(x) for x in lines[i].split(",")])
 
-		return Map(map_data, obj_data, light_data, mapname=map_name)
+		# Builds interactible map from map_data
+		inter_map = []
+		for i in range(len(map_data)):
+			inter_map.append([])
+			for j in range(len(map_data[0])):
+				inter_map[-1].append(gen_tile(map_data[i][j]))
+
+
+		return Map(map_data, obj_data, light_data, mapname=map_name), inter_map
 	return None, None

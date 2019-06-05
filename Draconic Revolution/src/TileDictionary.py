@@ -1,13 +1,15 @@
 from Tile import *
 
-tile_dictionary = {0:NoneTile(), 
+tile_dictionary = {-1:NoneTile(),
+0:NoneTile(), 
 2:CobbleHard(),
 3:CobbleLight(),
 7:WoodBlock(),
 9:StoneBrick(),
+10:StoneBrick(),
 11:BasaltFloor(),
 12:BasaltBrick(),
-13:CoobleLight(),
+13:CobbleLight(),
 14:CheckerFloor(),
 15:CobbleHard(),
 16:CobbleStairs(),

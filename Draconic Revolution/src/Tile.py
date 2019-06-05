@@ -127,7 +127,7 @@ class StoneBrick(GeneralTile):
 		self.transparency = False
 
 	def examine(self,entity):
-		return "A solid wood block used in building"
+		return "A solid stone block used in building"
 
 	def action(self, entity):
 		# If wearing pickaxe

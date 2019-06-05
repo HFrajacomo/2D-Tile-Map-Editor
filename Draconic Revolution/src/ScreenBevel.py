@@ -2,6 +2,7 @@ import pygame as pg
 from Tile import *
 from Obj import Obj
 from Light import Light
+from Line import *
 
 class ScreenBevel:
 	def __init__(self, width, height, rgb, pos):
@@ -50,7 +51,7 @@ class ScreenBevel:
 	'''
 
 	# Blits the viewport
-	def get_window(self, screen, discrete_pos, offset, mapsize):
+	def get_window(self, screen, discrete_pos, offset, mapsize, interactive_map):
 		x_start = discrete_pos[0]*64 + offset[0] - 640
 		y_start = discrete_pos[1]*64 + offset[1] - 448
 
@@ -103,6 +104,15 @@ class ScreenBevel:
 			screen.blit(aux3, (0, 960 - y_remainder))
 			screen.blit(aux4, (1344 - x_remainder, 960 - y_remainder))			
 		screen.blit(aux, (0,0))
+
+		
+		# Blit blind spots
+		blind_spots = line_of_sight(discrete_pos, interactive_map)
+		dark = Light(255).image
+		player = Light(100).image
+		screen.blit(player, (11*64, 7*64))
+		for element in blind_spots:
+			screen.blit(dark, (element[1]*64-offset[0], element[0]*64-offset[1]))
 		self.update(screen)
 
 	# Creates fullscreen surface based on mapsize
