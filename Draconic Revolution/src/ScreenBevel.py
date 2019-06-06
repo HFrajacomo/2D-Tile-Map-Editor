@@ -98,8 +98,17 @@ class ScreenBevel:
 		# Blit blind spots
 		blind_spots = line_of_sight(discrete_pos, interactive_map)
 		dark = Light(180).image
+		dark_off1 = Light(180).image.subsurface(pg.Rect((0,0), (abs(offset[0]), 64)))
+		dark_off2 = Light(180).image.subsurface(pg.Rect((0,0), (64, abs(offset[1]))))
+		dark_off3 = Light(180).image.subsurface(pg.Rect((0,0), (abs(offset[0]), abs(offset[1]))))
 
 		for element in blind_spots:
+			if(element[1] == 0 and offset[0] < 0):
+				screen.blit(dark_off1, (0,element[0]*64-offset[1]))
+			if(element[0] == 0 and offset[1] < 0):
+				screen.blit(dark_off2, (element[1]*64-offset[0], 0))
+			if(element[0] == 0 and element[1] == 0):
+				screen.blit(dark_off3, (0, 0))				
 			screen.blit(dark, (element[1]*64-offset[0], element[0]*64-offset[1]))
 			
 		self.update(screen)

@@ -112,18 +112,18 @@ def calculate_player_pos():
 
 	mapsize = tiled_map.map_.get_size()
 
-	if(OFFSET_POS[0]>64):
+	if(OFFSET_POS[0]>32):
 		DISC_POS[0] += 1
-		OFFSET_POS[0] -= 64
-	elif(OFFSET_POS[1]>64):
+		OFFSET_POS[0] -= 32
+	elif(OFFSET_POS[1]>32):
 		DISC_POS[1] += 1
-		OFFSET_POS[1] -= 64
-	if(OFFSET_POS[0]<0):
+		OFFSET_POS[1] -= 32
+	if(OFFSET_POS[0]<=-32):
 		DISC_POS[0] -= 1
-		OFFSET_POS[0] += 64
-	elif(OFFSET_POS[1]<0):
+		OFFSET_POS[0] += 32
+	elif(OFFSET_POS[1]<=-32):
 		DISC_POS[1] -= 1
-		OFFSET_POS[1] += 64
+		OFFSET_POS[1] += 32
 
 	if(DISC_POS[0] >= mapsize[0]):
 		DISC_POS[0] = 0
