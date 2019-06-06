@@ -13,6 +13,7 @@ from Obj import Obj
 from ServerHolder import *
 from ScreenBevel import ScreenBevel
 from CoordBox import CoordBox
+from Entity import *
 
 
 def handle_mouse(ev):
@@ -111,16 +112,16 @@ def calculate_player_pos():
 
 	mapsize = tiled_map.map_.get_size()
 
-	if(OFFSET_POS[0]>=64):
+	if(OFFSET_POS[0]>64):
 		DISC_POS[0] += 1
 		OFFSET_POS[0] -= 64
-	elif(OFFSET_POS[1]>=64):
+	elif(OFFSET_POS[1]>64):
 		DISC_POS[1] += 1
 		OFFSET_POS[1] -= 64
-	if(OFFSET_POS[0]<=0):
+	if(OFFSET_POS[0]<0):
 		DISC_POS[0] -= 1
 		OFFSET_POS[0] += 64
-	elif(OFFSET_POS[1]<=0):
+	elif(OFFSET_POS[1]<0):
 		DISC_POS[1] -= 1
 		OFFSET_POS[1] += 64
 
@@ -147,7 +148,7 @@ def game_refresher():
 
 	while(not QUIT):
 		clock.tick(120)
-		map_bev.get_window(screen, DISC_POS, OFFSET_POS, tiled_map.map_.get_pixel_size(), inter_map)
+		map_bev.get_window(screen, DISC_POS, OFFSET_POS, player, tiled_map.map_.get_pixel_size(), inter_map)
 
 pg.init()
 
@@ -179,6 +180,7 @@ apbar_bev = Bevel(1440,20,(0,255,0),(0,1000))
 guardbar_bev = Bevel(1440,20,(180,0,180),(0,1020))
 hungerbar_bev = Bevel(1440,20,(200,120,0),(0,1040))
 sleepbar_bev = Bevel(1440,20,(200,200,200),(0,1060))
+buttons_bev = Bevel(96,960,(0,50,200),(1344,0))
 
 # Draw Bevels
 map_bev.draw(screen)
@@ -193,6 +195,7 @@ apbar_bev.draw(screen)
 guardbar_bev.draw(screen)
 hungerbar_bev.draw(screen)
 sleepbar_bev.draw(screen)
+buttons_bev.draw(screen)
 
 # TiledMap
 tiled_map = TiledMap(map_bev, m)
@@ -210,6 +213,9 @@ coordbox = CoordBox(100, (1500, 200), (255,255,255))
 # Event
 LOCK = Event()
 LOCK.set()
+
+# Player
+player = Player([DISC_POS[0]+OFFSET_POS[0], DISC_POS[1]+OFFSET_POS[1]], 54, 54, 4)
 
 # Movement Dict
 movement = {"up":False, "down":False, "left":False, "right":False, "kup":False, "kdown":False, "kleft":False, "kright":False}

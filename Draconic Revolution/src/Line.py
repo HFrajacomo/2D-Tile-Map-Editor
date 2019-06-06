@@ -43,9 +43,8 @@ def line_of_sight(pos, m):
 
 	m = get_region(m, pos)
 
-
 	for i in range(0,16):
-		for j in range(0,23):
+		for j in range(0,22):
 			for element in bresenham(7,11,i,j):
 				try:
 					if(dark):
