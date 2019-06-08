@@ -32,21 +32,26 @@ def handle_keyboard(ev):
 	if(pg.key.name(ev.key) == "escape"): # Quit test
 		QUIT = True
 	elif(pg.key.name(ev.key) == "w"):
-		movement["up"] = True
+		movement.insert(0,"up")
 	elif(pg.key.name(ev.key) == "s"):
-		movement["down"] = True
+		movement.insert(0,"down")
 	elif(pg.key.name(ev.key) == "a"):
-		movement["left"] = True
+		movement.insert(0,"left")
 	elif(pg.key.name(ev.key) == "d"):
-		movement["right"] = True
+		movement.insert(0,"right")
 	elif(pg.key.name(ev.key) == "y"):
-		movement["kup"] = True
+		movement.insert(0,"kup")
 	elif(pg.key.name(ev.key) == "h"):
-		movement["kdown"] = True
+		movement.insert(0,"kdown")
 	elif(pg.key.name(ev.key) == "g"):
-		movement["kleft"] = True
+		movement.insert(0,"kleft")
 	elif(pg.key.name(ev.key) == "j"):
-		movement["kright"] = True
+		movement.insert(0,"kright")
+
+def easysum(coorda, coordb):
+	for i in range(len(coorda)):
+		coorda[i] += coordb[i]
+	return coorda
 
 def char_movement():
 	global movement
@@ -55,75 +60,97 @@ def char_movement():
 	global OFFSET_POS
 	global QUIT
 	global LOCK
+	global surroundings
 
 	while(not QUIT):
-		clock.tick(60)
+		clock.tick(120)
 
-		LOCK.clear()
-		if(movement["up"]):
-			DISC_POS[1] -= 1
-		if(movement["down"]):
-			DISC_POS[1] += 1
-		if(movement["left"]):
-			DISC_POS[0] -= 1
-		if(movement["right"]):
-			DISC_POS[0] += 1
-		if(movement["kup"]):
-			OFFSET_POS = [OFFSET_POS[0], OFFSET_POS[1] -8]
-		if(movement["kdown"]):
-			OFFSET_POS = [OFFSET_POS[0], OFFSET_POS[1] +8]
-		if(movement["kleft"]):
-			OFFSET_POS = [OFFSET_POS[0] - 8, OFFSET_POS[1]]
-		if(movement["kright"]):
-			OFFSET_POS = [OFFSET_POS[0] + 8, OFFSET_POS[1]]
+		try:
+			if(movement[0] == "kup" and not collision_check("up")):
+				OFFSET_POS = [OFFSET_POS[0], OFFSET_POS[1] -4]
+			elif(movement[0] == "kdown" and not collision_check("down")):
+				OFFSET_POS = [OFFSET_POS[0], OFFSET_POS[1] +4]
+			elif(movement[0] == "kleft" and not collision_check("left")):
+				OFFSET_POS = [OFFSET_POS[0] - 4, OFFSET_POS[1]]
+			elif(movement[0] == "kright" and not collision_check("right")):
+				OFFSET_POS = [OFFSET_POS[0] + 4, OFFSET_POS[1]]
+			elif(movement[0] == "up"):
+				DISC_POS[1] -= 1
+			elif(movement[0] == "down"):
+				DISC_POS[1] += 1
+			elif(movement[0] == "left"):
+				DISC_POS[0] -= 1
+			elif(movement[0] == "right"):
+				DISC_POS[0] += 1
+		except:
+			continue
 		calculate_player_pos()
-		LOCK.set()
 
 def handle_keyups(ev):
 	global clock
+	global movement
 
 	clock.tick(FPS)
 
 	if(pg.key.name(ev.key) == "escape"): # Quit test
 		QUIT = True
 	elif(pg.key.name(ev.key) == "w"):
-		movement["up"] = False
+		movement.remove("up")
 	elif(pg.key.name(ev.key) == "s"):
-		movement["down"] = False
+		movement.remove("down")
 	elif(pg.key.name(ev.key) == "a"):
-		movement["left"] = False
+		movement.remove("left")
 	elif(pg.key.name(ev.key) == "d"):
-		movement["right"] = False
+		movement.remove("right")
 	elif(pg.key.name(ev.key) == "y"):
-		movement["kup"] = False
+		movement.remove("kup")
 	elif(pg.key.name(ev.key) == "h"):
-		movement["kdown"] = False
+		movement.remove("kdown")
 	elif(pg.key.name(ev.key) == "g"):
-		movement["kleft"] = False
+		movement.remove("kleft")
 	elif(pg.key.name(ev.key) == "j"):
-		movement["kright"] = False
+		movement.remove("kright")
 
+def collision_check(direction):
+	global OFFSET_POS
+	global surroundings
+
+	if(OFFSET_POS[0]<0 and direction == "left"):
+		if(surroundings[1][0]):
+			return True
+	if(OFFSET_POS[0]>0 and direction == "right"):
+		if(surroundings[1][2]):
+			return True
+	if(OFFSET_POS[1]<0 and direction == "up"):
+		if(surroundings[0][1]):
+			return True	
+	if(OFFSET_POS[1]>0 and direction == "down"):
+		if(surroundings[2][1]):
+			return True
+	return False
 
 def calculate_player_pos():
 	global DISC_POS
 	global OFFSET_POS
 	global tiled_map
 	global coordbox
+	global surroundings
 
 	mapsize = tiled_map.map_.get_size()
+	last_pos = DISC_POS.copy()
 
-	if(OFFSET_POS[0]>32):
+	if(OFFSET_POS[0]>31):
 		DISC_POS[0] += 1
-		OFFSET_POS[0] -= 32
-	elif(OFFSET_POS[1]>32):
+		OFFSET_POS[0] -= 64
+	elif(OFFSET_POS[1]>31):
 		DISC_POS[1] += 1
-		OFFSET_POS[1] -= 32
+		OFFSET_POS[1] -= 64
 	if(OFFSET_POS[0]<=-32):
 		DISC_POS[0] -= 1
-		OFFSET_POS[0] += 32
+		OFFSET_POS[0] += 64
 	elif(OFFSET_POS[1]<=-32):
 		DISC_POS[1] -= 1
-		OFFSET_POS[1] += 32
+		OFFSET_POS[1] += 64
 
 	if(DISC_POS[0] >= mapsize[0]):
 		DISC_POS[0] = 0
@@ -133,6 +160,9 @@ def calculate_player_pos():
 		DISC_POS[1] = 0
 	if(DISC_POS[1] < 0):
 		DISC_POS[1] = mapsize[1] - 1
+
+	if(last_pos != DISC_POS):
+		surroundings = get_surroundings(inter_map, DISC_POS)
 
 	coordbox.change_value(screen, DISC_POS, tiled_map)
 
@@ -216,9 +246,8 @@ LOCK.set()
 
 # Player
 player = Player([DISC_POS[0]+OFFSET_POS[0], DISC_POS[1]+OFFSET_POS[1]], 54, 54, 4)
-
-# Movement Dict
-movement = {"up":False, "down":False, "left":False, "right":False, "kup":False, "kdown":False, "kleft":False, "kright":False}
+movement = []
+surroundings = get_surroundings(inter_map, DISC_POS)
 
 threads.append(Thread(target=game_refresher))
 threads.append(Thread(target=char_movement))
