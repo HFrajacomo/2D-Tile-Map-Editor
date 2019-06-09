@@ -94,23 +94,31 @@ class ScreenBevel:
 		player.draw(screen)
 		screen.blit(auxo, (0,0))
 
-		
-		# Blit blind spots
-		blind_spots = line_of_sight(discrete_pos, interactive_map)
-		dark = Light(180).image
-		dark_off1 = Light(180).image.subsurface(pg.Rect((0,0), (abs(offset[0]), 64)))
-		dark_off2 = Light(180).image.subsurface(pg.Rect((0,0), (64, abs(offset[1]))))
-		dark_off3 = Light(180).image.subsurface(pg.Rect((0,0), (abs(offset[0]), abs(offset[1]))))
+
+		# Blit blind spots (PUT THIS IN A THREAD BC SLOW)
+		#blind_spots = line_of_sight(discrete_pos, interactive_map)
+
+		# Removed darkness blitting to screen
+		'''
+		dark = Light(180, size=32).image
+		try:
+			dark_off1 = Light(180, size=64).image.subsurface(pg.Rect((0,0), (abs(offset[0]), 32)))
+			dark_off2 = Light(180, size=64).image.subsurface(pg.Rect((0,0), (64, abs(offset[1]))))
+			dark_off3 = Light(180, size=64).image.subsurface(pg.Rect((0,0), (abs(offset[0]), abs(offset[1]))))
+		except:
+			pass
 
 		for element in blind_spots:
+			
 			if(element[1] == 0 and offset[0] < 0):
 				screen.blit(dark_off1, (0,element[0]*64-offset[1]))
 			if(element[0] == 0 and offset[1] < 0):
 				screen.blit(dark_off2, (element[1]*64-offset[0], 0))
 			if(element[0] == 0 and element[1] == 0):
-				screen.blit(dark_off3, (0, 0))				
+				screen.blit(dark_off3, (0, 0))	
+
 			screen.blit(dark, (element[1]*64-offset[0], element[0]*64-offset[1]))
-			
+		'''
 		self.update(screen)
 
 	# Creates fullscreen surface based on mapsize
@@ -145,3 +153,4 @@ class ScreenBevel:
 				if(not map.obj_grid[i][j] <= 0):
 					self.fullscreen[1].blit(obj_list[map.obj_grid[i][j]], ((j*64), (i*64)))
 				#self.fullscreen[1].blit(light_list[map.light_grid[i][j]], ((j*64), (i*64)))
+
