@@ -2,27 +2,40 @@ import pygame as pg
 
 ####### GENERAL TILE SETTINGS
 
-class Tile:
-	image = []
-	size = 32
+def get_tile_index(ident):
+	if(ident <= 0):
+		return "src\\Tiles\\none.png"
 
-	def __init__(self, id, size=32, scaling=2):
+	ref = open("src\\Tiles\\Tile_ref", "r")
+	data = ref.read()
+	ref.close()
+	return "src\\Tiles\\" + data.split("\n")[ident] + ".png"
+
+class Tile:
+	def __init__(self, ident, size=32, scaling=2):
 		self.size = size
-		self.image = pg.image.load(get_tile_index(id))
+		self.image = pg.image.load(get_tile_index(ident))
 		if(scaling != 1):
 			self.scale(scaling)
 
 	def scale(self, x):
 		self.image = pg.transform.scale(self.image, (self.size*x, self.size*x))
 
-def get_tile_index(id):
-	if(id <= 0):
-		return "src\\Tiles\\none.png"
+class AnimatedTile:
+	handle = 0
+	maximum = 1
 
-	ref = open("src\\Tiles\\Tile_ref", "r")
-	data = ref.read()
-	ref.close()
-	return "src\\Tiles\\" + data.split("\n")[id] + ".png"
+	def __init__(self, ident, frame, size=32, scaling=2):
+		self.ident = ident
+		self.size = size
+		self.image = None
+		self.scale(scaling, frame)
+
+	def scale(self, x, frame):
+		if(x != 1):
+			self.image = pg.transform.scale(pg.image.load(get_tile_index(self.ident)).subsurface(pg.Rect((frame*self.size, 0), (self.size,self.size))), (self.size*x,self.size*x))
+		else:
+			self.image = pg.image.load(get_tile_index(self.ident)).subsurface(pg.Rect((frame*self.size, 0), (self.size,self.size)))
 
 class GeneralTile:
 	id = None
@@ -116,7 +129,6 @@ class WoodBlock(GeneralTile):
 	def attacked(self, entity):
 		# make attacked thingy
 		pass
-
 
 class StoneBrick(GeneralTile):
 	id = 9
@@ -276,7 +288,7 @@ class Dirt(GeneralTile):
 		pass
 
 class RedCarpet(GeneralTile):
-	id = [x for x in range(31,40)]
+	id = 31 #[x for x in range(31,40)]
 
 	def __init__(self):
 		self.hp = 50

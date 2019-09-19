@@ -62,24 +62,6 @@ def line_of_sight(pos, m):
 
 	return output
 
-	'''
-	for i in range(0,32):
-		for j in range(0,44):
-			for element in bresenham(14,22,i,j):
-				try:
-					if(dark == 2):
-						darkness.add(element)
-					elif(m[int(element[0]/2)][int(element[1]/2)].transparency == False):
-						protected.add(element)
-						dark += 1
-				except:
-					pass
-			dark = 0
-
-	darkness = darkness - protected
-	return darkness
-	'''
-
 def threaded_sight(pos, m, rang):
 	global threaded_result
 

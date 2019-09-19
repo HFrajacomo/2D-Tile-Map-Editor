@@ -1,5 +1,6 @@
 from Tile import Tile
 from Obj import Obj
+from AnimatedTilesHash import *
 
 class Map:
 	grid = []
@@ -140,6 +141,16 @@ class Map:
 				except IndexError:
 					sub_matrix[-1].append(-1)
 		return sub_matrix
+
+	# Returns whether to build animated tile screen or not
+	def need_to_draw_animation(self, disc_pos):
+		matrix = self.get_submatrix(self.grid, disc_pos, 18, 15, False)
+		for i in range(0,31):
+			for j in range(0,37):
+				if(matrix[i][j] in animated_dictionary[0].keys()):
+					return True
+
+		return False  
 
 	# Returns mapsize in pixels
 	def get_pixel_size(self):

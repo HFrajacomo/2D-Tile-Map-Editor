@@ -24,7 +24,6 @@ tile_dictionary = {-1:NoneTile(),
 25:WoodPlank(),
 26:WoodPlank(),
 27:CobbleHard(),
-28:Water(),
 29:Sand(),
 30:Dirt(),
 31:RedCarpet(),
@@ -42,4 +41,8 @@ tile_dictionary = {-1:NoneTile(),
 }
 
 def gen_tile(id):
-	return tile_dictionary[id]
+	try:
+		aux = tile_dictionary[id]
+		return aux
+	except:
+		return False
