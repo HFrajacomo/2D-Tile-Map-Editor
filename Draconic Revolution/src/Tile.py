@@ -1,4 +1,6 @@
 import pygame as pg
+	
+## all_list_img declaration down below
 
 ####### GENERAL TILE SETTINGS
 
@@ -17,9 +19,14 @@ class Tile:
 		self.image = pg.image.load(get_tile_index(ident))
 		if(scaling != 1):
 			self.scale(scaling)
+		self.get_frame_zero()
 
 	def scale(self, x):
 		self.image = pg.transform.scale(self.image, (self.size*x, self.size*x))
+
+	def get_frame_zero(self):
+		if(self.image.get_size()[0]>64):
+			self.image = self.image.subsurface(pg.Rect((0,0), (64,64)))
 
 class AnimatedTile:
 	handle = 0
@@ -301,3 +308,25 @@ class RedCarpet(GeneralTile):
 	def action(self, entity):
 		# If pickaxe
 		pass
+
+
+
+
+
+
+
+
+
+
+
+### All tiles
+
+all_tiles_img = {}
+
+for i in range(-1,9999):
+	try:
+		all_tiles_img[i] = Tile(i).image
+	except IndexError:
+		print(i)
+		break
+print(all_tiles_img)

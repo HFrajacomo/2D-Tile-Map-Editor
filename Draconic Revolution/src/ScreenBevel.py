@@ -176,8 +176,8 @@ class ScreenBevel:
 		for j in range(0,len(map.grid[0])):
 			for i in range(0,len(map.grid)):
 				# Get all tiles that appear
-				if(map.grid[i][j] not in tile_list):
-					tile_list[map.grid[i][j]] = Tile(map.grid[i][j]).image
+				#if(map.grid[i][j] not in tile_list):
+				#	tile_list[map.grid[i][j]] = Tile(map.grid[i][j]).image
 				if(map.obj_grid[i][j] not in obj_list):
 					obj_list[map.obj_grid[i][j]] = Obj(map.obj_grid[i][j]).image
 				#if(map.light_grid[i][j] not in light_list):
@@ -188,7 +188,7 @@ class ScreenBevel:
 				# Blitting tile mapping
 				# Don't blit animated tiles
 				if(tile_dictionary.get(map.grid[i][j], False)): # If finds normal tiles
-					self.fullscreen[0].blit(tile_list[map.grid[i][j]], ((j*64), (i*64)))
+					self.fullscreen[0].blit(all_tiles_img[map.grid[i][j]], ((j*64), (i*64)))
 
 				if(not map.obj_grid[i][j] <= 0):
 					self.fullscreen[1].blit(obj_list[map.obj_grid[i][j]], ((j*64), (i*64)))

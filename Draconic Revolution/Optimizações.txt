@@ -1,0 +1,5 @@
+Otimizar a animação construindo o mapa inteiro com o frame 0 e só blittando a animação quando a animation_handle trocar pra 1.
+
+Otimizar a animação criando uma surface grande o suficiente pra caber todos os blocos animados e dar update nos retângulos que a compôe.
+
+Otimizar a geração do mapa e possível troca de blocos com um dicionário global de Tiles.
