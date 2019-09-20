@@ -1,6 +1,6 @@
 from Tile import *
 
-animated_dictionary = [{28:AnimatedTile(28,0)}, {28:AnimatedTile(28,1)}]
+animated_dictionary = [{28:AnimatedTile(28,1)}]
 animated_dictionary_interactive = {28:Water()}
 
 def gen_atile_inter(id):

@@ -17,16 +17,16 @@ class Tile:
 	def __init__(self, ident, size=32, scaling=2):
 		self.size = size
 		self.image = pg.image.load(get_tile_index(ident))
+		self.get_frame_zero()
 		if(scaling != 1):
 			self.scale(scaling)
-		self.get_frame_zero()
 
 	def scale(self, x):
 		self.image = pg.transform.scale(self.image, (self.size*x, self.size*x))
 
 	def get_frame_zero(self):
-		if(self.image.get_size()[0]>64):
-			self.image = self.image.subsurface(pg.Rect((0,0), (64,64)))
+		if(self.image.get_size()[0]>32):
+			self.image = self.image.subsurface(pg.Rect((0,0), (32,32)))
 
 class AnimatedTile:
 	handle = 0
@@ -327,6 +327,4 @@ for i in range(-1,9999):
 	try:
 		all_tiles_img[i] = Tile(i).image
 	except IndexError:
-		print(i)
 		break
-print(all_tiles_img)

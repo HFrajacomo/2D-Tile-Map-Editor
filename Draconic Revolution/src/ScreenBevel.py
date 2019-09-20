@@ -13,15 +13,13 @@ class ScreenBevel:
 	animated_images = {}
 
 	def __init__(self, width, height, rgb, pos):
-		self.last_animated_pos = [pos, pos]
+		self.last_animated_pos = [pos]
 		self.width = width
 		self.height = height
 		self.fullscreen = []
 		self.animated = []
 		self.animated.append(pg.Surface((width+1024, height+1024), pg.SRCALPHA | pg.HWSURFACE))
-		self.animated.append(pg.Surface((width+1024, height+1024), pg.SRCALPHA | pg.HWSURFACE))
 		self.animated[0].convert_alpha()
-		self.animated[1].convert_alpha()
 		self.surf = pg.Surface((width, height))
 		self.bg_color = rgb
 		self.surf.fill(rgb)
@@ -110,21 +108,19 @@ class ScreenBevel:
 		screen.blit(aux, (0,0)) # Blits tiles
 
 		### Animate Tiles
+		
+		if(actual_flag == 0):
+			try:  # If animated tiles wasn't loaded yet
+				x_start = (discrete_pos[0] - self.last_animated_pos[actual_flag][0])*64 + offset[0]
+				y_start = (discrete_pos[1] - self.last_animated_pos[actual_flag][1])*64 + offset[1]
+			except:
+				return
 
-		try:  # If animated tiles wasn't loaded yet
-			x_start = (discrete_pos[0] - self.last_animated_pos[bool_invert(actual_flag)][0])*64 + offset[0]
-			y_start = (discrete_pos[1] - self.last_animated_pos[bool_invert(actual_flag)][1])*64 + offset[1]
-		except:
-			return
-
-		try:
-			screen.blit(self.animated[actual_flag].subsurface(pg.Rect((x_start+512, y_start+512), (1344, 960))), (0,0))		
-		except ValueError:
-			print("Bug B: {}, {}".format(x_start+512, y_start+512))
-			print("Surface: " + str(self.animated[actual_flag]))
-			print()
-			pass
-
+			try:
+				screen.blit(self.animated[actual_flag].subsurface(pg.Rect((x_start+512, y_start+512), (1344, 960))), (0,0))		
+			except ValueError:
+				pass
+	
 		# END animation
 
 		player.draw(screen)	# Blits player
@@ -187,8 +183,12 @@ class ScreenBevel:
 			for i in range(0,len(map.grid)):			
 				# Blitting tile mapping
 				# Don't blit animated tiles
-				if(tile_dictionary.get(map.grid[i][j], False)): # If finds normal tiles
+				#if(tile_dictionary.get(map.grid[i][j], False)): # If finds normal tiles
+				try:
 					self.fullscreen[0].blit(all_tiles_img[map.grid[i][j]], ((j*64), (i*64)))
+				except KeyError:
+					print("Map is corrupted or an invalid tile was found")
+					exit()
 
 				if(not map.obj_grid[i][j] <= 0):
 					self.fullscreen[1].blit(obj_list[map.obj_grid[i][j]], ((j*64), (i*64)))
@@ -196,6 +196,10 @@ class ScreenBevel:
 
 	# Builds a semi surface for animated tiles to be blittted over fullscreen
 	def build_animated_map(self, discrete_pos, map, flag):
+		# Checks if frame is the animated one
+		if(flag == True):
+			return
+
 		# Only redraws after moved a certain amount
 		if(abs(self.last_animated_pos[int(flag)][0] - discrete_pos[0]) + abs(self.last_animated_pos[int(flag)][1] - discrete_pos[1]) < 6):
 			return
@@ -206,7 +210,8 @@ class ScreenBevel:
 		l = 0
 		new_surf = pg.Surface((self.width+1024, self.height+1024), pg.SRCALPHA | pg.HWSURFACE)
 
-		if(flag):
+
+		if(not flag):
 			for j in range(0, 37):
 				for i in range(0, 31):
 					if(animated_dictionary[0].get(matrix[i][j], False) != False):
@@ -216,15 +221,6 @@ class ScreenBevel:
 				l=0
 			self.animated[0] = new_surf
 				
-		else:
-			for j in range(0, 37):
-				for i in range(0, 31):
-					if(animated_dictionary[1].get(matrix[i][j], False) != False):
-						new_surf.blit(animated_dictionary[1][matrix[i][j]].image, (k*64, l*64))
-					l += 1
-				k += 1
-				l=0
-			self.animated[1] = new_surf
 
 		self.last_animated_pos[int(flag)] = discrete_pos.copy()
 
