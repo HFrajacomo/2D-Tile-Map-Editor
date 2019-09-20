@@ -6,6 +6,7 @@ from Line import *
 from TileDictionary import *
 from AnimatedTilesHash import *
 from time import sleep
+from datetime import datetime
 from threading import Thread, Event
 
 class ScreenBevel:
@@ -39,9 +40,10 @@ class ScreenBevel:
 		return self.surf.get_size()
 
 	# Blits the viewport
-	def get_window(self, screen, discrete_pos, offset, player, mapsize, interactive_map, animation, need_to_draw_animation):
+	def get_window(self, screen, discrete_pos, offset, player, mapsize, interactive_map, animation, map, LOCK):
 		x_start = discrete_pos[0]*64 + offset[0] - 640
 		y_start = discrete_pos[1]*64 + offset[1] - 448
+		actual_flag = animation
 
 		if(x_start < 0):
 			x_start = mapsize[0] + x_start
@@ -108,17 +110,21 @@ class ScreenBevel:
 		screen.blit(aux, (0,0)) # Blits tiles
 
 		### Animate Tiles
-		if(need_to_draw_animation):
-			try:  # If animated tiles wasn't loaded yet
-				x_start = (discrete_pos[0] - self.last_animated_pos[bool_invert(animation)][0])*64 + offset[0]
-				y_start = (discrete_pos[1] - self.last_animated_pos[bool_invert(animation)][1])*64 + offset[1]
-			except:
-				return
 
-			try:
-				screen.blit(self.animated[animation].subsurface(pg.Rect((x_start+512, y_start+512), (1344, 960))), (0,0))		
-			except ValueError:
-				pass
+		try:  # If animated tiles wasn't loaded yet
+			x_start = (discrete_pos[0] - self.last_animated_pos[bool_invert(actual_flag)][0])*64 + offset[0]
+			y_start = (discrete_pos[1] - self.last_animated_pos[bool_invert(actual_flag)][1])*64 + offset[1]
+		except:
+			return
+
+		try:
+			screen.blit(self.animated[actual_flag].subsurface(pg.Rect((x_start+512, y_start+512), (1344, 960))), (0,0))		
+		except ValueError:
+			print("Bug B: {}, {}".format(x_start+512, y_start+512))
+			print("Surface: " + str(self.animated[actual_flag]))
+			print()
+			pass
+
 		# END animation
 
 		player.draw(screen)	# Blits player
@@ -148,6 +154,7 @@ class ScreenBevel:
 
 			screen.blit(dark, (element[1]*64-offset[0], element[0]*64-offset[1]))
 		'''
+
 		self.update(screen)
 
 	# Creates fullscreen surface based on mapsize
@@ -190,28 +197,30 @@ class ScreenBevel:
 	# Builds a semi surface for animated tiles to be blittted over fullscreen
 	def build_animated_map(self, discrete_pos, map, flag):
 		# Only redraws after moved a certain amount
-		if(abs(self.last_animated_pos[int(flag)][0] - discrete_pos[0]) + abs(self.last_animated_pos[int(flag)][1] - discrete_pos[1]) < 8):
+		if(abs(self.last_animated_pos[int(flag)][0] - discrete_pos[0]) + abs(self.last_animated_pos[int(flag)][1] - discrete_pos[1]) < 6):
 			return
+
+		matrix = map.get_submatrix(map.grid, discrete_pos, 18, 15, non_circular=False)
 
 		k = 0
 		l = 0
 		new_surf = pg.Surface((self.width+1024, self.height+1024), pg.SRCALPHA | pg.HWSURFACE)
 
 		if(flag):
-			for j in range(discrete_pos[0]-18, discrete_pos[0]+18):
-				for i in range(discrete_pos[1]-15, discrete_pos[1]+15):
-					if(animated_dictionary[0].get(map.grid[i][j], False) != False):
-						new_surf.blit(animated_dictionary[0][map.grid[i][j]].image, (k*64, l*64))
+			for j in range(0, 37):
+				for i in range(0, 31):
+					if(animated_dictionary[0].get(matrix[i][j], False) != False):
+						new_surf.blit(animated_dictionary[0][matrix[i][j]].image, (k*64, l*64))
 					l += 1
 				k += 1
 				l=0
 			self.animated[0] = new_surf
 				
 		else:
-			for j in range(discrete_pos[0]-18, discrete_pos[0]+18):
-				for i in range(discrete_pos[1]-15, discrete_pos[1]+15):
-					if(animated_dictionary[1].get(map.grid[i][j], False) != False):
-						new_surf.blit(animated_dictionary[1][map.grid[i][j]].image, (k*64, l*64))
+			for j in range(0, 37):
+				for i in range(0, 31):
+					if(animated_dictionary[1].get(matrix[i][j], False) != False):
+						new_surf.blit(animated_dictionary[1][matrix[i][j]].image, (k*64, l*64))
 					l += 1
 				k += 1
 				l=0

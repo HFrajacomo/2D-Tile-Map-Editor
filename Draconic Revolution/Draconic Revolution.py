@@ -2,7 +2,7 @@ import pygame as pg
 import sys
 from time import sleep
 from datetime import datetime
-from threading import Thread, Event
+from threading import Thread, Lock
 
 sys.path.append('src\\')
 
@@ -28,7 +28,7 @@ def handle_keyboard(ev):
 	global map_bev
 	global movement
 
-	plain_clock.tick(FPS)
+	plain_clock.tick_busy_loop(FPS)
 
 	if(pg.key.name(ev.key) == "escape"): # Quit test
 		QUIT = True
@@ -51,7 +51,8 @@ def handle_keyboard(ev):
 
 	# Debug Key
 	elif(pg.key.name(ev.key) == "q"):
-		m.quick_print()
+		print("Position: " + str(DISC_POS))
+		print(map_bev.last_animated_pos)
 
 def easysum(coorda, coordb):
 	for i in range(len(coorda)):
@@ -89,9 +90,7 @@ def char_movement():
 				DISC_POS[0] += 1
 		except:
 			continue
-		LOCK.clear()
 		calculate_player_pos()
-		LOCK.set()
 
 def handle_keyups(ev):
 	global plain_clock
@@ -136,29 +135,6 @@ def collision_check(direction):
 			return True
 	return False
 
-# Threaded function that deals with tile animations loading
-def animation_loading():
-	global map_bev
-	global QUIT
-	global LOCK
-	global animation_clock
-	global NEED_DRAW_ANIMATION
-
-	refresh_animation = False
-
-	while(not QUIT):
-		animation_clock.tick_busy_loop(ANIMATION_TICKRATE)
-
-		NEED_DRAW_ANIMATION = m.need_to_draw_animation(DISC_POS)
-		if(NEED_DRAW_ANIMATION):
-			map_bev.build_animated_map(DISC_POS, m, animation_handle)
-			if(refresh_animation):
-				map_bev.build_animated_map(DISC_POS, m, bool_invert(animation_handle))
-				refresh_animation = False
-
-		else:
-			refresh_animation = True
-
 # Threaded function that deals with animation sprite changes
 def animation_handle_change():
 	global animation_handle
@@ -179,8 +155,8 @@ def draw_fps():
 		pg.time.delay(DFPS)
 		counter = draw_clock.get_fps()
 		screen.blit(dynamicbuttons_bev.surf, dynamicbuttons_bev.pos)
-		screen.blit(pg.font.SysFont("arial.ttf", 30).render(str(int(counter)), False, (0,0,0)), (1800, 4))
-		pg.display.update(pg.Rect((1800,4), (120,30)))	
+		screen.blit(pg.font.SysFont("arial.ttf", 30).render(str(int(counter)), False, (0,0,0)), (1880, 4))
+		pg.display.update(pg.Rect((1880,4), (40,30)))	
 
 
 def calculate_player_pos():
@@ -197,50 +173,42 @@ def calculate_player_pos():
 	last_pos = DISC_POS.copy()
 
 	if(OFFSET_POS[0]>31):
+		LOCK.acquire()
 		DISC_POS[0] += 1
 		OFFSET_POS[0] -= 64
-		LOCK.clear()
 		map_bev.build_animated_map(DISC_POS, m, animation_handle)
-		LOCK.set()
+		LOCK.release()
 	elif(OFFSET_POS[1]>31):
+		LOCK.acquire()
 		DISC_POS[1] += 1
 		OFFSET_POS[1] -= 64
-		LOCK.clear()
 		map_bev.build_animated_map(DISC_POS, m, animation_handle)
-		LOCK.set()
+		LOCK.release()
 	if(OFFSET_POS[0]<=-32):
+		LOCK.acquire()
 		DISC_POS[0] -= 1
 		OFFSET_POS[0] += 64
-		LOCK.clear()
 		map_bev.build_animated_map(DISC_POS, m, animation_handle)
-		LOCK.set()
+		LOCK.release()
 	elif(OFFSET_POS[1]<=-32):
+		LOCK.acquire()
 		DISC_POS[1] -= 1
 		OFFSET_POS[1] += 64
-		LOCK.clear()
 		map_bev.build_animated_map(DISC_POS, m, animation_handle)
-		LOCK.set()
+		LOCK.release()
 
 	if(DISC_POS[0] >= mapsize[0]):
 		DISC_POS[0] = 0
-		LOCK.clear()
 		map_bev.build_animated_map(DISC_POS, m, animation_handle)
-		LOCK.set()
 	if(DISC_POS[0] < 0):
 		DISC_POS[0] = mapsize[0] - 1
-		LOCK.clear()
 		map_bev.build_animated_map(DISC_POS, m, animation_handle)
-		LOCK.set()
 	if(DISC_POS[1] >= mapsize[1]):
 		DISC_POS[1] = 0
-		LOCK.clear()
 		map_bev.build_animated_map(DISC_POS, m, animation_handle)
-		LOCK.set()
 	if(DISC_POS[1] < 0):
 		DISC_POS[1] = mapsize[1] - 1
-		LOCK.clear()
 		map_bev.build_animated_map(DISC_POS, m, animation_handle)
-		LOCK.set()
 
 	if(last_pos != DISC_POS):
 		surroundings = get_surroundings(inter_map, DISC_POS)
@@ -269,10 +237,10 @@ def game_refresher():
 
 
 	while(not QUIT):
-		draw_clock.tick_busy_loop(DFPS)
-		LOCK.clear()
-		map_bev.get_window(screen, DISC_POS, OFFSET_POS, player, tiled_map.map_.get_pixel_size(), inter_map, animation_handle, NEED_DRAW_ANIMATION)
-		LOCK.set()
+		draw_clock.tick(DFPS)
+		LOCK.acquire()
+		map_bev.get_window(screen, DISC_POS, OFFSET_POS, player, tiled_map.map_.get_pixel_size(), inter_map, animation_handle, m, LOCK)
+		LOCK.release()
 
 pg.init()
 
@@ -285,18 +253,22 @@ pg.display.set_caption("Draconic Revolution")
 
 FPS = 60
 DFPS = 60
-ANIMATION_TICKRATE = 30
 
 draw_clock = pg.time.Clock()
 plain_clock = pg.time.Clock()
 animation_clock = pg.time.Clock()
+
+# Event
+LOCK = Lock()
+
+# Main Values
 
 threads = []
 QUIT = False
 GAMESTATE = 1
 animation_handle = 0
 OFFSET_POS = [0,0]
-DISC_POS = [100,120]
+DISC_POS = [147,186]
 NEED_DRAW_ANIMATION = True
 
 # Map
@@ -345,10 +317,6 @@ map_bev.build_animated_map(DISC_POS, m, False)
 # CoordBox
 coordbox = CoordBox(100, (1500, 200), (255,255,255))
 
-# Event
-LOCK = Event()
-LOCK.set()
-
 # Player
 player = Player([DISC_POS[0]+OFFSET_POS[0], DISC_POS[1]+OFFSET_POS[1]], 54, 54, 4)
 movement = []
@@ -356,7 +324,6 @@ surroundings = get_surroundings(inter_map, DISC_POS)
 
 threads.append(Thread(target=game_refresher))
 threads.append(Thread(target=char_movement))
-#threads.append(Thread(target=animation_loading))
 threads.append(Thread(target=animation_handle_change))
 threads.append(Thread(target=draw_fps))
 

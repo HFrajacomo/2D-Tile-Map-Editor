@@ -8,7 +8,16 @@ def get_surroundings(inter_map, disc_pos):
 	for i in range(disc_pos[1]-1,disc_pos[1]+2):
 		surroundings.append([])
 		for j in range(disc_pos[0], disc_pos[0]+3):
-			surroundings[-1].append(inter_map[i][j].solid)
+			try:
+				surroundings[-1].append(inter_map[i][j].solid)
+			except IndexError:
+				if(i >= len(inter_map)):
+					i = 0
+					j -= 1
+					continue
+				else:
+					j = -1
+					continue
 
 	return surroundings
 
