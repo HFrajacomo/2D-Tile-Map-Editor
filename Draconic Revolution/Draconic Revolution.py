@@ -140,10 +140,15 @@ def animation_handle_change():
 	global animation_handle
 	global plain_clock
 	global QUIT
+	global map_bev
+	global LOCK
 
 	while(not QUIT):
-		plain_clock.tick(1)
+		animation_clock.tick(1)
 		animation_handle = bool_invert(animation_handle)
+		#map_bev.build_animated_map(DISC_POS, m, animation_handle)
+		map_bev.build_animated_obj_map(DISC_POS, m, animation_handle)
+
 
 # FPS Check function
 def draw_fps():
@@ -268,7 +273,7 @@ QUIT = False
 GAMESTATE = 1
 animation_handle = 0
 OFFSET_POS = [0,0]
-DISC_POS = [147,186]
+DISC_POS = [100,124]
 NEED_DRAW_ANIMATION = True
 
 # Map
@@ -311,8 +316,9 @@ tiled_map = TiledMap(map_bev, m)
 # Setup map
 map_bev.load_map(m)
 map_bev.build_map(screen, DISC_POS, m)
-map_bev.build_animated_map(DISC_POS, m, True)
 map_bev.build_animated_map(DISC_POS, m, False)
+map_bev.build_animated_obj_map(DISC_POS, m, 0)
+map_bev.build_animated_obj_map(DISC_POS, m, 1)
 
 # CoordBox
 coordbox = CoordBox(100, (1500, 200), (255,255,255))

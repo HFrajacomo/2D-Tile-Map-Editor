@@ -5,6 +5,7 @@ from Light import Light
 from Line import *
 from TileDictionary import *
 from AnimatedTilesHash import *
+from AnimatedObjectHash import *
 from time import sleep
 from datetime import datetime
 from threading import Thread, Event
@@ -13,13 +14,23 @@ class ScreenBevel:
 	animated_images = {}
 
 	def __init__(self, width, height, rgb, pos):
-		self.last_animated_pos = [pos]
+		
 		self.width = width
 		self.height = height
+
+		self.last_animated_pos = [pos]
+		self.last_animated_obj_pos = [pos, pos]
+
 		self.fullscreen = []
 		self.animated = []
+		self.animated_obj = []
 		self.animated.append(pg.Surface((width+1024, height+1024), pg.SRCALPHA | pg.HWSURFACE))
+		self.animated_obj.append(pg.Surface((width+1024, height+1024), pg.SRCALPHA | pg.HWSURFACE))		
+		self.animated_obj.append(pg.Surface((width+1024, height+1024), pg.SRCALPHA | pg.HWSURFACE))		
 		self.animated[0].convert_alpha()
+		self.animated_obj[0].convert_alpha()
+		self.animated_obj[1].convert_alpha()
+
 		self.surf = pg.Surface((width, height))
 		self.bg_color = rgb
 		self.surf.fill(rgb)
@@ -113,17 +124,33 @@ class ScreenBevel:
 			try:  # If animated tiles wasn't loaded yet
 				x_start = (discrete_pos[0] - self.last_animated_pos[actual_flag][0])*64 + offset[0]
 				y_start = (discrete_pos[1] - self.last_animated_pos[actual_flag][1])*64 + offset[1]
+				x_start_obj = (discrete_pos[0] - self.last_animated_obj_pos[bool_invert(actual_flag)][0])*64 + offset[0]
+				y_start_obj = (discrete_pos[1] - self.last_animated_obj_pos[bool_invert(actual_flag)][1])*64 + offset[1]
 			except:
 				return
 
 			try:
 				screen.blit(self.animated[actual_flag].subsurface(pg.Rect((x_start+512, y_start+512), (1344, 960))), (0,0))		
+				screen.blit(self.animated_obj[actual_flag].subsurface(pg.Rect((x_start_obj+512, y_start_obj+512), (1344, 960))), (0,0))
+			except ValueError:
+				pass
+
+		if(actual_flag == 1):
+			try:  # If animated tiles wasn't loaded yet
+				x_start = (discrete_pos[0] - self.last_animated_obj_pos[bool_invert(actual_flag)][0])*64 + offset[0]
+				y_start = (discrete_pos[1] - self.last_animated_obj_pos[bool_invert(actual_flag)][1])*64 + offset[1]
+			except:
+				return
+
+			try:
+				screen.blit(self.animated_obj[actual_flag].subsurface(pg.Rect((x_start+512, y_start+512), (1344, 960))), (0,0))
 			except ValueError:
 				pass
 	
 		# END animation
 
 		player.draw(screen)	# Blits player
+
 		screen.blit(auxo, (0,0)) # Blits objects
 
 		# Blit blind spots (PUT THIS IN A THREAD BC SLOW)
@@ -165,16 +192,12 @@ class ScreenBevel:
 
 	# Builds the entire map onto fullscreen
 	def build_map(self, screen, discrete_pos, map):
-		tile_list = {}
 		obj_list = {}
 		light_list = {}
 
 		for j in range(0,len(map.grid[0])):
 			for i in range(0,len(map.grid)):
-				# Get all tiles that appear
-				#if(map.grid[i][j] not in tile_list):
-				#	tile_list[map.grid[i][j]] = Tile(map.grid[i][j]).image
-				if(map.obj_grid[i][j] not in obj_list):
+				if(map.obj_grid[i][j] not in animated_obj_dictionary[0].keys()):
 					obj_list[map.obj_grid[i][j]] = Obj(map.obj_grid[i][j]).image
 				#if(map.light_grid[i][j] not in light_list):
 				#	light_list[map.light_grid[i][j]] = Light(map.light_grid[i][j]).image
@@ -183,25 +206,24 @@ class ScreenBevel:
 			for i in range(0,len(map.grid)):			
 				# Blitting tile mapping
 				# Don't blit animated tiles
-				#if(tile_dictionary.get(map.grid[i][j], False)): # If finds normal tiles
 				try:
 					self.fullscreen[0].blit(all_tiles_img[map.grid[i][j]], ((j*64), (i*64)))
 				except KeyError:
 					print("Map is corrupted or an invalid tile was found")
 					exit()
 
-				if(not map.obj_grid[i][j] <= 0):
+				# Draws non-animated objects
+				if(map.obj_grid[i][j] > 0 and map.obj_grid[i][j] not in animated_obj_dictionary[0].keys()):
 					self.fullscreen[1].blit(obj_list[map.obj_grid[i][j]], ((j*64), (i*64)))
 				#self.fullscreen[1].blit(light_list[map.light_grid[i][j]], ((j*64), (i*64)))
 
 	# Builds a semi surface for animated tiles to be blittted over fullscreen
 	def build_animated_map(self, discrete_pos, map, flag):
-		# Checks if frame is the animated one
-		if(flag == True):
+		if(flag == 1):
 			return
 
 		# Only redraws after moved a certain amount
-		if(abs(self.last_animated_pos[int(flag)][0] - discrete_pos[0]) + abs(self.last_animated_pos[int(flag)][1] - discrete_pos[1]) < 6):
+		if(abs(self.last_animated_pos[int(flag)][0] - discrete_pos[0]) + abs(self.last_animated_pos[int(flag)][1] - discrete_pos[1]) < 3):
 			return
 
 		matrix = map.get_submatrix(map.grid, discrete_pos, 18, 15, non_circular=False)
@@ -210,19 +232,54 @@ class ScreenBevel:
 		l = 0
 		new_surf = pg.Surface((self.width+1024, self.height+1024), pg.SRCALPHA | pg.HWSURFACE)
 
-
 		if(not flag):
+			# Animated Tiles
 			for j in range(0, 37):
 				for i in range(0, 31):
 					if(animated_dictionary[0].get(matrix[i][j], False) != False):
 						new_surf.blit(animated_dictionary[0][matrix[i][j]].image, (k*64, l*64))
 					l += 1
 				k += 1
-				l=0
-			self.animated[0] = new_surf
-				
+				l=0				
+			
+		self.animated[0] = new_surf
 
 		self.last_animated_pos[int(flag)] = discrete_pos.copy()
+
+	# Builds a semi surface for animated objects to be blittted over fullscreen
+	def build_animated_obj_map(self, discrete_pos, map, flag):
+		# Only redraws after moved a certain amount
+		if(abs(self.last_animated_obj_pos[flag][0] - discrete_pos[0]) + abs(self.last_animated_obj_pos[flag][1] - discrete_pos[1]) < 4):
+			return
+
+		matrix_obj = map.get_submatrix(map.obj_grid, discrete_pos, 18, 15, non_circular=False)
+		new_surf_obj = pg.Surface((self.width+1024, self.height+1024), pg.SRCALPHA | pg.HWSURFACE)
+
+		# Animated Objects
+		k = 0
+		l = 0
+
+		if(flag == 0):
+			for j in range(0, 37):
+				for i in range(0, 31):
+					if(animated_obj_dictionary[1].get(matrix_obj[i][j], False) != False):
+						new_surf_obj.blit(animated_obj_dictionary[1][matrix_obj[i][j]].image, (k*64, l*64))
+					l += 1
+				k += 1
+				l=0	
+			self.animated_obj[1] = new_surf_obj
+
+		elif(flag == 1):
+			for j in range(0, 37):
+				for i in range(0, 31):
+					if(animated_obj_dictionary[0].get(matrix_obj[i][j], False) != False):
+						new_surf_obj.blit(animated_obj_dictionary[0][matrix_obj[i][j]].image, (k*64, l*64))
+					l += 1
+				k += 1
+				l=0	
+			self.animated_obj[0] = new_surf_obj
+
+		self.last_animated_obj_pos[flag] = discrete_pos.copy()
 
 def get_region(m, player_pos):
 	x_start = player_pos[1]-7
