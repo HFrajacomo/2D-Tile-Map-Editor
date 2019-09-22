@@ -1,6 +1,5 @@
 from Tile import Tile
 from Obj import Obj
-from AnimatedTilesHash import *
 
 class Map:
 	grid = []
@@ -110,37 +109,13 @@ class Map:
 	# bevel = screen to be blitted
 	# pos = bevel position
 	# size = tile size
+	'''
 	def draw_tiles(self, bevel, pos, size=32):
 		for i in range(0,len(self.grid)):
 			for j in range(0,len(self.grid[i])):
 				bevel.surf.blit(Tile(self.grid[i][j]).image, (j*size, i*size))
 				bevel.surf.blit(Obj(self.obj_grid[i][j].image, (j*size, i*size)))
-
-	# Returns submatrix of a given matrix
-	def get_submatrix(self, matrix, pos, radius_x, radius_y, non_circular=True):
-		sub_matrix = []
-		for i in range(pos[1] - radius_y, pos[1] + radius_y+1):
-			sub_matrix.append([])
-			for j in range(pos[0] - radius_x, pos[0] + radius_x+1):
-				try:
-					if(non_circular and i<0 or j<0):
-						sub_matrix[-1].append(-1)
-					elif(non_circular and (i>len(matrix)-1 or j>len(matrix[0])-1)):
-						sub_matrix[-1].append(-1)
-					elif(not non_circular and i>=len(matrix) and j>=len(matrix[0])):
-						i -= len(matrix)
-						j -= len(matrix[0])
-					elif(not non_circular and i>=len(matrix)):
-						i -= len(matrix)
-						sub_matrix[-1].append(matrix[i][j])
-					elif(not non_circular and j>=len(matrix[0])):
-						j -= len(matrix[0])
-						sub_matrix[-1].append(matrix[i][j])
-					else:
-						sub_matrix[-1].append(matrix[i][j])
-				except IndexError:
-					sub_matrix[-1].append(-1)
-		return sub_matrix
+	'''
 
 	# Returns whether to build animated tile screen or not
 	def need_to_draw_animation(self, disc_pos):
@@ -159,3 +134,29 @@ class Map:
 	# Returns mapsize in discrete
 	def get_size(self):
 		return [len(self.grid), len(self.grid[0])]
+
+# Returns submatrix of a given matrix
+def get_submatrix(matrix, pos, radius_x, radius_y, non_circular=True):
+	sub_matrix = []
+	for i in range(pos[1] - radius_y, pos[1] + radius_y+1):
+		sub_matrix.append([])
+		for j in range(pos[0] - radius_x, pos[0] + radius_x+1):
+			try:
+				if(non_circular and i<0 or j<0):
+					sub_matrix[-1].append(-1)
+				elif(non_circular and (i>len(matrix)-1 or j>len(matrix[0])-1)):
+					sub_matrix[-1].append(-1)
+				elif(not non_circular and i>=len(matrix) and j>=len(matrix[0])):
+					i -= len(matrix)
+					j -= len(matrix[0])
+				elif(not non_circular and i>=len(matrix)):
+					i -= len(matrix)
+					sub_matrix[-1].append(matrix[i][j])
+				elif(not non_circular and j>=len(matrix[0])):
+					j -= len(matrix[0])
+					sub_matrix[-1].append(matrix[i][j])
+				else:
+					sub_matrix[-1].append(matrix[i][j])
+			except IndexError:
+				sub_matrix[-1].append(-1)
+	return sub_matrix

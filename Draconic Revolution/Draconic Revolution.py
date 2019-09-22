@@ -1,346 +1,297 @@
-import pygame as pg
+import pyglet as pg
+from pyglet.gl import *
+from pyglet.window import key
 import sys
-from time import sleep
-from datetime import datetime
-from threading import Thread, Lock
+from threading import Lock
+
+# Direct OpenGL commands to this window.
+platform = pyglet.window.get_platform()
+display = platform.get_default_display()
+screen = display.get_default_screen()
+template = pyglet.gl.Config(alpha_size=8)
+config = screen.get_best_config(template)
+window = pg.window.Window(width=1920, height=1080, fullscreen=True, config=config)
 
 sys.path.append('src\\')
-
-from Bevel import Bevel
-from Map import Map
-from Tile import Tile
-from TiledMap import TiledMap
-from Obj import Obj
+from Tile import *
+from Map import *
+from Obj import *
+from Bevel import *
 from ServerHolder import *
-from ScreenBevel import ScreenBevel
-from CoordBox import CoordBox
-from Entity import *
+from TileDictionary import *
 
+def list_sum(l1, l2):
+	for i in range(len(l1)):
+		l1[i] += l2[i]
 
-def handle_mouse(ev):
-	if(dict_gamestate[GAMESTATE] == 1):
-		pass
+	return l1
 
-def handle_keyboard(ev):
-	global QUIT
-	global OFFSET_POS
-	global DISC_POS
-	global map_bev
-	global movement
+# Moves animation handle every second
+def animate(Non):
+	global animation_handle
 
-	plain_clock.tick_busy_loop(FPS)
+	if(animation_handle == 1):
+		animation_handle = 0
+	elif(animation_handle == 0):
+		animation_handle = 1
 
-	if(pg.key.name(ev.key) == "escape"): # Quit test
-		QUIT = True
-	elif(pg.key.name(ev.key) == "w"):
-		movement.insert(0,"up")
-	elif(pg.key.name(ev.key) == "s"):
-		movement.insert(0,"down")
-	elif(pg.key.name(ev.key) == "a"):
-		movement.insert(0,"left")
-	elif(pg.key.name(ev.key) == "d"):
-		movement.insert(0,"right")
-	elif(pg.key.name(ev.key) == "y"):
-		movement.insert(0,"kup")
-	elif(pg.key.name(ev.key) == "h"):
-		movement.insert(0,"kdown")
-	elif(pg.key.name(ev.key) == "g"):
-		movement.insert(0,"kleft")
-	elif(pg.key.name(ev.key) == "j"):
-		movement.insert(0,"kright")
+def collision_check(DISC_POS, OFFSET):
+	global inter_map
 
-	# Debug Key
-	elif(pg.key.name(ev.key) == "q"):
-		print("Position: " + str(DISC_POS))
-		print(map_bev.last_animated_pos)
+	surroundings = get_submatrix(inter_map, DISC_POS, 1,1, non_circular=False)
 
-def easysum(coorda, coordb):
-	for i in range(len(coorda)):
-		coorda[i] += coordb[i]
-	return coorda
-
-def char_movement():
-	global movement
-	global plain_clock
-	global DISC_POS
-	global OFFSET_POS
-	global QUIT
-	global LOCK
-	global surroundings
-
-	while(not QUIT):
-		plain_clock.tick(FPS)
-
-		try:
-			if(movement[0] == "kup" and not collision_check("up")):
-				OFFSET_POS = [OFFSET_POS[0], OFFSET_POS[1] - 4]
-			elif(movement[0] == "kdown" and not collision_check("down")):
-				OFFSET_POS = [OFFSET_POS[0], OFFSET_POS[1] + 4]
-			elif(movement[0] == "kleft" and not collision_check("left")):
-				OFFSET_POS = [OFFSET_POS[0] - 4, OFFSET_POS[1]]
-			elif(movement[0] == "kright" and not collision_check("right")):
-				OFFSET_POS = [OFFSET_POS[0] + 4, OFFSET_POS[1]]
-			elif(movement[0] == "up"):
-				DISC_POS[1] -= 1
-			elif(movement[0] == "down"):
-				DISC_POS[1] += 1
-			elif(movement[0] == "left"):
-				DISC_POS[0] -= 1
-			elif(movement[0] == "right"):
-				DISC_POS[0] += 1
-		except:
-			continue
-		calculate_player_pos()
-
-def handle_keyups(ev):
-	global plain_clock
-	global movement
-
-	plain_clock.tick(FPS)
-
-	if(pg.key.name(ev.key) == "escape"): # Quit test
-		QUIT = True
-	elif(pg.key.name(ev.key) == "w"):
-		movement.remove("up")
-	elif(pg.key.name(ev.key) == "s"):
-		movement.remove("down")
-	elif(pg.key.name(ev.key) == "a"):
-		movement.remove("left")
-	elif(pg.key.name(ev.key) == "d"):
-		movement.remove("right")
-	elif(pg.key.name(ev.key) == "y"):
-		movement.remove("kup")
-	elif(pg.key.name(ev.key) == "h"):
-		movement.remove("kdown")
-	elif(pg.key.name(ev.key) == "g"):
-		movement.remove("kleft")
-	elif(pg.key.name(ev.key) == "j"):
-		movement.remove("kright")
-
-def collision_check(direction):
-	global OFFSET_POS
-	global surroundings
-
-	if(OFFSET_POS[0]<0 and direction == "left"):
-		if(surroundings[1][0]):
+	if(OFFSET[0]<0 and PLAYER_DIRECTION == 3):
+		if(surroundings[1][0].solid):
 			return True
-	if(OFFSET_POS[0]>0 and direction == "right"):
-		if(surroundings[1][2]):
+	elif(OFFSET[0]>0 and PLAYER_DIRECTION == 2):
+		if(surroundings[1][2].solid):
 			return True
-	if(OFFSET_POS[1]<0 and direction == "up"):
-		if(surroundings[0][1]):
+	elif(OFFSET[1]<0 and PLAYER_DIRECTION == 0):
+		if(surroundings[0][1].solid):
 			return True	
-	if(OFFSET_POS[1]>0 and direction == "down"):
-		if(surroundings[2][1]):
+	elif(OFFSET[1]>0 and PLAYER_DIRECTION == 1):
+		if(surroundings[2][1].solid):
 			return True
 	return False
 
-# Threaded function that deals with animation sprite changes
-def animation_handle_change():
-	global animation_handle
-	global plain_clock
-	global QUIT
-	global map_bev
-	global LOCK
-
-	while(not QUIT):
-		animation_clock.tick(1)
-		animation_handle = bool_invert(animation_handle)
-		#map_bev.build_animated_map(DISC_POS, m, animation_handle)
-		map_bev.build_animated_obj_map(DISC_POS, m, animation_handle)
-
-
-# FPS Check function
-def draw_fps():
-	global draw_clock
-
-	counter = 0
-
-	while(not QUIT):
-		pg.time.delay(DFPS)
-		counter = draw_clock.get_fps()
-		screen.blit(dynamicbuttons_bev.surf, dynamicbuttons_bev.pos)
-		screen.blit(pg.font.SysFont("arial.ttf", 30).render(str(int(counter)), False, (0,0,0)), (1880, 4))
-		pg.display.update(pg.Rect((1880,4), (40,30)))	
-
-
-def calculate_player_pos():
+def movement_handler(non):
 	global DISC_POS
-	global OFFSET_POS
-	global tiled_map
-	global coordbox
-	global surroundings
-	global map_bev
+	global OFFSET
 	global LOCK
-	global animation_handle
+	global m
 
-	mapsize = tiled_map.map_.get_size()
-	last_pos = DISC_POS.copy()
-
-	if(OFFSET_POS[0]>31):
+	# Admin Movement
+	if(PLAYER_DIRECTION == 5):
 		LOCK.acquire()
+		DISC_POS = list_sum(DISC_POS, [0,-1])
+		LOCK.release()
+	elif(PLAYER_DIRECTION == 6):
+		LOCK.acquire()
+		DISC_POS = list_sum(DISC_POS, [0,1])
+		LOCK.release()
+	elif(PLAYER_DIRECTION == 7):
+		LOCK.acquire()
+		DISC_POS = list_sum(DISC_POS, [1,0])
+		LOCK.release()
+	elif(PLAYER_DIRECTION == 8):
+		LOCK.acquire()
+		DISC_POS = list_sum(DISC_POS, [-1,0])
+		LOCK.release()
+
+	# Collision Check
+	if(not collision_check(DISC_POS, OFFSET)):
+		# Normal Movement
+		if(PLAYER_DIRECTION == 0):
+			LOCK.acquire()
+			OFFSET = list_sum(OFFSET, [0,-8])
+			LOCK.release()
+		elif(PLAYER_DIRECTION == 1):
+			LOCK.acquire()
+			OFFSET = list_sum(OFFSET, [0,8])
+			LOCK.release()
+		elif(PLAYER_DIRECTION == 2):
+			LOCK.acquire()
+			OFFSET = list_sum(OFFSET, [8,0])
+			LOCK.release()
+		elif(PLAYER_DIRECTION == 3):
+			LOCK.acquire()
+			OFFSET = list_sum(OFFSET, [-8,0])
+			LOCK.release()
+
+	# Tile Change
+	if(OFFSET[0]>31):
+		OFFSET[0] -= 64
 		DISC_POS[0] += 1
-		OFFSET_POS[0] -= 64
-		map_bev.build_animated_map(DISC_POS, m, animation_handle)
-		LOCK.release()
-	elif(OFFSET_POS[1]>31):
-		LOCK.acquire()
-		DISC_POS[1] += 1
-		OFFSET_POS[1] -= 64
-		map_bev.build_animated_map(DISC_POS, m, animation_handle)
-		LOCK.release()
-	if(OFFSET_POS[0]<=-32):
-		LOCK.acquire()
+	elif(OFFSET[0]<-32):
+		OFFSET[0] += 64
 		DISC_POS[0] -= 1
-		OFFSET_POS[0] += 64
-		map_bev.build_animated_map(DISC_POS, m, animation_handle)
-		LOCK.release()
-	elif(OFFSET_POS[1]<=-32):
-		LOCK.acquire()
+	if(OFFSET[1]>31):
+		OFFSET[1] -= 64
+		DISC_POS[1] += 1
+	elif(OFFSET[1]<-32):
+		OFFSET[1] += 64
 		DISC_POS[1] -= 1
-		OFFSET_POS[1] += 64
-		map_bev.build_animated_map(DISC_POS, m, animation_handle)
-		LOCK.release()
 
-	if(DISC_POS[0] >= mapsize[0]):
+	# Map Wrapping
+	if(DISC_POS[0] >= m.get_size()[1]):
 		DISC_POS[0] = 0
-		map_bev.build_animated_map(DISC_POS, m, animation_handle)
 	if(DISC_POS[0] < 0):
-		DISC_POS[0] = mapsize[0] - 1
-		map_bev.build_animated_map(DISC_POS, m, animation_handle)
-	if(DISC_POS[1] >= mapsize[1]):
+		DISC_POS[0] = m.get_size()[1]-1
+	if(DISC_POS[1] >= m.get_size()[0]):
 		DISC_POS[1] = 0
-		map_bev.build_animated_map(DISC_POS, m, animation_handle)
 	if(DISC_POS[1] < 0):
-		DISC_POS[1] = mapsize[1] - 1
-		map_bev.build_animated_map(DISC_POS, m, animation_handle)
+		DISC_POS[1] = m.get_size()[0]-1
 
-	if(last_pos != DISC_POS):
-		surroundings = get_surroundings(inter_map, DISC_POS)
+@window.event
+def on_key_press(symbol, modifiers):
+	global PLAYER_DIRECTION
 
-	coordbox.change_value(screen, DISC_POS, tiled_map)
+	if(symbol == key.Y):
+		PLAYER_DIRECTION = 0
+	elif(symbol == key.H):
+		PLAYER_DIRECTION = 1
+	elif(symbol == key.J):
+		PLAYER_DIRECTION = 2
+	elif(symbol == key.G):
+		PLAYER_DIRECTION = 3
 
-def bool_invert(num):
-	if(num>0):
-		num = 0
-	else:
-		num = 1
+	elif(symbol == key.W):
+		PLAYER_DIRECTION = 5
+	elif(symbol == key.S):
+		PLAYER_DIRECTION = 6
+	elif(symbol == key.D):
+		PLAYER_DIRECTION = 7
+	elif(symbol == key.A):
+		PLAYER_DIRECTION = 8
 
-	return num
+@window.event
+def on_key_release(symbol, modifiers):
+	global PLAYER_DIRECTION
 
-def game_refresher():
-	global screen
-	global map_bev
-	global DISC_POS
-	global OFFSET_POS
-	global QUIT
-	global draw_clock
-	global tiled_map
-	global inter_map
+	if(symbol == key.Y and PLAYER_DIRECTION == 0):
+		PLAYER_DIRECTION = 4
+	elif(symbol == key.H and PLAYER_DIRECTION == 1):
+		PLAYER_DIRECTION = 4
+	elif(symbol == key.J and PLAYER_DIRECTION == 2):
+		PLAYER_DIRECTION = 4
+	elif(symbol == key.G and PLAYER_DIRECTION == 3):
+		PLAYER_DIRECTION = 4
+	elif(symbol == key.W and PLAYER_DIRECTION == 5):
+		PLAYER_DIRECTION = 4
+	elif(symbol == key.S and PLAYER_DIRECTION == 6):
+		PLAYER_DIRECTION = 4
+	elif(symbol == key.D and PLAYER_DIRECTION == 7):
+		PLAYER_DIRECTION = 4
+	elif(symbol == key.A and PLAYER_DIRECTION == 8):
+		PLAYER_DIRECTION = 4
+
+# Rebuilds viewport
+def draw_tiles(Non):
+
+	global batch_sprites
+	global batch_obj
+	global batch_draw
+	global batch_obj_draw
+	global batch_anim_tiles
+	global batch_anim_tiles_draw
+	global batch_anim_obj
+	global batch_anim_obj_draw
+
+	global m
 	global LOCK
-	global NEED_DRAW_ANIMATION
+	global label
+	global label2
+
+	matrixes = m.get_region(DISC_POS, 12, 8, non_circular=False)
+	label = pg.text.Label(str(DISC_POS), font_name='Arial', font_size=16, x=1800, y=1010)
+	label2 = pg.text.Label(str(OFFSET), font_name='Arial', font_size=16, x=1800, y=950)
+
+	LOCK.acquire()
+	batch_sprites.clear()
+	batch_obj.clear()
+	batch_anim_tiles.clear()
+	batch_anim_obj.clear()
+
+	for i in range(0,25):
+		for j in range(0,17):
+			# Tiles and animated tiles
+			if(matrixes[0][j][i] in all_tiles_img.keys()):
+				batch_sprites.append(pg.sprite.Sprite(img=all_tiles_img[matrixes[0][j][i]], x=i*64-OFFSET[0]-64, y=(1080-(j*64))+OFFSET[1], batch=batch_draw))
+			elif(matrixes[0][j][i] in animated_codelist):
+				batch_anim_tiles.append(pg.sprite.Sprite(img=animated_dictionary[animation_handle][matrixes[0][j][i]], x=i*64-OFFSET[0]-64, y=(1080-(j*64))+OFFSET[1], batch=batch_anim_tiles_draw))				
+			
+			# Objects and animated objects
+			if(matrixes[1][j][i] > 0): # If found an object in this tile
+				if(matrixes[1][j][i] in all_obj_img.keys()):
+					batch_obj.append(pg.sprite.Sprite(img=all_obj_img[matrixes[1][j][i]], x=i*64-OFFSET[0]-64, y=(1080-(j*64))+OFFSET[1], batch=batch_obj_draw))
+				elif(matrixes[1][j][i] in animated_obj_codelist):
+					batch_anim_obj.append(pg.sprite.Sprite(img=animated_obj_dictionary[animation_handle][matrixes[1][j][i]], x=i*64-OFFSET[0]-64, y=(1080-(j*64))+OFFSET[1], batch=batch_anim_obj_draw))				
 
 
-	while(not QUIT):
-		draw_clock.tick(DFPS)
-		LOCK.acquire()
-		map_bev.get_window(screen, DISC_POS, OFFSET_POS, player, tiled_map.map_.get_pixel_size(), inter_map, animation_handle, m, LOCK)
-		LOCK.release()
+	LOCK.release()
 
-pg.init()
+# Game refresh function
+@window.event
+def on_draw():
+	global LOCK
+	global batch_sprites
+	global batch_obj
+	global batch_draw
+	global batch_obj_draw
+	global batch_anim_tiles
+	global batch_anim_tiles_draw
+	global batch_anim_obj
+	global batch_anim_obj_draw
 
-dict_gamestate = {0:"LOADING", 1:"INGAME"}
+	global side_bev
+	global bar_bev
+	global player_bev
+	global menu_bev
+	global label
+	global label2
+	global fps_clock
 
-screen = pg.display.set_mode((0,0), pg.FULLSCREEN | pg.HWSURFACE | pg.DOUBLEBUF) 
-pg.display.set_caption("Draconic Revolution")
+	LOCK.acquire()
+	window.clear()  # Remember to delete later
+	batch_draw.draw()
+	batch_anim_tiles_draw.draw()
+	batch_obj_draw.draw()
+	batch_anim_obj_draw.draw()
+	side_bev.draw()
+	bar_bev.draw()
+	menu_bev.draw()
+	player_bev.draw()
+	label.draw()
+	label2.draw()
+	fps_clock.draw()
+	LOCK.release()
 
-# Time
+# Blitting Queues
+batch_draw = pg.graphics.Batch()
+batch_obj_draw = pg.graphics.Batch()
+batch_anim_tiles_draw = pg.graphics.Batch()
+batch_anim_obj_draw = pg.graphics.Batch()
 
-FPS = 60
-DFPS = 60
+batch_anim_obj = []
+batch_anim_tiles = []
+batch_sprites = []
+batch_obj = []
 
-draw_clock = pg.time.Clock()
-plain_clock = pg.time.Clock()
-animation_clock = pg.time.Clock()
+# Positioning
+DISC_POS = [100,124]
+OFFSET = [0,0]
+PLAYER_DIRECTION = 4
 
-# Event
+# Paralellism
 LOCK = Lock()
 
-# Main Values
+# Time
+FPS = 1/60
 
-threads = []
-QUIT = False
-GAMESTATE = 1
+# Animation
 animation_handle = 0
-OFFSET_POS = [0,0]
-DISC_POS = [100,124]
-NEED_DRAW_ANIMATION = True
-
-# Map
-m, inter_map = loadmap("map\\draconis") # 21x15
 
 # Bevels
-map_bev = ScreenBevel(1344, 960, (55,25,25,255), (0,0))  # Sobra x = 96 e y = 120
-side_bev = Bevel(480, 1080, (155,155,155), (1440, 0))
-minimap_bev = Bevel(300, 300, (200,0,0), (1440,0))
-dynamicbuttons_bev = Bevel(180, 300, (200,200,0), (1740,0))
-dynamicwindow_bev = Bevel(480, 360, (155,0,255), (1440, 300))
-equipment_bev = Bevel(480,270,(80,80,80), (1440, 660))
-hotkeys_bev = Bevel(480, 150, (255,255,255), (1440, 930))
-lifebar_bev = Bevel(1440,20,(255,0,0),(0,960))
-magicbar_bev = Bevel(1440,20,(0,0,255),(0,980))
-apbar_bev = Bevel(1440,20,(0,255,0),(0,1000))
-guardbar_bev = Bevel(1440,20,(180,0,180),(0,1020))
-hungerbar_bev = Bevel(1440,20,(200,120,0),(0,1040))
-sleepbar_bev = Bevel(1440,20,(200,200,200),(0,1060))
-buttons_bev = Bevel(96,960,(0,50,200),(1344,0))
+side_bev = Bevel([1440, 0], "src\\Resources\\Sidebevel.png")
+bar_bev = Bevel([0,0], "src\\Resources\\Barbevel.png")
+menu_bev = Bevel([1344,0], "src\\Resources\\Menubevel.png")
+player_bev = Bevel([704, 568], "src\\Resources\\Player.png")
+label = pg.text.Label(str(DISC_POS), font_name='Arial', font_size=16, x=1800, y=1010)
+label2 = pg.text.Label(str(OFFSET), font_name='Arial', font_size=16, x=1800, y=950)
 
-# Draw Bevels
-map_bev.draw(screen)
-side_bev.draw(screen)
-minimap_bev.draw(screen)
-dynamicbuttons_bev.draw(screen)
-dynamicwindow_bev.draw(screen)
-equipment_bev.draw(screen)
-lifebar_bev.draw(screen)
-magicbar_bev.draw(screen)
-apbar_bev.draw(screen)
-guardbar_bev.draw(screen)
-hungerbar_bev.draw(screen)
-sleepbar_bev.draw(screen)
-buttons_bev.draw(screen)
+# Map
+m, inter_map = loadmap("map\\draconis")
 
-# TiledMap
-tiled_map = TiledMap(map_bev, m)
+# Threads
+pg.clock.schedule_interval(draw_tiles, FPS)
+pg.clock.schedule_interval(movement_handler, FPS)
+pg.clock.schedule_interval(animate, 1)
 
-# Setup map
-map_bev.load_map(m)
-map_bev.build_map(screen, DISC_POS, m)
-map_bev.build_animated_map(DISC_POS, m, False)
-map_bev.build_animated_obj_map(DISC_POS, m, 0)
-map_bev.build_animated_obj_map(DISC_POS, m, 1)
+# FPS Clock
+fps_clock = fps_display = pyglet.clock.ClockDisplay(interval=1/60)
+fps_clock.label.x = 1800
+fps_clock.label.y = 890
+fps_clock.label.font_size = 12
+fps_clock.label.font_name='Arial'
 
-# CoordBox
-coordbox = CoordBox(100, (1500, 200), (255,255,255))
-
-# Player
-player = Player([DISC_POS[0]+OFFSET_POS[0], DISC_POS[1]+OFFSET_POS[1]], 54, 54, 4)
-movement = []
-surroundings = get_surroundings(inter_map, DISC_POS)
-
-threads.append(Thread(target=game_refresher))
-threads.append(Thread(target=char_movement))
-threads.append(Thread(target=animation_handle_change))
-threads.append(Thread(target=draw_fps))
-
-for th in threads:
-	th.start()
-
-while(not QUIT):
-	for ev in pg.event.get():
-		if(ev.type in [pg.MOUSEBUTTONDOWN]):#, pg.MOUSEMOTION, pg.MOUSEBUTTONUP]):
-			handle_mouse(ev)
-		elif(ev.type in [pg.KEYDOWN]):
-			handle_keyboard(ev)
-		elif(ev.type in [pg.KEYUP]):
-			handle_keyups(ev)
+pg.app.run()

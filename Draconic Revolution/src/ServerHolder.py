@@ -1,6 +1,6 @@
 from Map import Map
 from TileDictionary import *
-from AnimatedTilesHash import *
+from Tile import *
 
 def loadmap(filename):
 	map_name = ""
