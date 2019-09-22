@@ -1,28 +1,46 @@
-import pygame as pg
+import pyglet as pg
+from pyglet.gl import *
+	
+## all_list_img declaration down below
 
 ####### GENERAL TILE SETTINGS
 
-class Tile:
-	image = []
-	size = 32
-
-	def __init__(self, id, size=32, scaling=2):
-		self.size = size
-		self.image = pg.image.load(get_tile_index(id))
-		if(scaling != 1):
-			self.scale(scaling)
-
-	def scale(self, x):
-		self.image = pg.transform.scale(self.image, (self.size*x, self.size*x))
-
-def get_tile_index(id):
-	if(id <= 0):
+def get_tile_index(ident):
+	if(ident <= 0):
 		return "src\\Tiles\\none.png"
 
 	ref = open("src\\Tiles\\Tile_ref", "r")
 	data = ref.read()
 	ref.close()
-	return "src\\Tiles\\" + data.split("\n")[id] + ".png"
+	return "src\\Tiles\\" + data.split("\n")[ident] + ".png"
+
+class Tile:
+	def __init__(self, ident, frame, size=32, scaling=2):
+		self.size = size
+		self.image = pg.image.load(get_tile_index(ident)).get_texture()
+		if(scaling != 1):
+			self.scale(scaling)
+
+	def scale(self, x):
+		glTexParameteri(gl.GL_TEXTURE_2D, gl.GL_TEXTURE_MAG_FILTER, gl.GL_NEAREST)  
+		self.image.width = self.size*x
+		self.image.height = self.size*x
+
+
+class AnimatedTile:
+	def __init__(self, ident, frame, size=32, scaling=2):
+		self.size = size
+		self.image = None
+		self.scaling = scaling
+		self.image = pg.image.load(get_tile_index(ident)).get_texture()
+		self.scale(scaling, frame)
+
+	def scale(self, x, frame):
+		self.image = self.image.get_region(frame*self.size,frame*self.size, self.size, self.size)
+		glTexParameteri(gl.GL_TEXTURE_2D, gl.GL_TEXTURE_MAG_FILTER, gl.GL_NEAREST)  
+		self.image.width = self.image.width*x
+		self.image.height = self.image.height*x
+
 
 class GeneralTile:
 	id = None
@@ -116,7 +134,6 @@ class WoodBlock(GeneralTile):
 	def attacked(self, entity):
 		# make attacked thingy
 		pass
-
 
 class StoneBrick(GeneralTile):
 	id = 9
@@ -276,7 +293,7 @@ class Dirt(GeneralTile):
 		pass
 
 class RedCarpet(GeneralTile):
-	id = [x for x in range(31,40)]
+	id = 31 #[x for x in range(31,40)]
 
 	def __init__(self):
 		self.hp = 50
@@ -289,3 +306,44 @@ class RedCarpet(GeneralTile):
 	def action(self, entity):
 		# If pickaxe
 		pass
+
+### All tiles ###
+# Animated Tiles
+
+'''
+
+UPDATE THIS CODELIST EVERYTIME YOU ADD A NEW ANIMATED TILE
+
+'''
+animated_codelist = [28]
+
+# Generates Dictionary
+animated_dictionary = [{},{}]
+
+for element in animated_codelist:
+	animated_dictionary[0][element] = AnimatedTile(element,0).image
+	animated_dictionary[1][element] = AnimatedTile(element,1).image
+
+animated_dictionary_interactive = {28:Water()}
+
+def gen_atile_inter(id):
+		return animated_dictionary_interactive[id]
+
+def gen_atile(id):
+	try:
+		aux = animated_dictionary[id]
+		return aux
+	except:
+		return False
+
+
+### All tiles
+
+all_tiles_img = {}
+
+for i in range(-1,9999):
+	try:
+		if(i not in animated_dictionary[0].keys()):
+			all_tiles_img[i] = Tile(i,0).image
+	except IndexError:
+		break

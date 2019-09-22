@@ -1,19 +1,10 @@
-import pygame as pg
+import pyglet as pg
 
 class Bevel:
-	def __init__(self, width, height, rgb, pos):
-		self.surf = pg.Surface((width, height))
-		self.bg_color = rgb
-		self.surf.fill(rgb)
+	def __init__(self, pos, filename):
 		self.pos = pos
-		self.rect = pg.Rect(pos, (width, height))
+		self.image = pg.image.load(filename)
 
-	def draw(self, screen):
-		screen.blit(self.surf, self.pos)
-		pg.display.update(self.rect)
-
-	def update(self, screen):
-		pg.display.update(pg.Rect(self.pos, self.surf.get_size()))
-
-	def get_size(self):
-		return self.surf.get_size()
+	def draw(self):
+		sprite = pg.sprite.Sprite(self.image, x=self.pos[0], y=self.pos[1])
+		sprite.draw()

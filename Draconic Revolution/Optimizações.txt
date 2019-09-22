@@ -1,0 +1,1 @@
+Otimizar a animação criando uma surface grande o suficiente pra caber todos os blocos animados e dar update nos retângulos que a compôe.

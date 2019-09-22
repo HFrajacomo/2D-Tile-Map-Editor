@@ -1,5 +1,6 @@
 from Map import Map
 from TileDictionary import *
+from Tile import *
 
 def loadmap(filename):
 	map_name = ""
@@ -31,7 +32,10 @@ def loadmap(filename):
 		for i in range(len(map_data)):
 			inter_map.append([])
 			for j in range(len(map_data[0])):
-				inter_map[-1].append(gen_tile(map_data[i][j]))
+				if(gen_tile(map_data[i][j]) == False):
+					inter_map[-1].append(gen_atile_inter(map_data[i][j]))
+				else:
+					inter_map[-1].append(gen_tile(map_data[i][j]))
 
 
 		return Map(map_data, obj_data, light_data, mapname=map_name), inter_map
