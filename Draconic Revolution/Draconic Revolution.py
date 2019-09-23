@@ -19,6 +19,7 @@ from Obj import *
 from Bevel import *
 from ServerHolder import *
 from TileDictionary import *
+from ObjDictionary import *
 
 def list_sum(l1, l2):
 	for i in range(len(l1)):
@@ -30,10 +31,10 @@ def list_sum(l1, l2):
 def animate(Non):
 	global animation_handle
 
-	if(animation_handle == 1):
+	if(animation_handle >= 2):
 		animation_handle = 0
-	elif(animation_handle == 0):
-		animation_handle = 1
+	else:
+		animation_handle += 1
 
 def collision_check(DISC_POS, OFFSET):
 	global inter_map
@@ -281,6 +282,8 @@ label2 = pg.text.Label(str(OFFSET), font_name='Arial', font_size=16, x=1800, y=9
 
 # Map
 m, inter_map = loadmap("map\\draconis")
+
+m.check_unsigned_data(tile_dictionary, obj_dictionary)
 
 # Threads
 pg.clock.schedule_interval(draw_tiles, FPS)

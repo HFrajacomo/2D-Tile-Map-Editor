@@ -318,24 +318,12 @@ UPDATE THIS CODELIST EVERYTIME YOU ADD A NEW ANIMATED TILE
 animated_codelist = [28]
 
 # Generates Dictionary
-animated_dictionary = [{},{}]
+animated_dictionary = [{},{},{}]
 
 for element in animated_codelist:
 	animated_dictionary[0][element] = AnimatedTile(element,0).image
 	animated_dictionary[1][element] = AnimatedTile(element,1).image
-
-animated_dictionary_interactive = {28:Water()}
-
-def gen_atile_inter(id):
-		return animated_dictionary_interactive[id]
-
-def gen_atile(id):
-	try:
-		aux = animated_dictionary[id]
-		return aux
-	except:
-		return False
-
+	animated_dictionary[2][element] = AnimatedTile(element,2).image
 
 ### All tiles
 

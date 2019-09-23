@@ -135,6 +135,30 @@ class Map:
 	def get_size(self):
 		return [len(self.grid), len(self.grid[0])]
 
+	def check_unsigned_data(self, dict_tile, dict_obj):
+		all_tiles = []
+		all_objs = []
+		signed_tiles = dict_tile.keys()
+		signed_obj = dict_obj.keys()
+
+		# Add to Map loaded tiles
+		for line in self.grid:
+			for tile in line:
+				if(tile not in all_tiles):
+					all_tiles.append(tile)
+
+		for line in self.obj_grid:
+			for obj in line:
+				if(obj not in all_objs):
+					all_objs.append(obj)
+
+		print("Tiles and Object signing system\n")
+		print("Unsigned Tiles = ", end='')
+		print(set(all_tiles) - set(signed_tiles))
+		print("\nUnsigned Objects = ", end='')
+		print(set(all_objs) - set(signed_obj))
+		print("\n")
+
 # Returns submatrix of a given matrix
 def get_submatrix(matrix, pos, radius_x, radius_y, non_circular=True):
 	sub_matrix = []

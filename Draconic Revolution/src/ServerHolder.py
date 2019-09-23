@@ -32,9 +32,7 @@ def loadmap(filename):
 		for i in range(len(map_data)):
 			inter_map.append([])
 			for j in range(len(map_data[0])):
-				if(gen_tile(map_data[i][j]) == False):
-					inter_map[-1].append(gen_atile_inter(map_data[i][j]))
-				else:
+				if(gen_tile(map_data[i][j]) != False):
 					inter_map[-1].append(gen_tile(map_data[i][j]))
 
 
