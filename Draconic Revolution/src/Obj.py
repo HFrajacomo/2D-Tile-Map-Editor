@@ -31,6 +31,7 @@ class AnimatedObj:
 class GeneralObj:
 	id = None
 	def __init__(self, id):
+		self.id = id
 		self.hp = None
 		self.solid = None
 		self.transparency = None
@@ -60,10 +61,12 @@ class GeneralObj:
 	def recipe(self, entity):
 		pass
 
-	# Returns the image of tile to be blitted
-	# IMPLEMENT RESIZING ABILITY
-	def surface(self):
-		return pg.image.load(get_tile_index(self.id))
+	def __str__(self):
+		return self.__class__.__name__ + ":" + str(self.id)
+
+	def __repr__(self):
+		return self.__class__.__name__ + ":" + str(self.id)
+		
 
 class NoneObj(GeneralObj):
 	def __init__(self, id):
@@ -491,6 +494,18 @@ class Slider(GeneralObj):
 		
 	def examine(self, entity):
 		return "Made for kids"
+
+class FlowerPot(GeneralObj):
+	def __init__(self, id):
+		self.id = id
+		self.hp = 80
+		self.solid = True
+		self.transparency = True
+		
+	def examine(self, entity):
+		return "A beautiful plant lives here"
+
+
 
 def get_obj_index(id):
 	if(id <= 0):

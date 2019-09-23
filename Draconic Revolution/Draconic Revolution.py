@@ -16,10 +16,11 @@ sys.path.append('src\\')
 from Tile import *
 from Map import *
 from Obj import *
-from Bevel import *
-from ServerHolder import *
 from TileDictionary import *
 from ObjDictionary import *
+from Bevel import *
+from ServerHolder import *
+
 
 def list_sum(l1, l2):
 	for i in range(len(l1)):
@@ -38,6 +39,7 @@ def animate(Non):
 
 def collision_check(DISC_POS, OFFSET):
 	global inter_map
+	global inter_map_obj
 
 	surroundings = get_submatrix(inter_map, DISC_POS, 1,1, non_circular=False)
 
@@ -53,6 +55,23 @@ def collision_check(DISC_POS, OFFSET):
 	elif(OFFSET[1]>0 and PLAYER_DIRECTION == 1):
 		if(surroundings[2][1].solid):
 			return True
+
+	del surroundings
+	surroundings = get_submatrix(inter_map_obj, DISC_POS, 1,1, non_circular=False)
+
+	if(OFFSET[0]<0 and PLAYER_DIRECTION == 3):
+		if(surroundings[1][0].solid):
+			return True
+	elif(OFFSET[0]>0 and PLAYER_DIRECTION == 2):
+		if(surroundings[1][2].solid):
+			return True
+	elif(OFFSET[1]<0 and PLAYER_DIRECTION == 0):
+		if(surroundings[0][1].solid):
+			return True	
+	elif(OFFSET[1]>0 and PLAYER_DIRECTION == 1):
+		if(surroundings[2][1].solid):
+			return True	
+
 	return False
 
 def movement_handler(non):
@@ -126,6 +145,7 @@ def movement_handler(non):
 @window.event
 def on_key_press(symbol, modifiers):
 	global PLAYER_DIRECTION
+	global inter_map_obj
 
 	if(symbol == key.Y):
 		PLAYER_DIRECTION = 0
@@ -144,6 +164,10 @@ def on_key_press(symbol, modifiers):
 		PLAYER_DIRECTION = 7
 	elif(symbol == key.A):
 		PLAYER_DIRECTION = 8
+
+	## Debug Key
+	if(symbol == key.Q):
+		print(get_submatrix(inter_map_obj, DISC_POS, 1, 1, non_circular=False))
 
 @window.event
 def on_key_release(symbol, modifiers):
@@ -281,14 +305,16 @@ label = pg.text.Label(str(DISC_POS), font_name='Arial', font_size=16, x=1800, y=
 label2 = pg.text.Label(str(OFFSET), font_name='Arial', font_size=16, x=1800, y=950)
 
 # Map
-m, inter_map = loadmap("map\\draconis")
-
+m, inter_map, inter_map_obj = loadmap("map\\draconis")
 m.check_unsigned_data(tile_dictionary, obj_dictionary)
+
+
+### TEST
 
 # Threads
 pg.clock.schedule_interval(draw_tiles, FPS)
 pg.clock.schedule_interval(movement_handler, FPS)
-pg.clock.schedule_interval(animate, 1)
+pg.clock.schedule_interval(animate, 0.2)
 
 # FPS Clock
 fps_clock = fps_display = pyglet.clock.ClockDisplay(interval=1/60)

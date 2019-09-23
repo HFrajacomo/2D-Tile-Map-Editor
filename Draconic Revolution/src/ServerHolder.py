@@ -1,6 +1,8 @@
 from Map import Map
 from TileDictionary import *
 from Tile import *
+from Obj import *
+from ObjDictionary import *
 
 def loadmap(filename):
 	map_name = ""
@@ -28,13 +30,21 @@ def loadmap(filename):
 					light_data.append([int(x) for x in lines[i].split(",")])
 
 		# Builds interactible map from map_data
-		inter_map = []
-		for i in range(len(map_data)):
-			inter_map.append([])
-			for j in range(len(map_data[0])):
+		inter_map_tiles = []
+		for i in range(0,len(map_data)):
+			inter_map_tiles.append([])
+			for j in range(0,len(map_data[0])):
 				if(gen_tile(map_data[i][j]) != False):
-					inter_map[-1].append(gen_tile(map_data[i][j]))
+					inter_map_tiles[-1].append(gen_tile(map_data[i][j]))
+
+		# Builds interactible map from map_data
+		inter_map_obj = []
+		for i in range(0,len(map_data)):
+			inter_map_obj.append([])
+			for j in range(0,len(obj_data[0])):
+				if(gen_obj(obj_data[i][j]) != False):
+					inter_map_obj[-1].append(gen_obj(obj_data[i][j]))
 
 
-		return Map(map_data, obj_data, light_data, mapname=map_name), inter_map
-	return None, None
+		return Map(map_data, obj_data, light_data, mapname=map_name), inter_map_tiles, inter_map_obj
+	return None, None, None
