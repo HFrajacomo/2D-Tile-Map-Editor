@@ -167,7 +167,9 @@ def on_key_press(symbol, modifiers):
 
 	## Debug Key
 	if(symbol == key.Q):
-		print(get_submatrix(inter_map_obj, DISC_POS, 1, 1, non_circular=False))
+		a = get_submatrix(inter_map_obj, DISC_POS, 1, 1, non_circular=False)
+		for element in a:
+			print(str(element) + "\n")
 
 @window.event
 def on_key_release(symbol, modifiers):
@@ -201,13 +203,20 @@ def draw_tiles(Non):
 	global batch_anim_tiles_draw
 	global batch_anim_obj
 	global batch_anim_obj_draw
+	global batch_fg_obj
+	global batch_fg_obj_draw
+	global batch_fg_anim_obj
+	global batch_fg_anim_obj_draw
 
 	global m
 	global LOCK
 	global label
 	global label2
+	global inter_map_obj
 
 	matrixes = m.get_region(DISC_POS, 12, 8, non_circular=False)
+	interact = get_submatrix(inter_map_obj, DISC_POS, 12, 8, non_circular=False)
+
 	label = pg.text.Label(str(DISC_POS), font_name='Arial', font_size=16, x=1800, y=1010)
 	label2 = pg.text.Label(str(OFFSET), font_name='Arial', font_size=16, x=1800, y=950)
 
@@ -216,6 +225,8 @@ def draw_tiles(Non):
 	batch_obj.clear()
 	batch_anim_tiles.clear()
 	batch_anim_obj.clear()
+	batch_fg_obj.clear()
+	batch_fg_anim_obj.clear()
 
 	for i in range(0,25):
 		for j in range(0,17):
@@ -227,10 +238,17 @@ def draw_tiles(Non):
 			
 			# Objects and animated objects
 			if(matrixes[1][j][i] > 0): # If found an object in this tile
-				if(matrixes[1][j][i] in all_obj_img.keys()):
-					batch_obj.append(pg.sprite.Sprite(img=all_obj_img[matrixes[1][j][i]], x=i*64-OFFSET[0]-64, y=(1080-(j*64))+OFFSET[1], batch=batch_obj_draw))
-				elif(matrixes[1][j][i] in animated_obj_codelist):
-					batch_anim_obj.append(pg.sprite.Sprite(img=animated_obj_dictionary[animation_handle][matrixes[1][j][i]], x=i*64-OFFSET[0]-64, y=(1080-(j*64))+OFFSET[1], batch=batch_anim_obj_draw))				
+				# If it has special collision
+				if(interact[j][i].special_collision):
+					if(matrixes[1][j][i] in all_obj_img.keys()): # if not animated
+						batch_fg_obj.append(pg.sprite.Sprite(img=all_obj_img[matrixes[1][j][i]], x=i*64-OFFSET[0]-64, y=(1080-(j*64))+OFFSET[1], batch=batch_fg_obj_draw))
+					elif(matrixes[1][j][i] in animated_obj_codelist):
+						batch_fg_anim_obj.append(pg.sprite.Sprite(img=animated_obj_dictionary[animation_handle][matrixes[1][j][i]], x=i*64-OFFSET[0]-64, y=(1080-(j*64))+OFFSET[1], batch=batch_fg_anim_obj_draw))
+				else: # If normal collision
+					if(matrixes[1][j][i] in all_obj_img.keys()):
+						batch_obj.append(pg.sprite.Sprite(img=all_obj_img[matrixes[1][j][i]], x=i*64-OFFSET[0]-64, y=(1080-(j*64))+OFFSET[1], batch=batch_obj_draw))
+					elif(matrixes[1][j][i] in animated_obj_codelist):
+						batch_anim_obj.append(pg.sprite.Sprite(img=animated_obj_dictionary[animation_handle][matrixes[1][j][i]], x=i*64-OFFSET[0]-64, y=(1080-(j*64))+OFFSET[1], batch=batch_anim_obj_draw))				
 
 
 	LOCK.release()
@@ -247,6 +265,9 @@ def on_draw():
 	global batch_anim_tiles_draw
 	global batch_anim_obj
 	global batch_anim_obj_draw
+	global batch_fg_obj_draw
+	global batch_fg_anim_obj
+	global batch_fg_anim_obj_draw
 
 	global side_bev
 	global bar_bev
@@ -257,15 +278,22 @@ def on_draw():
 	global fps_clock
 
 	LOCK.acquire()
-	window.clear()  # Remember to delete later
+	# Tiles
 	batch_draw.draw()
 	batch_anim_tiles_draw.draw()
+	# Background Objects
 	batch_obj_draw.draw()
 	batch_anim_obj_draw.draw()
+	# Entity
+	player_bev.draw()
+	# Foreground Objects
+	batch_fg_obj_draw.draw()
+	batch_fg_anim_obj_draw.draw()
+	# Screen
 	side_bev.draw()
 	bar_bev.draw()
 	menu_bev.draw()
-	player_bev.draw()
+	# Labels
 	label.draw()
 	label2.draw()
 	fps_clock.draw()
@@ -276,11 +304,15 @@ batch_draw = pg.graphics.Batch()
 batch_obj_draw = pg.graphics.Batch()
 batch_anim_tiles_draw = pg.graphics.Batch()
 batch_anim_obj_draw = pg.graphics.Batch()
+batch_fg_obj_draw = pg.graphics.Batch()
+batch_fg_anim_obj_draw = pg.graphics.Batch()
 
 batch_anim_obj = []
 batch_anim_tiles = []
 batch_sprites = []
 batch_obj = []
+batch_fg_obj = []
+batch_fg_anim_obj = []
 
 # Positioning
 DISC_POS = [100,124]
@@ -307,7 +339,6 @@ label2 = pg.text.Label(str(OFFSET), font_name='Arial', font_size=16, x=1800, y=9
 # Map
 m, inter_map, inter_map_obj = loadmap("map\\draconis")
 m.check_unsigned_data(tile_dictionary, obj_dictionary)
-
 
 ### TEST
 

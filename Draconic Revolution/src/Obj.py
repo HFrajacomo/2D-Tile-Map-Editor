@@ -32,6 +32,8 @@ class GeneralObj:
 	id = None
 	def __init__(self, id):
 		self.id = id
+		self.multiblock = False
+		self.special_collision = False
 		self.hp = None
 		self.solid = None
 		self.transparency = None
@@ -66,21 +68,32 @@ class GeneralObj:
 
 	def __repr__(self):
 		return self.__class__.__name__ + ":" + str(self.id)
-		
+
+	# Easier to insert new special collision tiles with this
+	def add_special_collision(self, list_of_ids):
+		if(self.id in list_of_ids):
+			self.solid = False
+			self.special_collision = True
+		else:
+			self.solid = True
 
 class NoneObj(GeneralObj):
 	def __init__(self, id):
 		self.id = id
+		self.multiblock = None
 		self.hp = 1
 		self.solid = False
 		self.transparency = True
+		self.special_collision = False
 
 class VegetableStand(GeneralObj):
 	def __init__(self, id):
 		self.id = id
+		self.multiblock = False
 		self.hp = 50
 		self.solid = True
 		self.transparency = True
+		self.special_collision = False		
 
 	def examine(self, entity):
 		return "It contains lots of food"
@@ -88,9 +101,11 @@ class VegetableStand(GeneralObj):
 class FoodBasket(GeneralObj):
 	def __init__(self, id):
 		self.id = id
+		self.multiblock = False
 		self.hp = 50
 		self.solid = True
 		self.transparency = True
+		self.special_collision = False
 
 	def examine(self, entity):
 		return "It contains lots of food"
@@ -98,9 +113,11 @@ class FoodBasket(GeneralObj):
 class Blackboard(GeneralObj):
 	def __init__(self, id):
 		self.id = id
+		self.multiblock = True
 		self.hp = 120
 		self.solid = True
 		self.transparency = False
+		self.special_collision = False
 
 	def examine(self, entity):
 		return "Some chalk dust is on it's surface"
@@ -108,9 +125,11 @@ class Blackboard(GeneralObj):
 class ItemCrate(GeneralObj):
 	def __init__(self, id):
 		self.id = id
+		self.multiblock = False
 		self.hp = 80
 		self.solid = True
 		self.transparency = True
+		self.special_collision = False
 
 	def examine(self, entity):
 		return "There are items inside"
@@ -118,9 +137,11 @@ class ItemCrate(GeneralObj):
 class Crate(GeneralObj):
 	def __init__(self, id):
 		self.id = id
+		self.multiblock = False
 		self.hp = 80
 		self.solid = True
 		self.transparency = True
+		self.special_collision = False
 
 	def examine(self, entity):
 		return "A solid wooden crate"
@@ -128,9 +149,11 @@ class Crate(GeneralObj):
 class EmptyCrate(GeneralObj):
 	def __init__(self, id):
 		self.id = id
+		self.multiblock = False
 		self.hp = 50
 		self.solid = True
 		self.transparency = True
+		self.special_collision = False
 
 	def examine(self, entity):
 		return "There's only dust inside"
@@ -138,9 +161,11 @@ class EmptyCrate(GeneralObj):
 class Flower(GeneralObj):
 	def __init__(self, id):
 		self.id = id
+		self.multiblock = False
 		self.hp = 15
 		self.solid = False
 		self.transparency = True
+		self.special_collision = False
 
 	def examine(self, entity):
 		return "A pretty nature's child"
@@ -148,9 +173,11 @@ class Flower(GeneralObj):
 class Logs(GeneralObj):
 	def __init__(self, id):
 		self.id = id
+		self.multiblock = False
 		self.hp = 30
 		self.solid = False
 		self.transparency = True
+		self.special_collision = False
 
 	def examine(self, entity):
 		return "Some logs"
@@ -158,9 +185,11 @@ class Logs(GeneralObj):
 class Fountain(GeneralObj):
 	def __init__(self, id):
 		self.id = id
+		self.multiblock = True
 		self.hp = 800
 		self.solid = True
 		self.transparency = True
+		self.special_collision = False
 
 	def examine(self, entity):
 		return "A beautiful fontain"
@@ -168,9 +197,14 @@ class Fountain(GeneralObj):
 class Statue(GeneralObj):
 	def __init__(self, id):
 		self.id = id
+		self.multiblock = True
 		self.hp = 500
-		self.solid = True
 		self.transparency = False
+		self.solid = True
+		self.special_collision = False
+
+		# Special Collision
+		self.add_special_collision([544])
 
 	def examine(self, entity):
 		return "I can recognize the image"
@@ -178,9 +212,13 @@ class Statue(GeneralObj):
 class GraveStone(GeneralObj):
 	def __init__(self, id):
 		self.id = id
+		self.multiblock = True
 		self.hp = 300
 		self.solid = True
 		self.transparency = True
+		self.special_collision = False
+
+		self.add_special_collision([31,34])
 
 	def examine(self, entity):
 		return "It's old, you can barely read it"
@@ -188,9 +226,11 @@ class GraveStone(GeneralObj):
 class WoodenBarrel(GeneralObj):
 	def __init__(self, id):
 		self.id = id
+		self.multiblock = False
 		self.hp = 100
 		self.solid = True
 		self.transparency = True
+		self.special_collision = False
 
 	def examine(self, entity):
 		return "I wonder what's inside..."
@@ -198,9 +238,11 @@ class WoodenBarrel(GeneralObj):
 class Bucket(GeneralObj):
 	def __init__(self, id):
 		self.id = id
+		self.multiblock = False
 		self.hp = 20
 		self.solid = False
 		self.transparency = True
+		self.special_collision = False
 
 	def examine(self, entity):
 		return "It's a bucket"
@@ -208,9 +250,11 @@ class Bucket(GeneralObj):
 class Bush(GeneralObj):
 	def __init__(self, id):
 		self.id = id
+		self.multiblock = False
 		self.hp = 100
 		self.solid = True
 		self.transparency = False
+		self.special_collision = False
 
 	def examine(self, entity):
 		return "Dense foliage"
@@ -218,9 +262,11 @@ class Bush(GeneralObj):
 class Chair(GeneralObj):
 	def __init__(self, id):
 		self.id = id
+		self.multiblock = True
 		self.hp = 100
 		self.solid = False
 		self.transparency = True
+		self.special_collision = False
 
 	def examine(self, entity):
 		return "You can sit on it"
@@ -228,9 +274,11 @@ class Chair(GeneralObj):
 class Table(GeneralObj):
 	def __init__(self, id):
 		self.id = id
+		self.multiblock = True
 		self.hp = 250
 		self.solid = True
 		self.transparency = True
+		self.special_collision = False
 
 	def examine(self, entity):
 		return "A plain table"
@@ -238,9 +286,11 @@ class Table(GeneralObj):
 class Bed(GeneralObj):
 	def __init__(self, id):
 		self.id = id
+		self.multiblock = True
 		self.hp = 400
 		self.solid = True
 		self.transparency = True
+		self.special_collision = False
 
 	def examine(self, entity):
 		return "Real comfy"
@@ -248,9 +298,11 @@ class Bed(GeneralObj):
 class Piles(GeneralObj):
 	def __init__(self, id):
 		self.id = id
+		self.multiblock = False
 		self.hp = 500
 		self.solid = True
 		self.transparency = False
+		self.special_collision = False
 
 	def examine(self, entity):
 		return "There's a pile of stuff here"
@@ -258,9 +310,11 @@ class Piles(GeneralObj):
 class Hangings(GeneralObj):
 	def __init__(self, id):
 		self.id = id
+		self.multiblock = False
 		self.hp = 50
 		self.solid = False
 		self.transparency = True
+		self.special_collision = False
 
 	def examine(self, entity):
 		return "Nice decoration"
@@ -268,9 +322,11 @@ class Hangings(GeneralObj):
 class Altar(GeneralObj):
 	def __init__(self, id):
 		self.id = id
+		self.multiblock = True
 		self.hp = 600
 		self.solid = True
 		self.transparency = True
+		self.special_collision = False
 
 	def examine(self, entity):
 		return "I can see candles and undecipherable symbols"
@@ -278,9 +334,11 @@ class Altar(GeneralObj):
 class Fence(GeneralObj):
 	def __init__(self, id):
 		self.id = id
+		self.multiblock = False
 		self.hp = 50
 		self.solid = True
 		self.transparency = True
+		self.special_collision = False
 
 	def examine(self, entity):
 		return "Secure fence"
@@ -288,9 +346,11 @@ class Fence(GeneralObj):
 class Window(GeneralObj):
 	def __init__(self, id):
 		self.id = id
+		self.multiblock = False
 		self.hp = 20
 		self.solid = True
 		self.transparency = True
+		self.special_collision = False
 
 	def examine(self, entity):
 		return "A glassy frame"
@@ -298,9 +358,11 @@ class Window(GeneralObj):
 class Sign(GeneralObj):
 	def __init__(self, id):
 		self.id = id
+		self.multiblock = False
 		self.hp = 50
 		self.solid = True
 		self.transparency = True
+		self.special_collision = False
 
 	def examine(self, entity):
 		return "There's something written on it"
@@ -308,9 +370,13 @@ class Sign(GeneralObj):
 class Pillar(GeneralObj):
 	def __init__(self, id):
 		self.id = id
+		self.multiblock = True
 		self.hp = 800
 		self.solid = True
 		self.transparency = False
+		self.special_collision = False
+
+		self.add_special_collision([570])
 
 	def examine(self, entity):
 		return "Tough base"
@@ -318,9 +384,11 @@ class Pillar(GeneralObj):
 class Stone(GeneralObj):
 	def __init__(self, id):
 		self.id = id
+		self.multiblock = False
 		self.hp = 1000
 		self.solid = True
 		self.transparency = False
+		self.special_collision = False
 
 	def examine(self, entity):
 		return "A boulder"
@@ -328,9 +396,11 @@ class Stone(GeneralObj):
 class TallGrass(GeneralObj):
 	def __init__(self, id):
 		self.id = id
+		self.multiblock = False
 		self.hp = 10
 		self.solid = False
 		self.transparency = True
+		self.special_collision = False
 
 	def examine(self, entity):
 		return "It has overgrown"
@@ -338,9 +408,13 @@ class TallGrass(GeneralObj):
 class Bookshelf(GeneralObj):
 	def __init__(self, id):
 		self.id = id
+		self.multiblock = True
 		self.hp = 300
 		self.solid = True
 		self.transparency = False
+		self.special_collision = False
+
+		self.add_special_collision([578,576])
 
 	def examine(self, entity):
 		return "Books everywhere"
@@ -348,9 +422,13 @@ class Bookshelf(GeneralObj):
 class SilverwoodTree(GeneralObj):
 	def __init__(self, id):
 		self.id = id
+		self.multiblock = True
 		self.hp = 1500
 		self.solid = True
 		self.transparency = False
+		self.special_collision = False
+
+		self.add_special_collision([595])
 
 	def examine(self, entity):
 		return "A silvery tree with blue leaves"
@@ -358,9 +436,11 @@ class SilverwoodTree(GeneralObj):
 class Stairs(GeneralObj):
 	def __init__(self, id):
 		self.id = id
+		self.multiblock = False
 		self.hp = 2000
 		self.solid = False
 		self.transparency = True
+		self.special_collision = False
 
 	def examine(self, entity):
 		return "I wonder where it goes"
@@ -368,9 +448,13 @@ class Stairs(GeneralObj):
 class LightPole(GeneralObj):
 	def __init__(self, id):
 		self.id = id
+		self.multiblock = True
 		self.hp = 1000
 		self.solid = True
 		self.transparency = True
+		self.special_collision = False
+
+		self.add_special_collision([598,599])
 
 	def examine(self, entity):
 		return "Gives off light"
@@ -378,9 +462,11 @@ class LightPole(GeneralObj):
 class Torch(GeneralObj):
 	def __init__(self, id):
 		self.id = id
+		self.multiblock = False
 		self.hp = 10
 		self.solid = False
 		self.transparency = True
+		self.special_collision = True
 
 	def examine(self, entity):
 		return "Gives off light"
@@ -388,9 +474,11 @@ class Torch(GeneralObj):
 class Counter(GeneralObj):
 	def __init__(self, id):
 		self.id = id
+		self.multiblock = False
 		self.hp = 200
 		self.solid = True
 		self.transparency = True
+		self.special_collision = False
 
 	def examine(self, entity):
 		return "A plain surface"
@@ -398,9 +486,11 @@ class Counter(GeneralObj):
 class Door(GeneralObj):
 	def __init__(self, id):
 		self.id = id
+		self.multiblock = False
 		self.hp = 300
 		self.solid = True
 		self.transparency = False
+		self.special_collision = False
 
 	def examine(self, entity):
 		return "You can open it"
@@ -408,9 +498,11 @@ class Door(GeneralObj):
 class OpenDoor(GeneralObj):
 	def __init__(self, id):
 		self.id = id
+		self.multiblock = False
 		self.hp = 300
 		self.solid = False
 		self.transparency = True
+		self.special_collision = False
 
 	def examine(self, entity):
 		return "You can open it"
@@ -418,9 +510,11 @@ class OpenDoor(GeneralObj):
 class Sack(GeneralObj):
 	def __init__(self, id):
 		self.id = id
+		self.multiblock = False
 		self.hp = 10
 		self.solid = True
 		self.transparency = True
+		self.special_collision = False
 
 	def examine(self, entity):
 		return "There's something inside"
@@ -428,9 +522,11 @@ class Sack(GeneralObj):
 class Anvil(GeneralObj):
 	def __init__(self, id):
 		self.id = id
+		self.multiblock = False
 		self.hp = 5000
 		self.solid = True
 		self.transparency = True
+		self.special_collision = False
 		
 	def examine(self, entity):
 		return "A heavy iron anvil for blacksmithing"
@@ -438,9 +534,11 @@ class Anvil(GeneralObj):
 class Forge(GeneralObj):
 	def __init__(self, id):
 		self.id = id
+		self.multiblock = True
 		self.hp = 4000
 		self.solid = True
 		self.transparency = False
+		self.special_collision = False
 		
 	def examine(self, entity):
 		return "It's scorching hot"
@@ -448,9 +546,11 @@ class Forge(GeneralObj):
 class OakTree(GeneralObj):
 	def __init__(self, id):
 		self.id = id
+		self.multiblock = True
 		self.hp = 2000
 		self.solid = True
 		self.transparency = False
+		self.special_collision = False
 		
 	def examine(self, entity):
 		return "A quiet calming Oak Tree"
@@ -458,9 +558,13 @@ class OakTree(GeneralObj):
 class PineTree(GeneralObj):
 	def __init__(self, id):
 		self.id = id
+		self.multiblock = True
 		self.hp = 2000
 		self.solid = True
 		self.transparency = False
+		self.special_collision = False
+
+		self.add_special_collision([219,222])
 		
 	def examine(self, entity):
 		return "A long Pine Tree"
@@ -468,9 +572,13 @@ class PineTree(GeneralObj):
 class Cupboard(GeneralObj):
 	def __init__(self, id):
 		self.id = id
+		self.multiblock = True
 		self.hp = 700
 		self.solid = True
 		self.transparency = False
+		self.special_collision = False
+
+		self.add_special_collision([449,432,587,427])
 		
 	def examine(self, entity):
 		return "There are stuffed with decoration"
@@ -478,9 +586,11 @@ class Cupboard(GeneralObj):
 class Bottle(GeneralObj):
 	def __init__(self, id):
 		self.id = id
+		self.multiblock = False
 		self.hp = 5
 		self.solid = False
 		self.transparency = True
+		self.special_collision = False
 		
 	def examine(self, entity):
 		return "Some alcohol"
@@ -488,9 +598,13 @@ class Bottle(GeneralObj):
 class Slider(GeneralObj):
 	def __init__(self, id):
 		self.id = id
+		self.multiblock = True
 		self.hp = 1500
 		self.solid = True
 		self.transparency = True
+		self.special_collision = False
+
+		self.add_special_collision([251,254])
 		
 	def examine(self, entity):
 		return "Made for kids"
@@ -498,12 +612,26 @@ class Slider(GeneralObj):
 class FlowerPot(GeneralObj):
 	def __init__(self, id):
 		self.id = id
+		self.multiblock = True
 		self.hp = 80
 		self.solid = True
 		self.transparency = True
+		self.special_collision = False
 		
 	def examine(self, entity):
 		return "A beautiful plant lives here"
+
+class Throne(GeneralObj):
+	def __init__(self, id):
+		self.id = id
+		self.multiblock = True
+		self.hp = 80
+		self.solid = False
+		self.transparency = True
+		self.special_collision = False
+		
+	def examine(self, entity):
+		return "Someone important seems to live here"
 
 
 
