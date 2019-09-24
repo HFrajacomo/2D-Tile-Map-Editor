@@ -41,7 +41,7 @@ class GeneralObj:
 	# Overload function
 	# Code to be run when player interacts with block
 	def action(self, entity, pos, m, intermap):
-		pass
+		return False
 
 	# Overload function
 	# Code to be run when entity walks onto block
@@ -499,21 +499,28 @@ class Door(GeneralObj):
 		if(self.id == 108): # Fancy door
 			m.obj_grid[pos[1]][pos[0]] = 110
 			intermap[pos[1]][pos[0]] = gen_obj(110)
+			return True
 		elif(self.id == 107): # Normal door
 			m.obj_grid[pos[1]][pos[0]] = 603
 			intermap[pos[1]][pos[0]] = gen_obj(603)		
+			return True
 		elif(self.id == 109): # Wooden door
 			m.obj_grid[pos[1]][pos[0]] = 604
 			intermap[pos[1]][pos[0]] = gen_obj(604)	
+			return True
 		elif(self.id == 111): # Side door
 			m.obj_grid[pos[1]][pos[0]] = 114
 			intermap[pos[1]][pos[0]] = gen_obj(114)	
+			return True
 		elif(self.id == 112): # Side door
 			m.obj_grid[pos[1]][pos[0]] = 115
 			intermap[pos[1]][pos[0]] = gen_obj(115)	
+			return True
 		elif(self.id == 113): # Side door
 			m.obj_grid[pos[1]][pos[0]] = 116
 			intermap[pos[1]][pos[0]] = gen_obj(116)	
+			return True
+		return False
 
 class OpenDoor(GeneralObj):
 	def __init__(self, id):
@@ -531,22 +538,29 @@ class OpenDoor(GeneralObj):
 		if(self.id == 110): # Fancy door
 			m.obj_grid[pos[1]][pos[0]] = 108
 			intermap[pos[1]][pos[0]] = gen_obj(108)
+			return True
 		elif(self.id == 603): # Normal door
 			m.obj_grid[pos[1]][pos[0]] = 107
 			intermap[pos[1]][pos[0]] = gen_obj(107)		
+			return True
 		elif(self.id == 604): # Wooden door
 			m.obj_grid[pos[1]][pos[0]] = 109
 			intermap[pos[1]][pos[0]] = gen_obj(109)	
+			return True
 		elif(self.id == 114): # Side door
 			m.obj_grid[pos[1]][pos[0]] = 111
 			intermap[pos[1]][pos[0]] = gen_obj(111)	
+			return True
 		elif(self.id == 115): # Side door
 			m.obj_grid[pos[1]][pos[0]] = 112
 			intermap[pos[1]][pos[0]] = gen_obj(112)	
+			return True
 		elif(self.id == 116): # Side door
 			m.obj_grid[pos[1]][pos[0]] = 113
 			intermap[pos[1]][pos[0]] = gen_obj(113)	
-
+			return True
+		return False
+		
 class Sack(GeneralObj):
 	def __init__(self, id):
 		self.id = id

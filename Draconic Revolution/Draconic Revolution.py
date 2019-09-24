@@ -196,6 +196,7 @@ def on_key_press(symbol, modifiers):
 	global inter_map_obj
 	global m
 	global MOVEMENT_VECTOR
+	global VIEWPORT_UPDATE
 
 	if(symbol == key.Y):
 		PLAYER_DIRECTION = 0
@@ -233,13 +234,17 @@ def on_key_press(symbol, modifiers):
 		surroundings = get_submatrix(inter_map_obj, DISC_POS, 1, 1, non_circular=False)
 
 		if(PLAYER_DIRECTION == 0):
-			surroundings[0][1].action(0, list_sum(DISC_POS, [0,-1]), m, inter_map_obj)
+			if(surroundings[0][1].action(0, list_sum(DISC_POS, [0,-1]), m, inter_map_obj)):
+				VIEWPORT_UPDATE = True
 		elif(PLAYER_DIRECTION == 1):
-			surroundings[2][1].action(0, list_sum(DISC_POS, [0,1]), m, inter_map_obj)
+			if(surroundings[2][1].action(0, list_sum(DISC_POS, [0,1]), m, inter_map_obj)):
+				VIEWPORT_UPDATE = True
 		elif(PLAYER_DIRECTION == 2):
-			surroundings[1][2].action(0, list_sum(DISC_POS, [1,0]), m, inter_map_obj)
+			if(surroundings[1][2].action(0, list_sum(DISC_POS, [1,0]), m, inter_map_obj)):
+				VIEWPORT_UPDATE = True
 		elif(PLAYER_DIRECTION == 3):
-			surroundings[1][0].action(0, list_sum(DISC_POS, [-1,0]), m, inter_map_obj)
+			if(surroundings[1][0].action(0, list_sum(DISC_POS, [-1,0]), m, inter_map_obj)):
+				VIEWPORT_UPDATE = True
 
 
 @window.event
@@ -299,46 +304,99 @@ def draw_tiles(Non):
 	global label3
 	global inter_map_obj
 	global MOVEMENT_VECTOR
-
-	matrixes = m.get_region(DISC_POS, 12, 8, non_circular=False)
-	interact = get_submatrix(inter_map_obj, DISC_POS, 12, 8, non_circular=False)
+	global LAST_RENDER_POS
+	global DISC_POS
+	global OFFSET
+	global LAST_CALL_POS
+	global VIEWPORT_UPDATE
 
 	label = pg.text.Label(str(DISC_POS), font_name='Arial', font_size=16, x=1800, y=1010)
 	label2 = pg.text.Label(str(OFFSET), font_name='Arial', font_size=16, x=1800, y=950)
 	label3 = pg.text.Label(str(MOVEMENT_VECTOR), font_name='Arial', font_size=16, x=1800, y=700)
-	
-	LOCK.acquire()
-	batch_sprites.clear()
-	batch_obj.clear()
-	batch_anim_tiles.clear()
-	batch_anim_obj.clear()
-	batch_fg_obj.clear()
-	batch_fg_anim_obj.clear()
 
-	for i in range(0,25):
-		for j in range(0,17):
-			# Tiles and animated tiles
-			if(matrixes[0][j][i] in all_tiles_img.keys()):
-				batch_sprites.append(pg.sprite.Sprite(img=all_tiles_img[matrixes[0][j][i]], x=i*64-OFFSET[0]-64, y=(1080-(j*64))+OFFSET[1], batch=batch_draw))
-			elif(matrixes[0][j][i] in animated_codelist):
-				batch_anim_tiles.append(pg.sprite.Sprite(img=animated_dictionary[animation_handle][matrixes[0][j][i]], x=i*64-OFFSET[0]-64, y=(1080-(j*64))+OFFSET[1], batch=batch_anim_tiles_draw))				
-			
-			# Objects and animated objects
-			if(matrixes[1][j][i] > 0): # If found an object in this tile
-				# If it has special collision
-				if(interact[j][i].special_collision):
-					if(matrixes[1][j][i] in all_obj_img.keys()): # if not animated
-						batch_fg_obj.append(pg.sprite.Sprite(img=all_obj_img[matrixes[1][j][i]], x=i*64-OFFSET[0]-64, y=(1080-(j*64))+OFFSET[1], batch=batch_fg_obj_draw))
-					elif(matrixes[1][j][i] in animated_obj_codelist):
-						batch_fg_anim_obj.append(pg.sprite.Sprite(img=animated_obj_dictionary[animation_handle][matrixes[1][j][i]], x=i*64-OFFSET[0]-64, y=(1080-(j*64))+OFFSET[1], batch=batch_fg_anim_obj_draw))
-				else: # If normal collision
-					if(matrixes[1][j][i] in all_obj_img.keys()):
-						batch_obj.append(pg.sprite.Sprite(img=all_obj_img[matrixes[1][j][i]], x=i*64-OFFSET[0]-64, y=(1080-(j*64))+OFFSET[1], batch=batch_obj_draw))
-					elif(matrixes[1][j][i] in animated_obj_codelist):
-						batch_anim_obj.append(pg.sprite.Sprite(img=animated_obj_dictionary[animation_handle][matrixes[1][j][i]], x=i*64-OFFSET[0]-64, y=(1080-(j*64))+OFFSET[1], batch=batch_anim_obj_draw))				
+	# If needs to load new chunks
+	if(abs(LAST_RENDER_POS[0] - DISC_POS[0]) + abs(LAST_RENDER_POS[1] - DISC_POS[1]) >= 2 or VIEWPORT_UPDATE):
 
+		matrixes = m.get_region(DISC_POS, 13, 11, non_circular=False)
+		interact = get_submatrix(inter_map_obj, DISC_POS, 13, 11, non_circular=False)
+		VIEWPORT_UPDATE = False
 
-	LOCK.release()
+		LOCK.acquire()
+		batch_sprites.clear()
+		batch_obj.clear()
+		batch_anim_tiles.clear()
+		batch_anim_obj.clear()
+		batch_fg_obj.clear()
+		batch_fg_anim_obj.clear()
+
+		LAST_CALL_POS = [DISC_POS[0], DISC_POS[1], OFFSET[0], OFFSET[1]]
+
+		for i in range(0,27):
+			for j in range(0,23):
+				# Tiles and animated tiles
+				if(matrixes[0][j][i] in all_tiles_img.keys()):
+					batch_sprites.append(pg.sprite.Sprite(img=all_tiles_img[matrixes[0][j][i]], x=i*64-OFFSET[0]-128, y=(1272-(j*64))+OFFSET[1], batch=batch_draw))
+				elif(matrixes[0][j][i] in animated_codelist):
+					batch_anim_tiles.append([pg.sprite.Sprite(img=animated_dictionary[animation_handle][matrixes[0][j][i]], x=i*64-OFFSET[0]-128, y=(1272-(j*64))+OFFSET[1], batch=batch_anim_tiles_draw), matrixes[0][j][i]])				
+				
+				# Objects and animated objects
+				if(matrixes[1][j][i] > 0): # If found an object in this tile
+					# If it has special collision
+					if(interact[j][i].special_collision):
+						if(matrixes[1][j][i] in all_obj_img.keys()): # if not animated
+							batch_fg_obj.append(pg.sprite.Sprite(img=all_obj_img[matrixes[1][j][i]], x=i*64-OFFSET[0]-128, y=(1272-(j*64))+OFFSET[1], batch=batch_fg_obj_draw))
+						elif(matrixes[1][j][i] in animated_obj_codelist):
+							batch_fg_anim_obj.append([pg.sprite.Sprite(img=animated_obj_dictionary[animation_handle][matrixes[1][j][i]], x=i*64-OFFSET[0]-128, y=(1272-(j*64))+OFFSET[1], batch=batch_fg_anim_obj_draw), matrixes[1][j][i]])
+					else: # If normal collision
+						if(matrixes[1][j][i] in all_obj_img.keys()):
+							batch_obj.append(pg.sprite.Sprite(img=all_obj_img[matrixes[1][j][i]], x=i*64-OFFSET[0]-128, y=(1272-(j*64))+OFFSET[1], batch=batch_obj_draw))
+						elif(matrixes[1][j][i] in animated_obj_codelist):
+							batch_anim_obj.append([pg.sprite.Sprite(img=animated_obj_dictionary[animation_handle][matrixes[1][j][i]], x=i*64-OFFSET[0]-128, y=(1272-(j*64))+OFFSET[1], batch=batch_anim_obj_draw), matrixes[1][j][i]])				
+
+		LAST_RENDER_POS = DISC_POS.copy()
+		LOCK.release()
+
+	else:
+		diff_x = (DISC_POS[0] - LAST_CALL_POS[0])*64 + (OFFSET[0] - LAST_CALL_POS[2])
+		diff_y = (DISC_POS[1] - LAST_CALL_POS[1])*64 + (OFFSET[1] - LAST_CALL_POS[3])
+
+		LOCK.acquire()
+
+		if(diff_x == 0 and diff_y == 0):
+			for i in range(len(batch_anim_tiles)):
+				batch_anim_tiles[i][0].image = animated_dictionary[animation_handle][batch_anim_tiles[i][1]]
+			for i in range(len(batch_anim_obj)):
+				batch_anim_obj[i][0].image = animated_obj_dictionary[animation_handle][batch_anim_obj[i][1]]
+			for i in range(len(batch_fg_anim_obj)):
+				batch_fg_anim_obj[i][0].image = animated_obj_dictionary[animation_handle][batch_fg_anim_obj[i][1]]
+			LOCK.release()
+			return
+		
+
+		for i in range(len(batch_sprites)):
+			batch_sprites[i].x -= diff_x
+			batch_sprites[i].y += diff_y
+		for i in range(len(batch_obj)):
+			batch_obj[i].x -= diff_x
+			batch_obj[i].y += diff_y
+		for i in range(len(batch_anim_tiles)):
+			batch_anim_tiles[i][0].x -= diff_x
+			batch_anim_tiles[i][0].y += diff_y
+			batch_anim_tiles[i][0].image = animated_dictionary[animation_handle][batch_anim_tiles[i][1]]
+		for i in range(len(batch_anim_obj)):
+			batch_anim_obj[i][0].x -= diff_x
+			batch_anim_obj[i][0].y += diff_y
+			batch_anim_obj[i][0].image = animated_obj_dictionary[animation_handle][batch_anim_obj[i][1]]
+		for i in range(len(batch_fg_obj)):
+			batch_fg_obj[i].x -= diff_x
+			batch_fg_obj[i].y += diff_y
+		for i in range(len(batch_fg_anim_obj)):
+			batch_fg_anim_obj[i][0].x -= diff_x
+			batch_fg_anim_obj[i][0].y += diff_y		
+			batch_fg_anim_obj[i][0].image = animated_obj_dictionary[animation_handle][batch_fg_anim_obj[i][1]]
+
+		LAST_CALL_POS = [DISC_POS[0], DISC_POS[1], OFFSET[0], OFFSET[1]]
+		LOCK.release()
 
 # Game refresh function
 @window.event
@@ -403,11 +461,15 @@ batch_obj = []
 batch_fg_obj = []
 batch_fg_anim_obj = []
 
+VIEWPORT_UPDATE = True
+
 # Positioning
-DISC_POS = [97,93]
+DISC_POS = [100,124]
 OFFSET = [0,0]
 PLAYER_DIRECTION = 0
 MOVEMENT_VECTOR = []
+LAST_RENDER_POS = [0,0]
+LAST_CALL_POS = [DISC_POS[0], DISC_POS[1], OFFSET[0], OFFSET[1]]
 
 # Paralellism
 LOCK = Lock()
