@@ -37,40 +37,83 @@ def animate(Non):
 	else:
 		animation_handle += 1
 
-def collision_check(DISC_POS, OFFSET):
+def collision_check(DISC_POS, OFFSET, MOVEMENT_VECTOR):
 	global inter_map
 	global inter_map_obj
+	global PLAYER_DIRECTION
 
+	# Collision to Tiles
 	surroundings = get_submatrix(inter_map, DISC_POS, 1,1, non_circular=False)
 
-	if(OFFSET[0]<0 and PLAYER_DIRECTION == 3):
+	if(OFFSET[0]<=0 and MOVEMENT_VECTOR[0] == "L"):
 		if(surroundings[1][0].solid):
 			return True
-	elif(OFFSET[0]>0 and PLAYER_DIRECTION == 2):
+	elif(OFFSET[0]>=0 and MOVEMENT_VECTOR[0] == "R"):
 		if(surroundings[1][2].solid):
 			return True
-	elif(OFFSET[1]<0 and PLAYER_DIRECTION == 0):
+	elif(OFFSET[1]<=0 and MOVEMENT_VECTOR[0] == "U"):
 		if(surroundings[0][1].solid):
 			return True	
-	elif(OFFSET[1]>0 and PLAYER_DIRECTION == 1):
+	elif(OFFSET[1]>=0 and MOVEMENT_VECTOR[0] == "D"):
 		if(surroundings[2][1].solid):
 			return True
+
+	# Diagonal Correction for Tiles
+	if(OFFSET[0]>0 and surroundings[2][2].solid and PLAYER_DIRECTION == 2 and OFFSET[1]>0):
+		OFFSET[1] = 0
+	elif(OFFSET[0]>0 and surroundings[0][2].solid and PLAYER_DIRECTION == 2 and OFFSET[1]<0):
+		OFFSET[1] = 0
+	elif(OFFSET[0]<0 and surroundings[2][0].solid and PLAYER_DIRECTION == 3 and OFFSET[1]>0):
+		OFFSET[1] = 0
+	elif(OFFSET[0]<0 and surroundings[0][0].solid and PLAYER_DIRECTION == 3 and OFFSET[1]<0):
+		OFFSET[1] = 0
+	
+	elif(OFFSET[0]<0 and surroundings[0][0].solid and PLAYER_DIRECTION == 0 and OFFSET[1]<0):
+		OFFSET[0] = 0
+	elif(OFFSET[0]>0 and surroundings[0][2].solid and PLAYER_DIRECTION == 0 and OFFSET[1]<0):
+		OFFSET[0] = 0
+	elif(OFFSET[0]<0 and surroundings[2][0].solid and PLAYER_DIRECTION == 1 and OFFSET[1]>0):
+		OFFSET[0] = 0
+	elif(OFFSET[0]>0 and surroundings[2][2].solid and PLAYER_DIRECTION == 1 and OFFSET[1]>0):
+		OFFSET[0] = 0
 
 	del surroundings
+
+	# Collision to Objects
 	surroundings = get_submatrix(inter_map_obj, DISC_POS, 1,1, non_circular=False)
 
-	if(OFFSET[0]<0 and PLAYER_DIRECTION == 3):
+	if(OFFSET[0]<=0 and MOVEMENT_VECTOR[0] == "L"):
 		if(surroundings[1][0].solid):
 			return True
-	elif(OFFSET[0]>0 and PLAYER_DIRECTION == 2):
+	elif(OFFSET[0]>=0 and MOVEMENT_VECTOR[0] == "R"):
 		if(surroundings[1][2].solid):
 			return True
-	elif(OFFSET[1]<0 and PLAYER_DIRECTION == 0):
+	elif(OFFSET[1]<=0 and MOVEMENT_VECTOR[0] == "U"):
 		if(surroundings[0][1].solid):
 			return True	
-	elif(OFFSET[1]>0 and PLAYER_DIRECTION == 1):
+	elif(OFFSET[1]>=0 and MOVEMENT_VECTOR[0] == "D"):
 		if(surroundings[2][1].solid):
 			return True	
+
+
+	# Diagonal Correction for Objects
+	if(OFFSET[0]>0 and surroundings[2][2].solid and PLAYER_DIRECTION == 2 and OFFSET[1]>0):
+		OFFSET[1] = 0
+	elif(OFFSET[0]>0 and surroundings[0][2].solid and PLAYER_DIRECTION == 2 and OFFSET[1]<0):
+		OFFSET[1] = 0
+	elif(OFFSET[0]<0 and surroundings[2][0].solid and PLAYER_DIRECTION == 3 and OFFSET[1]>0):
+		OFFSET[1] = 0
+	elif(OFFSET[0]<0 and surroundings[0][0].solid and PLAYER_DIRECTION == 3 and OFFSET[1]<0):
+		OFFSET[1] = 0
+	
+	elif(OFFSET[0]<0 and surroundings[0][0].solid and PLAYER_DIRECTION == 0 and OFFSET[1]<0):
+		OFFSET[0] = 0
+	elif(OFFSET[0]>0 and surroundings[0][2].solid and PLAYER_DIRECTION == 0 and OFFSET[1]<0):
+		OFFSET[0] = 0
+	elif(OFFSET[0]<0 and surroundings[2][0].solid and PLAYER_DIRECTION == 1 and OFFSET[1]>0):
+		OFFSET[0] = 0
+	elif(OFFSET[0]>0 and surroundings[2][2].solid and PLAYER_DIRECTION == 1 and OFFSET[1]>0):
+		OFFSET[0] = 0
 
 	return False
 
@@ -79,41 +122,45 @@ def movement_handler(non):
 	global OFFSET
 	global LOCK
 	global m
+	global MOVEMENT_VECTOR
+
+	if(MOVEMENT_VECTOR == []):
+		return
 
 	# Admin Movement
-	if(PLAYER_DIRECTION == 5):
+	if(MOVEMENT_VECTOR[0] == "KU"):
 		LOCK.acquire()
 		DISC_POS = list_sum(DISC_POS, [0,-1])
 		LOCK.release()
-	elif(PLAYER_DIRECTION == 6):
+	elif(MOVEMENT_VECTOR[0] == "KD"):
 		LOCK.acquire()
 		DISC_POS = list_sum(DISC_POS, [0,1])
 		LOCK.release()
-	elif(PLAYER_DIRECTION == 7):
+	elif(MOVEMENT_VECTOR[0] == "KR"):
 		LOCK.acquire()
 		DISC_POS = list_sum(DISC_POS, [1,0])
 		LOCK.release()
-	elif(PLAYER_DIRECTION == 8):
+	elif(MOVEMENT_VECTOR[0] == "KL"):
 		LOCK.acquire()
 		DISC_POS = list_sum(DISC_POS, [-1,0])
 		LOCK.release()
 
 	# Collision Check
-	if(not collision_check(DISC_POS, OFFSET)):
+	if(not collision_check(DISC_POS, OFFSET, MOVEMENT_VECTOR)):
 		# Normal Movement
-		if(PLAYER_DIRECTION == 0):
+		if(MOVEMENT_VECTOR[0] == "U"):
 			LOCK.acquire()
 			OFFSET = list_sum(OFFSET, [0,-8])
 			LOCK.release()
-		elif(PLAYER_DIRECTION == 1):
+		elif(MOVEMENT_VECTOR[0] == "D"):
 			LOCK.acquire()
 			OFFSET = list_sum(OFFSET, [0,8])
 			LOCK.release()
-		elif(PLAYER_DIRECTION == 2):
+		elif(MOVEMENT_VECTOR[0] == "R"):
 			LOCK.acquire()
 			OFFSET = list_sum(OFFSET, [8,0])
 			LOCK.release()
-		elif(PLAYER_DIRECTION == 3):
+		elif(MOVEMENT_VECTOR[0] == "L"):
 			LOCK.acquire()
 			OFFSET = list_sum(OFFSET, [-8,0])
 			LOCK.release()
@@ -146,51 +193,90 @@ def movement_handler(non):
 def on_key_press(symbol, modifiers):
 	global PLAYER_DIRECTION
 	global inter_map_obj
+	global m
+	global MOVEMENT_VECTOR
 
 	if(symbol == key.Y):
 		PLAYER_DIRECTION = 0
+		MOVEMENT_VECTOR.insert(0, "U")
 	elif(symbol == key.H):
 		PLAYER_DIRECTION = 1
+		MOVEMENT_VECTOR.insert(0, "D")
 	elif(symbol == key.J):
 		PLAYER_DIRECTION = 2
+		MOVEMENT_VECTOR.insert(0, "R")
 	elif(symbol == key.G):
+		MOVEMENT_VECTOR.insert(0, "L")
 		PLAYER_DIRECTION = 3
 
 	elif(symbol == key.W):
-		PLAYER_DIRECTION = 5
+		PLAYER_DIRECTION = 0
+		MOVEMENT_VECTOR.insert(0, "KU")
 	elif(symbol == key.S):
-		PLAYER_DIRECTION = 6
+		PLAYER_DIRECTION = 1
+		MOVEMENT_VECTOR.insert(0, "KD")
 	elif(symbol == key.D):
-		PLAYER_DIRECTION = 7
+		PLAYER_DIRECTION = 2
+		MOVEMENT_VECTOR.insert(0, "KR")
 	elif(symbol == key.A):
-		PLAYER_DIRECTION = 8
+		MOVEMENT_VECTOR.insert(0, "KL")
+		PLAYER_DIRECTION = 3
 
 	## Debug Key
 	if(symbol == key.Q):
 		a = get_submatrix(inter_map_obj, DISC_POS, 1, 1, non_circular=False)
 		for element in a:
 			print(str(element) + "\n")
+	elif(symbol == key.Z):
+		if(PLAYER_DIRECTION == 0):
+			print(inter_map_obj[DISC_POS[1], DISC_POS[0]-1])
+			inter_map_obj[DISC_POS[1], DISC_POS[0]-1].action(0, DISC_POS, m, inter_map_obj)
+		elif(PLAYER_DIRECTION == 1):
+			print(inter_map_obj[DISC_POS[1], DISC_POS[0]+1])
+			inter_map_obj[DISC_POS[1], DISC_POS[0]+1].action(0, DISC_POS, m, inter_map_obj)
+		elif(PLAYER_DIRECTION == 2):
+			print(inter_map_obj[DISC_POS[1]+1, DISC_POS[0]])
+			inter_map_obj[DISC_POS[1]+1, DISC_POS[0]].action(0, DISC_POS, m, inter_map_obj)
+		elif(PLAYER_DIRECTION == 3):
+			print(inter_map_obj[DISC_POS[1]-1, DISC_POS[0]])
+			inter_map_obj[DISC_POS[1]-1, DISC_POS[0]].action(0, DISC_POS, m, inter_map_obj)
+		else:
+			print(PLAYER_DIRECTION)
+
 
 @window.event
 def on_key_release(symbol, modifiers):
 	global PLAYER_DIRECTION
+	global MOVEMENT_VECTOR
 
-	if(symbol == key.Y and PLAYER_DIRECTION == 0):
-		PLAYER_DIRECTION = 4
-	elif(symbol == key.H and PLAYER_DIRECTION == 1):
-		PLAYER_DIRECTION = 4
-	elif(symbol == key.J and PLAYER_DIRECTION == 2):
-		PLAYER_DIRECTION = 4
-	elif(symbol == key.G and PLAYER_DIRECTION == 3):
-		PLAYER_DIRECTION = 4
-	elif(symbol == key.W and PLAYER_DIRECTION == 5):
-		PLAYER_DIRECTION = 4
-	elif(symbol == key.S and PLAYER_DIRECTION == 6):
-		PLAYER_DIRECTION = 4
-	elif(symbol == key.D and PLAYER_DIRECTION == 7):
-		PLAYER_DIRECTION = 4
-	elif(symbol == key.A and PLAYER_DIRECTION == 8):
-		PLAYER_DIRECTION = 4
+	if(symbol == key.Y):
+		MOVEMENT_VECTOR.remove("U")
+	elif(symbol == key.H):
+		MOVEMENT_VECTOR.remove("D")
+	elif(symbol == key.J):
+		MOVEMENT_VECTOR.remove("R")
+	elif(symbol == key.G):
+		MOVEMENT_VECTOR.remove("L")
+	elif(symbol == key.W):
+		MOVEMENT_VECTOR.remove("KU")
+	elif(symbol == key.S):
+		MOVEMENT_VECTOR.remove("KD")
+	elif(symbol == key.D):
+		MOVEMENT_VECTOR.remove("KR")
+	elif(symbol == key.A):
+		MOVEMENT_VECTOR.remove("KL")
+
+	# Adjust player direction
+	if(MOVEMENT_VECTOR == []):
+		return
+	elif(MOVEMENT_VECTOR[0] == "U" or MOVEMENT_VECTOR == "KU"):
+		PLAYER_DIRECTION = 0
+	elif(MOVEMENT_VECTOR[0] == "D" or MOVEMENT_VECTOR == "KD"):
+		PLAYER_DIRECTION = 1
+	elif(MOVEMENT_VECTOR[0] == "R" or MOVEMENT_VECTOR == "KR"):
+		PLAYER_DIRECTION = 2
+	elif(MOVEMENT_VECTOR[0] == "L" or MOVEMENT_VECTOR == "KL"):
+		PLAYER_DIRECTION = 3
 
 # Rebuilds viewport
 def draw_tiles(Non):
@@ -212,14 +298,17 @@ def draw_tiles(Non):
 	global LOCK
 	global label
 	global label2
+	global label3
 	global inter_map_obj
+	global MOVEMENT_VECTOR
 
 	matrixes = m.get_region(DISC_POS, 12, 8, non_circular=False)
 	interact = get_submatrix(inter_map_obj, DISC_POS, 12, 8, non_circular=False)
 
 	label = pg.text.Label(str(DISC_POS), font_name='Arial', font_size=16, x=1800, y=1010)
 	label2 = pg.text.Label(str(OFFSET), font_name='Arial', font_size=16, x=1800, y=950)
-
+	label3 = pg.text.Label(str(MOVEMENT_VECTOR), font_name='Arial', font_size=16, x=1800, y=700)
+	
 	LOCK.acquire()
 	batch_sprites.clear()
 	batch_obj.clear()
@@ -275,6 +364,7 @@ def on_draw():
 	global menu_bev
 	global label
 	global label2
+	global label3
 	global fps_clock
 
 	LOCK.acquire()
@@ -296,6 +386,7 @@ def on_draw():
 	# Labels
 	label.draw()
 	label2.draw()
+	label3.draw()
 	fps_clock.draw()
 	LOCK.release()
 
@@ -318,6 +409,7 @@ batch_fg_anim_obj = []
 DISC_POS = [100,124]
 OFFSET = [0,0]
 PLAYER_DIRECTION = 4
+MOVEMENT_VECTOR = []
 
 # Paralellism
 LOCK = Lock()
@@ -335,6 +427,7 @@ menu_bev = Bevel([1344,0], "src\\Resources\\Menubevel.png")
 player_bev = Bevel([704, 568], "src\\Resources\\Player.png")
 label = pg.text.Label(str(DISC_POS), font_name='Arial', font_size=16, x=1800, y=1010)
 label2 = pg.text.Label(str(OFFSET), font_name='Arial', font_size=16, x=1800, y=950)
+label3 = pg.text.Label(str(MOVEMENT_VECTOR), font_name='Arial', font_size=16, x=1800, y=700)
 
 # Map
 m, inter_map, inter_map_obj = loadmap("map\\draconis")

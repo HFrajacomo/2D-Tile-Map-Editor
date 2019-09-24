@@ -40,7 +40,7 @@ class GeneralObj:
 
 	# Overload function
 	# Code to be run when player interacts with block
-	def action(self, entity):
+	def action(self, entity, pos, m, intermap):
 		pass
 
 	# Overload function
@@ -494,6 +494,17 @@ class Door(GeneralObj):
 
 	def examine(self, entity):
 		return "You can open it"
+
+	def action(self, entity, pos, m, intermap):
+		if(self.id == 108): # Fancy door
+			m.obj_grid[pos[1], pos[0]] = 110
+			intermap[pos[1], pos[0]] = gen_obj(110)
+		elif(self.id == 107): # Normal door
+			m.obj_grid[pos[1], pos[0]] = 603
+			intermap[pos[1], pos[0]] = gen_obj(603)		
+		elif(self.id == 109): # Wooden door
+			m.obj_grid[pos[1], pos[0]] = 604
+			intermap[pos[1], pos[0]] = gen_obj(604)	
 
 class OpenDoor(GeneralObj):
 	def __init__(self, id):
