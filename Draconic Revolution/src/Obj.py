@@ -414,7 +414,7 @@ class Bookshelf(GeneralObj):
 		self.transparency = False
 		self.special_collision = False
 
-		self.add_special_collision([578,576])
+		self.add_special_collision([578,576,244,237,239,241])
 
 	def examine(self, entity):
 		return "Books everywhere"
@@ -497,14 +497,23 @@ class Door(GeneralObj):
 
 	def action(self, entity, pos, m, intermap):
 		if(self.id == 108): # Fancy door
-			m.obj_grid[pos[1], pos[0]] = 110
-			intermap[pos[1], pos[0]] = gen_obj(110)
+			m.obj_grid[pos[1]][pos[0]] = 110
+			intermap[pos[1]][pos[0]] = gen_obj(110)
 		elif(self.id == 107): # Normal door
-			m.obj_grid[pos[1], pos[0]] = 603
-			intermap[pos[1], pos[0]] = gen_obj(603)		
+			m.obj_grid[pos[1]][pos[0]] = 603
+			intermap[pos[1]][pos[0]] = gen_obj(603)		
 		elif(self.id == 109): # Wooden door
-			m.obj_grid[pos[1], pos[0]] = 604
-			intermap[pos[1], pos[0]] = gen_obj(604)	
+			m.obj_grid[pos[1]][pos[0]] = 604
+			intermap[pos[1]][pos[0]] = gen_obj(604)	
+		elif(self.id == 111): # Side door
+			m.obj_grid[pos[1]][pos[0]] = 114
+			intermap[pos[1]][pos[0]] = gen_obj(114)	
+		elif(self.id == 112): # Side door
+			m.obj_grid[pos[1]][pos[0]] = 115
+			intermap[pos[1]][pos[0]] = gen_obj(115)	
+		elif(self.id == 113): # Side door
+			m.obj_grid[pos[1]][pos[0]] = 116
+			intermap[pos[1]][pos[0]] = gen_obj(116)	
 
 class OpenDoor(GeneralObj):
 	def __init__(self, id):
@@ -517,6 +526,26 @@ class OpenDoor(GeneralObj):
 
 	def examine(self, entity):
 		return "You can open it"
+
+	def action(self, entity, pos, m, intermap):
+		if(self.id == 110): # Fancy door
+			m.obj_grid[pos[1]][pos[0]] = 108
+			intermap[pos[1]][pos[0]] = gen_obj(108)
+		elif(self.id == 603): # Normal door
+			m.obj_grid[pos[1]][pos[0]] = 107
+			intermap[pos[1]][pos[0]] = gen_obj(107)		
+		elif(self.id == 604): # Wooden door
+			m.obj_grid[pos[1]][pos[0]] = 109
+			intermap[pos[1]][pos[0]] = gen_obj(109)	
+		elif(self.id == 114): # Side door
+			m.obj_grid[pos[1]][pos[0]] = 111
+			intermap[pos[1]][pos[0]] = gen_obj(111)	
+		elif(self.id == 115): # Side door
+			m.obj_grid[pos[1]][pos[0]] = 112
+			intermap[pos[1]][pos[0]] = gen_obj(112)	
+		elif(self.id == 116): # Side door
+			m.obj_grid[pos[1]][pos[0]] = 113
+			intermap[pos[1]][pos[0]] = gen_obj(113)	
 
 class Sack(GeneralObj):
 	def __init__(self, id):
@@ -654,6 +683,7 @@ def get_obj_index(id):
 	data = ref.read()
 	return "src\\Objects\\" + data.split("\n")[id] + ".png"
 
+from ObjDictionary import *
 
 # Animated Objects
 

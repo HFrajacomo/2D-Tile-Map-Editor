@@ -23,10 +23,11 @@ from ServerHolder import *
 
 
 def list_sum(l1, l2):
-	for i in range(len(l1)):
-		l1[i] += l2[i]
+	l = l1.copy()
+	for i in range(len(l)):
+		l[i] += l2[i]
 
-	return l1
+	return l
 
 # Moves animation handle every second
 def animate(Non):
@@ -227,21 +228,18 @@ def on_key_press(symbol, modifiers):
 		a = get_submatrix(inter_map_obj, DISC_POS, 1, 1, non_circular=False)
 		for element in a:
 			print(str(element) + "\n")
-	elif(symbol == key.Z):
+	elif(symbol == key.Z):  # Interact
+
+		surroundings = get_submatrix(inter_map_obj, DISC_POS, 1, 1, non_circular=False)
+
 		if(PLAYER_DIRECTION == 0):
-			print(inter_map_obj[DISC_POS[1], DISC_POS[0]-1])
-			inter_map_obj[DISC_POS[1], DISC_POS[0]-1].action(0, DISC_POS, m, inter_map_obj)
+			surroundings[0][1].action(0, list_sum(DISC_POS, [0,-1]), m, inter_map_obj)
 		elif(PLAYER_DIRECTION == 1):
-			print(inter_map_obj[DISC_POS[1], DISC_POS[0]+1])
-			inter_map_obj[DISC_POS[1], DISC_POS[0]+1].action(0, DISC_POS, m, inter_map_obj)
+			surroundings[2][1].action(0, list_sum(DISC_POS, [0,1]), m, inter_map_obj)
 		elif(PLAYER_DIRECTION == 2):
-			print(inter_map_obj[DISC_POS[1]+1, DISC_POS[0]])
-			inter_map_obj[DISC_POS[1]+1, DISC_POS[0]].action(0, DISC_POS, m, inter_map_obj)
+			surroundings[1][2].action(0, list_sum(DISC_POS, [1,0]), m, inter_map_obj)
 		elif(PLAYER_DIRECTION == 3):
-			print(inter_map_obj[DISC_POS[1]-1, DISC_POS[0]])
-			inter_map_obj[DISC_POS[1]-1, DISC_POS[0]].action(0, DISC_POS, m, inter_map_obj)
-		else:
-			print(PLAYER_DIRECTION)
+			surroundings[1][0].action(0, list_sum(DISC_POS, [-1,0]), m, inter_map_obj)
 
 
 @window.event
@@ -406,9 +404,9 @@ batch_fg_obj = []
 batch_fg_anim_obj = []
 
 # Positioning
-DISC_POS = [100,124]
+DISC_POS = [97,93]
 OFFSET = [0,0]
-PLAYER_DIRECTION = 4
+PLAYER_DIRECTION = 0
 MOVEMENT_VECTOR = []
 
 # Paralellism
