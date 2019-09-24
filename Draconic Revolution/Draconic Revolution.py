@@ -5,8 +5,8 @@ import sys
 from threading import Lock
 
 # Direct OpenGL commands to this window.
-platform = pyglet.window.get_platform()
-display = platform.get_default_display()
+#platform = pg.window.get_platform()
+display = pg.canvas.get_display()
 screen = display.get_default_screen()
 template = pyglet.gl.Config(alpha_size=8)
 config = screen.get_best_config(template)
@@ -441,7 +441,7 @@ pg.clock.schedule_interval(movement_handler, FPS)
 pg.clock.schedule_interval(animate, 0.2)
 
 # FPS Clock
-fps_clock = fps_display = pyglet.clock.ClockDisplay(interval=1/60)
+fps_clock  = pyglet.window.FPSDisplay(window=window)
 fps_clock.label.x = 1800
 fps_clock.label.y = 890
 fps_clock.label.font_size = 12
