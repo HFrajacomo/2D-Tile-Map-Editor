@@ -566,10 +566,12 @@ from Character import *
 pg.clock.schedule_interval(draw_tiles, FPS)
 pg.clock.schedule_interval(movement_handler, FPS)
 pg.clock.schedule_interval(animate, 0.3)
-pg.clock.schedule_interval(NPC_run, FPS)
+#pg.clock.schedule_interval(NPC_run, FPS)
 
 # Entities
 p = Character(DISC_POS, OFFSET, "src\\Char\\Lianna.png")
-#NPCS.append(NPC([100, 115], [0,0], "src\\Char\\Lianna.png"))
+NPCS.append(NPC([100, 115], [0,0], "src\\Char\\Lianna.png"))
+NPCS.append(NPC([103, 116], [0,0], "src\\Char\\Lianna.png"))
+NPCS.append(NPC([96, 111], [0,0], "src\\Char\\Lianna.png"))
 
 pg.app.run()

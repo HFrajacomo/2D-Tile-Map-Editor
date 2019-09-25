@@ -33,12 +33,7 @@ class NPC(Character, AI):
 		del self.animation
 		del self.img	
 
-	'''
-	def draw(self):
-		super().draw()
 
-	def move_to(self, pos, intermap, intermap_obj):
-		super(AI, self).move_to(pos, intermap, intermap_obj)
-	'''
 	def run(self, map, intermap, intermap_obj):
-		self.move_to([60, 60], map, intermap, intermap_obj)
+		#self.move_to([60, 60], map, intermap, intermap_obj)
+		pass

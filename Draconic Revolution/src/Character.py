@@ -35,10 +35,11 @@ class Character:
 		return self.pos[1]*64 + self.offset[1]
 
 	def draw(self, DISC_POS, OFFSET):
-		total_x = DISC_POS[0]*64 + OFFSET[0] + 704
-		total_y = DISC_POS[1]*64 + OFFSET[1] + 568
-		draw_pos = [total_x - self.get_total_x(), total_y - self.get_total_y()]
-		
+		total_x = DISC_POS[0]*64 + OFFSET[0] - 704#704
+		total_y = DISC_POS[1]*64 + OFFSET[1] + 568#568
+
+		draw_pos = [self.get_total_x() - total_x, total_y - self.get_total_y()]
+
 		# If is not moving
 		
 		if(not self.IS_MOVING):
