@@ -1,3 +1,5 @@
+# Importing Engine
+
 import pyglet as pg
 from pyglet.gl import *
 from pyglet.window import key
@@ -13,6 +15,8 @@ config = screen.get_best_config(template)
 window = pg.window.Window(width=1920, height=1080, fullscreen=True, config=config)
 
 sys.path.append('src\\')
+
+# Importing Game Structure
 from Tile import *
 from Map import *
 from Obj import *
@@ -124,6 +128,8 @@ def movement_handler(non):
 	global LOCK
 	global m
 	global MOVEMENT_VECTOR
+	global p
+	global C_LOCK
 
 	if(MOVEMENT_VECTOR == []):
 		return
@@ -183,12 +189,24 @@ def movement_handler(non):
 	# Map Wrapping
 	if(DISC_POS[0] >= m.get_size()[1]):
 		DISC_POS[0] = 0
+		p.pos[0] = 0
 	if(DISC_POS[0] < 0):
 		DISC_POS[0] = m.get_size()[1]-1
+		p.pos[0] = 0
 	if(DISC_POS[1] >= m.get_size()[0]):
 		DISC_POS[1] = 0
+		p.pos[0] = 0
 	if(DISC_POS[1] < 0):
 		DISC_POS[1] = m.get_size()[0]-1
+		p.pos[0] = 0
+
+def NPC_run(Non):
+	global NPCS
+	global inter_map
+	global inter_map_obj
+
+	#for npc in NPCS:
+		#npc.run(m, inter_map, inter_map_obj)
 
 @window.event
 def on_key_press(symbol, modifiers):
@@ -197,32 +215,50 @@ def on_key_press(symbol, modifiers):
 	global m
 	global MOVEMENT_VECTOR
 	global VIEWPORT_UPDATE
+	global p
+
 
 	if(symbol == key.Y):
 		PLAYER_DIRECTION = 0
+		p.direction = 0
+		p.IS_MOVING = True
 		MOVEMENT_VECTOR.insert(0, "U")
 	elif(symbol == key.H):
 		PLAYER_DIRECTION = 1
+		p.direction = 1
+		p.IS_MOVING = True
 		MOVEMENT_VECTOR.insert(0, "D")
 	elif(symbol == key.J):
 		PLAYER_DIRECTION = 2
+		p.direction = 2
+		p.IS_MOVING = True
 		MOVEMENT_VECTOR.insert(0, "R")
 	elif(symbol == key.G):
 		MOVEMENT_VECTOR.insert(0, "L")
 		PLAYER_DIRECTION = 3
+		p.IS_MOVING = True
+		p.direction = 3
 
 	elif(symbol == key.W):
 		PLAYER_DIRECTION = 0
+		p.direction = 0
+		p.IS_MOVING = True
 		MOVEMENT_VECTOR.insert(0, "KU")
 	elif(symbol == key.S):
 		PLAYER_DIRECTION = 1
+		p.direction = 1
+		p.IS_MOVING = True
 		MOVEMENT_VECTOR.insert(0, "KD")
 	elif(symbol == key.D):
 		PLAYER_DIRECTION = 2
+		p.direction = 2
+		p.IS_MOVING = True
 		MOVEMENT_VECTOR.insert(0, "KR")
 	elif(symbol == key.A):
 		MOVEMENT_VECTOR.insert(0, "KL")
 		PLAYER_DIRECTION = 3
+		p.IS_MOVING = True
+		p.direction = 3
 
 	## Debug Key
 	if(symbol == key.Q):
@@ -251,6 +287,7 @@ def on_key_press(symbol, modifiers):
 def on_key_release(symbol, modifiers):
 	global PLAYER_DIRECTION
 	global MOVEMENT_VECTOR
+	global p
 
 	if(symbol == key.Y):
 		MOVEMENT_VECTOR.remove("U")
@@ -271,15 +308,20 @@ def on_key_release(symbol, modifiers):
 
 	# Adjust player direction
 	if(MOVEMENT_VECTOR == []):
+		p.IS_MOVING = False
 		return
 	elif(MOVEMENT_VECTOR[0] == "U" or MOVEMENT_VECTOR == "KU"):
 		PLAYER_DIRECTION = 0
+		p.direction = 0
 	elif(MOVEMENT_VECTOR[0] == "D" or MOVEMENT_VECTOR == "KD"):
 		PLAYER_DIRECTION = 1
+		p.direction = 1
 	elif(MOVEMENT_VECTOR[0] == "R" or MOVEMENT_VECTOR == "KR"):
 		PLAYER_DIRECTION = 2
+		p.direction = 2
 	elif(MOVEMENT_VECTOR[0] == "L" or MOVEMENT_VECTOR == "KL"):
 		PLAYER_DIRECTION = 3
+		p.direction = 3
 
 # Rebuilds viewport
 def draw_tiles(Non):
@@ -310,6 +352,8 @@ def draw_tiles(Non):
 	global LAST_CALL_POS
 	global VIEWPORT_UPDATE
 
+	global p
+
 	label = pg.text.Label(str(DISC_POS), font_name='Arial', font_size=16, x=1800, y=1010)
 	label2 = pg.text.Label(str(OFFSET), font_name='Arial', font_size=16, x=1800, y=950)
 	label3 = pg.text.Label(str(MOVEMENT_VECTOR), font_name='Arial', font_size=16, x=1800, y=700)
@@ -320,6 +364,9 @@ def draw_tiles(Non):
 		matrixes = m.get_region(DISC_POS, 13, 11, non_circular=False)
 		interact = get_submatrix(inter_map_obj, DISC_POS, 13, 11, non_circular=False)
 		VIEWPORT_UPDATE = False
+
+		p.pos = DISC_POS.copy()
+		p.offset = OFFSET.copy()
 
 		LOCK.acquire()
 		batch_sprites.clear()
@@ -354,6 +401,8 @@ def draw_tiles(Non):
 							batch_anim_obj.append([pg.sprite.Sprite(img=animated_obj_dictionary[animation_handle][matrixes[1][j][i]], x=i*64-OFFSET[0]-128, y=(1272-(j*64))+OFFSET[1], batch=batch_anim_obj_draw), matrixes[1][j][i]])				
 
 		LAST_RENDER_POS = DISC_POS.copy()
+		p.pos = DISC_POS.copy()
+		p.offset = OFFSET.copy()
 		LOCK.release()
 
 	else:
@@ -372,7 +421,6 @@ def draw_tiles(Non):
 			LOCK.release()
 			return
 		
-
 		for i in range(len(batch_sprites)):
 			batch_sprites[i].x -= diff_x
 			batch_sprites[i].y += diff_y
@@ -396,6 +444,8 @@ def draw_tiles(Non):
 			batch_fg_anim_obj[i][0].image = animated_obj_dictionary[animation_handle][batch_fg_anim_obj[i][1]]
 
 		LAST_CALL_POS = [DISC_POS[0], DISC_POS[1], OFFSET[0], OFFSET[1]]
+		p.pos = DISC_POS.copy()
+		p.offset = OFFSET.copy()
 		LOCK.release()
 
 # Game refresh function
@@ -422,8 +472,11 @@ def on_draw():
 	global label2
 	global label3
 	global fps_clock
+	global p
+	global NPCS
 
 	LOCK.acquire()
+	window.flip()
 	# Tiles
 	batch_draw.draw()
 	batch_anim_tiles_draw.draw()
@@ -431,7 +484,9 @@ def on_draw():
 	batch_obj_draw.draw()
 	batch_anim_obj_draw.draw()
 	# Entity
-	player_bev.draw()
+	for npc in NPCS:
+		npc.draw(DISC_POS, OFFSET)
+	p.draw(DISC_POS, OFFSET)
 	# Foreground Objects
 	batch_fg_obj_draw.draw()
 	batch_fg_anim_obj_draw.draw()
@@ -471,6 +526,9 @@ MOVEMENT_VECTOR = []
 LAST_RENDER_POS = [0,0]
 LAST_CALL_POS = [DISC_POS[0], DISC_POS[1], OFFSET[0], OFFSET[1]]
 
+# Game Mecanics
+NPCS = []
+
 # Paralellism
 LOCK = Lock()
 
@@ -484,21 +542,14 @@ animation_handle = 0
 side_bev = Bevel([1440, 0], "src\\Resources\\Sidebevel.png")
 bar_bev = Bevel([0,0], "src\\Resources\\Barbevel.png")
 menu_bev = Bevel([1344,0], "src\\Resources\\Menubevel.png")
-player_bev = Bevel([704, 568], "src\\Resources\\Player.png")
+#player_bev = Bevel([704, 568], "src\\Resources\\Player.png")
 label = pg.text.Label(str(DISC_POS), font_name='Arial', font_size=16, x=1800, y=1010)
 label2 = pg.text.Label(str(OFFSET), font_name='Arial', font_size=16, x=1800, y=950)
 label3 = pg.text.Label(str(MOVEMENT_VECTOR), font_name='Arial', font_size=16, x=1800, y=700)
 
 # Map
 m, inter_map, inter_map_obj = loadmap("map\\draconis")
-m.check_unsigned_data(tile_dictionary, obj_dictionary)
-
-### TEST
-
-# Threads
-pg.clock.schedule_interval(draw_tiles, FPS)
-pg.clock.schedule_interval(movement_handler, FPS)
-pg.clock.schedule_interval(animate, 0.2)
+#m.check_unsigned_data(tile_dictionary, obj_dictionary)
 
 # FPS Clock
 fps_clock  = pyglet.window.FPSDisplay(window=window)
@@ -506,5 +557,19 @@ fps_clock.label.x = 1800
 fps_clock.label.y = 890
 fps_clock.label.font_size = 12
 fps_clock.label.font_name='Arial'
+
+# Importing game Assets
+from NPC import *
+from Character import *
+
+# Threads
+pg.clock.schedule_interval(draw_tiles, FPS)
+pg.clock.schedule_interval(movement_handler, FPS)
+pg.clock.schedule_interval(animate, 0.3)
+pg.clock.schedule_interval(NPC_run, FPS)
+
+# Entities
+p = Character(DISC_POS, OFFSET, "src\\Char\\Lianna.png")
+#NPCS.append(NPC([100, 115], [0,0], "src\\Char\\Lianna.png"))
 
 pg.app.run()
