@@ -25,6 +25,7 @@ from ObjDictionary import *
 from Bevel import *
 from ServerHolder import *
 from NPC import *
+from Player import *
 
 # Game Events
 dispatcher = NPC_Dispatcher()
@@ -209,9 +210,21 @@ def NPC_run(Non):
 	global inter_map
 	global inter_map_obj
 
-	for npc in NPCS:
-		NPC.timer.schedule_once(npc.run, Non, inter_map, inter_map_obj)
+	for npc in NPC.all_npcs:
+		if(npc.IS_LOADED):
+			NPC.timer.schedule_once(npc.run, Non, inter_map, inter_map_obj)
+		else:
+			break
 
+def reload_entity_layer(Non):
+	global DISC_POS
+
+	for npc in NPC.all_npcs:
+		if(npc.is_in_entity_layer(DISC_POS)):
+			npc.load()
+		else:
+			npc.unload()
+	NPC.all_npcs[0].sort_npc_list()
 
 @window.event
 def on_key_press(symbol, modifiers):
@@ -272,21 +285,10 @@ def on_key_press(symbol, modifiers):
 		a = get_submatrix(inter_map_obj, DISC_POS, 1, 1, non_circular=False)
 		for element in a:
 			print(str(element) + "\n")
-	elif(symbol == key.NUM_4):  
-		NPCS[0].add_mv_left()
-	elif(symbol == key.NUM_6):  
-		NPCS[0].add_mv_right()
-	elif(symbol == key.NUM_8):  
-		NPCS[0].add_mv_up()
-	elif(symbol == key.NUM_2):  
-		NPCS[0].add_mv_down()
 
-	elif(symbol == key.NUM_7):  
-		NPCS[0].add_mv_to([86,93])
 	elif(symbol == key.NUM_9):  
-		NPCS[0].add_wander([100,115], 5, 3)
-	elif(symbol == key.NUM_5):  
-		NPCS[0].add_highlevel_wait(1, 1)
+		for npc in NPC.all_npcs:
+			npc.add_wander([100,115], 5, 3)
 
 @window.event
 def on_key_release(symbol, modifiers):
@@ -349,7 +351,6 @@ def draw_tiles(Non):
 	global label
 	global label2
 	global label3
-	global label4
 	global inter_map_obj
 	global MOVEMENT_VECTOR
 	global LAST_RENDER_POS
@@ -363,8 +364,7 @@ def draw_tiles(Non):
 
 	label = pg.text.Label(str(DISC_POS), font_name='Arial', font_size=16, x=1800, y=1010)
 	label2 = pg.text.Label(str(OFFSET), font_name='Arial', font_size=16, x=1800, y=950)
-	label3 = pg.text.Label(str(NPCS[0].high_queue), font_name='Arial', font_size=16, x=1400, y=700)
-	label4 = pg.text.Label(str(NPCS[0].action_queue), font_name='Arial', font_size=16, x=1400, y=600)
+	label3 = pg.text.Label(str([NPC.all_npcs[0].IS_LOADED, NPC.all_npcs[1].IS_LOADED, NPC.all_npcs[2].IS_LOADED]), font_name='Arial', font_size=16, x=1800, y=850)
 
 	# If needs to load new chunks
 	if(abs(LAST_RENDER_POS[0] - DISC_POS[0]) + abs(LAST_RENDER_POS[1] - DISC_POS[1]) >= 2 or VIEWPORT_UPDATE):
@@ -479,7 +479,6 @@ def on_draw():
 	global label
 	global label2
 	global label3
-	global label4
 	global fps_clock
 	global p
 	global NPCS
@@ -493,8 +492,12 @@ def on_draw():
 	batch_obj_draw.draw()
 	batch_anim_obj_draw.draw()
 	# Entity
-	for npc in NPCS:
-		npc.draw(DISC_POS, OFFSET)
+	for npc in NPC.all_npcs:
+		if(npc.IS_LOADED):
+			npc.draw(DISC_POS, OFFSET)
+		else:
+			break
+
 	p.draw(DISC_POS, OFFSET)
 	# Foreground Objects
 	batch_fg_obj_draw.draw()
@@ -507,7 +510,6 @@ def on_draw():
 	label.draw()
 	label2.draw()
 	label3.draw()
-	label4.draw()
 	fps_clock.draw()
 	LOCK.release()
 
@@ -559,7 +561,6 @@ menu_bev = Bevel([1344,0], "src\\Resources\\Menubevel.png")
 #player_bev = Bevel([704, 568], "src\\Resources\\Player.png")
 label = pg.text.Label(str(DISC_POS), font_name='Arial', font_size=16, x=1800, y=1010)
 label2 = pg.text.Label(str(OFFSET), font_name='Arial', font_size=16, x=1800, y=950)
-
 # Map
 m, inter_map, inter_map_obj = loadmap("map\\draconis")
 #m.check_unsigned_data(tile_dictionary, obj_dictionary)
@@ -572,12 +573,11 @@ fps_clock.label.font_size = 12
 fps_clock.label.font_name='Arial'
 
 # Entities
-p = NPC(DISC_POS, OFFSET, "src\\Char\\Lianna.png")
-NPCS.append(NPC([100, 115], [0,0], "src\\Char\\Lianna.png"))
-#NPCS.append(NPC([103, 116], [0,0], "src\\Char\\Lianna.png"))
-#NPCS.append(NPC([96, 111], [0,0], "src\\Char\\Lianna.png"))
-label3 = pg.text.Label(str(NPCS[0].high_queue), font_name='Arial', font_size=16, x=1400, y=700)
-label4 = pg.text.Label(str(NPCS[0].action_queue), font_name='Arial', font_size=16, x=1400, y=600)
+p = Player(DISC_POS, OFFSET, "src\\Char\\Lianna.png")
+NPC([100, 115], [0,0], "src\\Char\\Lianna.png")
+NPC([103, 116], [0,0], "src\\Char\\Lianna.png")
+NPC([96, 111], [0,0], "src\\Char\\Lianna.png")
+label3 = pg.text.Label(str([NPC.all_npcs[0].IS_LOADED, NPC.all_npcs[1].IS_LOADED, NPC.all_npcs[2].IS_LOADED]), font_name='Arial', font_size=16, x=1800, y=900)
 
 ### TESTER
 
@@ -586,6 +586,7 @@ pg.clock.schedule_interval(draw_tiles, FPS)
 pg.clock.schedule_interval(movement_handler, FPS)
 pg.clock.schedule_interval(animate, 0.3)
 pg.clock.schedule_interval(NPC_run, 1/60)
+pg.clock.schedule_interval(reload_entity_layer, 1)
 #pg.app.run()
 
 while(True):
