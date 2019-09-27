@@ -127,7 +127,7 @@ class WoodBlock(GeneralTile):
 		self.hp = 200
 		self.solid = True
 		self.transparency = False
-		self.work = 0
+		self.work = 9999
 
 	def examine(self,entity):
 		return "A solid wood block used in building"
@@ -147,7 +147,7 @@ class StoneBrick(GeneralTile):
 		self.hp = 500
 		self.solid = True
 		self.transparency = False
-		self.work = 0
+		self.work = 9999
 
 	def examine(self,entity):
 		return "A solid stone block used in building"
@@ -179,7 +179,7 @@ class BasaltBrick(GeneralTile):
 		self.hp = 1250
 		self.solid = True
 		self.transparency = False
-		self.work = 0
+		self.work = 9999
 
 	def examine(self,entity):
 		return "A solid block of basalt used in secure buildings"
@@ -223,7 +223,7 @@ class GrassCliff(GeneralTile):
 		self.hp = 300
 		self.solid = True
 		self.transparency = True
-		self.work = 0
+		self.work = 9999
 
 	def examine(self,entity):
 		return "Be careful not to walk off the edge"

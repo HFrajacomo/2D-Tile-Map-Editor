@@ -13,10 +13,10 @@ screen = display.get_default_screen()
 template = pyglet.gl.Config(alpha_size=8)
 config = screen.get_best_config(template)
 window = pg.window.Window(width=1920, height=1080, fullscreen=True, config=config)
-
-sys.path.append('src\\')
+window.set_exclusive_keyboard(exclusive=False)
 
 # Importing Game Structure
+sys.path.append('src\\')
 from Tile import *
 from Map import *
 from Obj import *
@@ -24,7 +24,10 @@ from TileDictionary import *
 from ObjDictionary import *
 from Bevel import *
 from ServerHolder import *
+from NPC import *
 
+# Game Events
+dispatcher = NPC_Dispatcher()
 
 def list_sum(l1, l2):
 	l = l1.copy()
@@ -200,22 +203,26 @@ def movement_handler(non):
 		DISC_POS[1] = m.get_size()[0]-1
 		p.pos[0] = 0
 
+
 def NPC_run(Non):
 	global NPCS
 	global inter_map
 	global inter_map_obj
 
-	#for npc in NPCS:
-		#npc.run(m, inter_map, inter_map_obj)
+	for npc in NPCS:
+		npc.run(inter_map, inter_map_obj)
+
 
 @window.event
 def on_key_press(symbol, modifiers):
 	global PLAYER_DIRECTION
 	global inter_map_obj
+	global inter_map
 	global m
 	global MOVEMENT_VECTOR
 	global VIEWPORT_UPDATE
 	global p
+	global NPCS
 
 
 	if(symbol == key.Y):
@@ -265,23 +272,19 @@ def on_key_press(symbol, modifiers):
 		a = get_submatrix(inter_map_obj, DISC_POS, 1, 1, non_circular=False)
 		for element in a:
 			print(str(element) + "\n")
-	elif(symbol == key.Z):  # Interact
+	elif(symbol == key.NUM_4):  
+		NPCS[0].add_mv_left()
+	elif(symbol == key.NUM_6):  
+		NPCS[0].add_mv_right()
+	elif(symbol == key.NUM_8):  
+		NPCS[0].add_mv_up()
+	elif(symbol == key.NUM_2):  
+		NPCS[0].add_mv_down()
 
-		surroundings = get_submatrix(inter_map_obj, DISC_POS, 1, 1, non_circular=False)
-
-		if(PLAYER_DIRECTION == 0):
-			if(surroundings[0][1].action(0, list_sum(DISC_POS, [0,-1]), m, inter_map_obj)):
-				VIEWPORT_UPDATE = True
-		elif(PLAYER_DIRECTION == 1):
-			if(surroundings[2][1].action(0, list_sum(DISC_POS, [0,1]), m, inter_map_obj)):
-				VIEWPORT_UPDATE = True
-		elif(PLAYER_DIRECTION == 2):
-			if(surroundings[1][2].action(0, list_sum(DISC_POS, [1,0]), m, inter_map_obj)):
-				VIEWPORT_UPDATE = True
-		elif(PLAYER_DIRECTION == 3):
-			if(surroundings[1][0].action(0, list_sum(DISC_POS, [-1,0]), m, inter_map_obj)):
-				VIEWPORT_UPDATE = True
-
+	elif(symbol == key.NUM_7):  
+		NPCS[0].add_mv_to([86,93])
+	elif(symbol == key.NUM_9):  
+		NPCS[0].add_mv_to([100,115])
 
 @window.event
 def on_key_release(symbol, modifiers):
@@ -352,11 +355,12 @@ def draw_tiles(Non):
 	global LAST_CALL_POS
 	global VIEWPORT_UPDATE
 
+
 	global p
 
 	label = pg.text.Label(str(DISC_POS), font_name='Arial', font_size=16, x=1800, y=1010)
 	label2 = pg.text.Label(str(OFFSET), font_name='Arial', font_size=16, x=1800, y=950)
-	label3 = pg.text.Label(str(MOVEMENT_VECTOR), font_name='Arial', font_size=16, x=1800, y=700)
+	label3 = pg.text.Label(str(NPCS[0].command_queue), font_name='Arial', font_size=16, x=1400, y=700)
 
 	# If needs to load new chunks
 	if(abs(LAST_RENDER_POS[0] - DISC_POS[0]) + abs(LAST_RENDER_POS[1] - DISC_POS[1]) >= 2 or VIEWPORT_UPDATE):
@@ -501,6 +505,10 @@ def on_draw():
 	fps_clock.draw()
 	LOCK.release()
 
+@window.event
+def on_close():
+	exit()
+
 # Blitting Queues
 batch_draw = pg.graphics.Batch()
 batch_obj_draw = pg.graphics.Batch()
@@ -519,7 +527,7 @@ batch_fg_anim_obj = []
 VIEWPORT_UPDATE = True
 
 # Positioning
-DISC_POS = [100,124]
+DISC_POS = [95,93]
 OFFSET = [0,0]
 PLAYER_DIRECTION = 0
 MOVEMENT_VECTOR = []
@@ -545,7 +553,6 @@ menu_bev = Bevel([1344,0], "src\\Resources\\Menubevel.png")
 #player_bev = Bevel([704, 568], "src\\Resources\\Player.png")
 label = pg.text.Label(str(DISC_POS), font_name='Arial', font_size=16, x=1800, y=1010)
 label2 = pg.text.Label(str(OFFSET), font_name='Arial', font_size=16, x=1800, y=950)
-label3 = pg.text.Label(str(MOVEMENT_VECTOR), font_name='Arial', font_size=16, x=1800, y=700)
 
 # Map
 m, inter_map, inter_map_obj = loadmap("map\\draconis")
@@ -558,20 +565,25 @@ fps_clock.label.y = 890
 fps_clock.label.font_size = 12
 fps_clock.label.font_name='Arial'
 
-# Importing game Assets
-from NPC import *
-from Character import *
+# Entities
+p = NPC(DISC_POS, OFFSET, "src\\Char\\Lianna.png")
+NPCS.append(NPC([100, 93], [0,0], "src\\Char\\Lianna.png"))
+#NPCS.append(NPC([103, 116], [0,0], "src\\Char\\Lianna.png"))
+#NPCS.append(NPC([96, 111], [0,0], "src\\Char\\Lianna.png"))
+label3 = pg.text.Label(str(NPCS[0].command_queue), font_name='Arial', font_size=16, x=1800, y=700)
+
+### TESTER
 
 # Threads
 pg.clock.schedule_interval(draw_tiles, FPS)
 pg.clock.schedule_interval(movement_handler, FPS)
 pg.clock.schedule_interval(animate, 0.3)
-#pg.clock.schedule_interval(NPC_run, FPS)
+pg.clock.schedule_interval(NPC_run, 1/60)
+#pg.app.run()
 
-# Entities
-p = Character(DISC_POS, OFFSET, "src\\Char\\Lianna.png")
-NPCS.append(NPC([100, 115], [0,0], "src\\Char\\Lianna.png"))
-NPCS.append(NPC([103, 116], [0,0], "src\\Char\\Lianna.png"))
-NPCS.append(NPC([96, 111], [0,0], "src\\Char\\Lianna.png"))
-
-pg.app.run()
+while(True):
+	pg.clock.tick()
+	NPC.timer.tick()
+	window.switch_to()
+	window.dispatch_events()
+	window.dispatch_event('on_draw')
