@@ -12,7 +12,7 @@ display = pg.canvas.get_display()
 screen = display.get_default_screen()
 template = pyglet.gl.Config(alpha_size=8)
 config = screen.get_best_config(template)
-window = pg.window.Window(width=1920, height=1080, fullscreen=True, config=config)
+window = pg.window.Window(width=1920, height=1080, fullscreen=True, vsync=False, config=config)
 window.set_exclusive_keyboard(exclusive=False)
 
 # Importing Game Structure
@@ -210,7 +210,7 @@ def NPC_run(Non):
 	global inter_map_obj
 
 	for npc in NPCS:
-		npc.run(inter_map, inter_map_obj)
+		NPC.timer.schedule_once(npc.run, Non, inter_map, inter_map_obj)
 
 
 @window.event
@@ -284,7 +284,9 @@ def on_key_press(symbol, modifiers):
 	elif(symbol == key.NUM_7):  
 		NPCS[0].add_mv_to([86,93])
 	elif(symbol == key.NUM_9):  
-		NPCS[0].add_mv_to([100,115])
+		NPCS[0].add_wander([100,115], 5, 3)
+	elif(symbol == key.NUM_5):  
+		NPCS[0].add_highlevel_wait(1, 1)
 
 @window.event
 def on_key_release(symbol, modifiers):
@@ -347,6 +349,7 @@ def draw_tiles(Non):
 	global label
 	global label2
 	global label3
+	global label4
 	global inter_map_obj
 	global MOVEMENT_VECTOR
 	global LAST_RENDER_POS
@@ -360,7 +363,8 @@ def draw_tiles(Non):
 
 	label = pg.text.Label(str(DISC_POS), font_name='Arial', font_size=16, x=1800, y=1010)
 	label2 = pg.text.Label(str(OFFSET), font_name='Arial', font_size=16, x=1800, y=950)
-	label3 = pg.text.Label(str(NPCS[0].command_queue), font_name='Arial', font_size=16, x=1400, y=700)
+	label3 = pg.text.Label(str(NPCS[0].high_queue), font_name='Arial', font_size=16, x=1400, y=700)
+	label4 = pg.text.Label(str(NPCS[0].action_queue), font_name='Arial', font_size=16, x=1400, y=600)
 
 	# If needs to load new chunks
 	if(abs(LAST_RENDER_POS[0] - DISC_POS[0]) + abs(LAST_RENDER_POS[1] - DISC_POS[1]) >= 2 or VIEWPORT_UPDATE):
@@ -475,6 +479,7 @@ def on_draw():
 	global label
 	global label2
 	global label3
+	global label4
 	global fps_clock
 	global p
 	global NPCS
@@ -502,6 +507,7 @@ def on_draw():
 	label.draw()
 	label2.draw()
 	label3.draw()
+	label4.draw()
 	fps_clock.draw()
 	LOCK.release()
 
@@ -527,7 +533,7 @@ batch_fg_anim_obj = []
 VIEWPORT_UPDATE = True
 
 # Positioning
-DISC_POS = [95,93]
+DISC_POS = [95,115]
 OFFSET = [0,0]
 PLAYER_DIRECTION = 0
 MOVEMENT_VECTOR = []
@@ -567,10 +573,11 @@ fps_clock.label.font_name='Arial'
 
 # Entities
 p = NPC(DISC_POS, OFFSET, "src\\Char\\Lianna.png")
-NPCS.append(NPC([100, 93], [0,0], "src\\Char\\Lianna.png"))
+NPCS.append(NPC([100, 115], [0,0], "src\\Char\\Lianna.png"))
 #NPCS.append(NPC([103, 116], [0,0], "src\\Char\\Lianna.png"))
 #NPCS.append(NPC([96, 111], [0,0], "src\\Char\\Lianna.png"))
-label3 = pg.text.Label(str(NPCS[0].command_queue), font_name='Arial', font_size=16, x=1800, y=700)
+label3 = pg.text.Label(str(NPCS[0].high_queue), font_name='Arial', font_size=16, x=1400, y=700)
+label4 = pg.text.Label(str(NPCS[0].action_queue), font_name='Arial', font_size=16, x=1400, y=600)
 
 ### TESTER
 

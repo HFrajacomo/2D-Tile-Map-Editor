@@ -53,6 +53,7 @@ class NPC:
 		self.action_queue = []  # Low level actions
 		self.command_queue = [] # Mid Level actions
 		self.high_queue = []  # High level actions
+		self.wait_timer = 0
 
 
 	def get_total_x(self):
@@ -200,9 +201,14 @@ class NPC:
 		self.action_queue.append("MIDV")
 
 	##### TIER 3 MOVEMENT #######
-	def add_mv_to(self, pos):
-		self.high_queue.append("Move to:" + str(pos[0]) + "," + str(pos[1]))
-		self.high_queue.append("Moving to:" + str(pos[0]) + "," + str(pos[1]))
+	# Adds move to command to either high level queue end (append) or beginning (insert)
+	def add_mv_to(self, pos, append=True):
+		if(append):
+			self.high_queue.append("Move to:" + str(pos[0]) + "," + str(pos[1]))
+			self.high_queue.append("Moving to:" + str(pos[0]) + "," + str(pos[1]))
+		else:
+			self.high_queue.insert(0, "Move to:" + str(pos[0]) + "," + str(pos[1]))
+			self.high_queue.insert(1, "Moving to:" + str(pos[0]) + "," + str(pos[1]))
 
 	def move_to(self, pos, intermap, intermap_obj):
 		if(intermap[pos[1]][pos[0]].solid or intermap_obj[pos[1]][pos[0]].solid):
@@ -222,13 +228,29 @@ class NPC:
 
 	###### TIER 4 CALLS ########
 	# Waits fixed seconds + random()*variant
-	def wait(self, fixed_seconds, variant_seconds):
-		total_time = fixed_seconds + rd.random()*variant_seconds
+	def add_wait(self, ticks):
+		self.wait_timer = ticks
 
-		for i in range(int(total_time*60)):
-			self.action_queue.append("W")
+	# Add wait command to high_level queue
+	def add_highlevel_wait(self, fixed_seconds, variant_seconds):
+		wait_time = fixed_seconds*60 + int(rd.random()*30)*variant_seconds		
+		self.high_queue.append("Wait," + str(wait_time))	
 
-	def run(self, intermap, intermap_obj):
+	# Walks around a pos
+	# INFINITE ACTION UNLESS INTERRUPTED
+	def wander(self, pos, radius, hurry):
+		wait_time = hurry*60 + int(rd.random()*30)*hurry
+		walk_x = pos[0] + rd.randint(-radius,radius)
+		walk_y = pos[1] + rd.randint(-radius,radius)
+
+		self.add_mv_to([walk_x, walk_y], append=False)
+		self.high_queue.insert(2, "Wait," + str(wait_time))
+		self.high_queue.insert(3, "Wander;" + str(pos) + ";" + str(radius) + ";" + str(hurry))
+
+	def add_wander(self, pos, radius, hurry):
+		self.high_queue.append("Wander;" + str(pos) + ";" + str(radius) + ";" + str(hurry))
+
+	def run(self, Non, intermap, intermap_obj):
 		if(self.action_queue != []):
 			action = self.action_queue.pop(0)
 
@@ -245,7 +267,9 @@ class NPC:
 			elif(action == "MIDH"):
 				self.offset[0] = 0
 			elif(action == "W"):
-				return
+				self.wait_timer -= 1
+				if(self.wait_timer > 0):
+					self.action_queue.append("W")
 
 		elif(self.command_queue != []):
 			command = self.command_queue.pop(0)
@@ -266,7 +290,16 @@ class NPC:
 				pos = [int(high_command[8:].split(",")[0]), int(high_command[8:].split(",")[1])]
 				self.move_to(pos, intermap, intermap_obj)
 			elif(high_command[0:9] == "Moving to"):
-				return
+				self.IS_MOVING = False
+			elif(high_command[0:4] == "Wait"):
+				wait_time = int(high_command.split(",")[1])
+				self.wait_timer = wait_time
+				self.action_queue.append("W")
+			elif(high_command[0:6] == "Wander"):
+				pos = [int(high_command.split("[")[1].split(",")[0]), int(high_command.split("]")[0].split(",")[1])]
+				rad = int(high_command.split(";")[2])
+				hurry = int(high_command.split(";")[3])
+				self.wander(pos, rad, hurry)
 		else:
 			self.IS_MOVING = False
 

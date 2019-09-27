@@ -106,7 +106,6 @@ def AStarSearch(inter, inter_obj, start, end):
 				current = cameFrom[current]
 				path.append(current)
 			path.reverse()
-			print(path)
 			return path_transform(path) #Done!
  
 		#Mark the current vertex as closed
