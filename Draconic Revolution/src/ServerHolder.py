@@ -3,6 +3,7 @@ from TileDictionary import *
 from Tile import *
 from Obj import *
 from ObjDictionary import *
+from Lightning import *
 
 def loadmap(filename):
 	map_name = ""
@@ -45,6 +46,12 @@ def loadmap(filename):
 				if(gen_obj(obj_data[i][j]) != False):
 					inter_map_obj[-1].append(gen_obj(obj_data[i][j]))
 
+		# Build shadow mapping of tiles
+		shadow_map = []
+		for i in range(0, len(light_data)):
+			shadow_map.append([])
+			for j in range(0, len(light_data[0])):
+				shadow_map[-1].append(Lightning(light_data[i][j]))
 
-		return Map(map_data, obj_data, light_data, mapname=map_name), inter_map_tiles, inter_map_obj
+		return Map(map_data, obj_data, light_data, mapname=map_name), inter_map_tiles, inter_map_obj, shadow_map
 	return None, None, None

@@ -5,6 +5,8 @@ from pyglet.gl import *
 from pyglet.window import key
 import sys
 from threading import Lock
+glEnable(GL_BLEND)
+glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
 
 # Direct OpenGL commands to this window.
 #platform = pg.window.get_platform()
@@ -26,6 +28,7 @@ from Bevel import *
 from ServerHolder import *
 from NPC import *
 from Player import *
+from Lightning import *
 
 # Game Events
 dispatcher = NPC_Dispatcher()
@@ -345,6 +348,8 @@ def draw_tiles(Non):
 	global batch_fg_obj_draw
 	global batch_fg_anim_obj
 	global batch_fg_anim_obj_draw
+	global batch_shadow
+	global batch_shadow_draw
 
 	global m
 	global LOCK
@@ -352,13 +357,13 @@ def draw_tiles(Non):
 	global label2
 	global label3
 	global inter_map_obj
+	global shadow_map
 	global MOVEMENT_VECTOR
 	global LAST_RENDER_POS
 	global DISC_POS
 	global OFFSET
 	global LAST_CALL_POS
 	global VIEWPORT_UPDATE
-
 
 	global p
 
@@ -371,6 +376,8 @@ def draw_tiles(Non):
 
 		matrixes = m.get_region(DISC_POS, 13, 11, non_circular=False)
 		interact = get_submatrix(inter_map_obj, DISC_POS, 13, 11, non_circular=False)
+		shadows = get_submatrix(shadow_map, DISC_POS, 13,11, non_circular=False)
+
 		VIEWPORT_UPDATE = False
 
 		p.pos = DISC_POS.copy()
@@ -383,6 +390,7 @@ def draw_tiles(Non):
 		batch_anim_obj.clear()
 		batch_fg_obj.clear()
 		batch_fg_anim_obj.clear()
+		batch_shadow.clear()
 
 		LAST_CALL_POS = [DISC_POS[0], DISC_POS[1], OFFSET[0], OFFSET[1]]
 
@@ -408,6 +416,10 @@ def draw_tiles(Non):
 						elif(matrixes[1][j][i] in animated_obj_codelist):
 							batch_anim_obj.append([pg.sprite.Sprite(img=animated_obj_dictionary[animation_handle][matrixes[1][j][i]], x=i*64-OFFSET[0]-128, y=(1272-(j*64))+OFFSET[1], batch=batch_anim_obj_draw), matrixes[1][j][i]])				
 
+				# Shadow handling
+				batch_shadow.append(pg.sprite.Sprite(img=Lightning.get(shadows[j][i].color), x=i*64-OFFSET[0]-128, y=(1272-(j*64))+OFFSET[1], batch=batch_shadow_draw))
+				batch_shadow[-1].opacity = shadows[j][i].current_light
+
 		LAST_RENDER_POS = DISC_POS.copy()
 		p.pos = DISC_POS.copy()
 		p.offset = OFFSET.copy()
@@ -419,6 +431,7 @@ def draw_tiles(Non):
 
 		LOCK.acquire()
 
+		# For animated objs
 		if(diff_x == 0 and diff_y == 0):
 			for i in range(len(batch_anim_tiles)):
 				batch_anim_tiles[i][0].image = animated_dictionary[animation_handle][batch_anim_tiles[i][1]]
@@ -429,6 +442,7 @@ def draw_tiles(Non):
 			LOCK.release()
 			return
 		
+		# Change position
 		for i in range(len(batch_sprites)):
 			batch_sprites[i].x -= diff_x
 			batch_sprites[i].y += diff_y
@@ -450,6 +464,9 @@ def draw_tiles(Non):
 			batch_fg_anim_obj[i][0].x -= diff_x
 			batch_fg_anim_obj[i][0].y += diff_y		
 			batch_fg_anim_obj[i][0].image = animated_obj_dictionary[animation_handle][batch_fg_anim_obj[i][1]]
+		for i in range(len(batch_shadow)):
+			batch_shadow[i].x -= diff_x
+			batch_shadow[i].y += diff_y
 
 		LAST_CALL_POS = [DISC_POS[0], DISC_POS[1], OFFSET[0], OFFSET[1]]
 		p.pos = DISC_POS.copy()
@@ -471,6 +488,8 @@ def on_draw():
 	global batch_fg_obj_draw
 	global batch_fg_anim_obj
 	global batch_fg_anim_obj_draw
+	global batch_shadow
+	global batch_shadow_draw
 
 	global side_bev
 	global bar_bev
@@ -502,6 +521,8 @@ def on_draw():
 	# Foreground Objects
 	batch_fg_obj_draw.draw()
 	batch_fg_anim_obj_draw.draw()
+	# Light Layer
+	batch_shadow_draw.draw()
 	# Screen
 	side_bev.draw()
 	bar_bev.draw()
@@ -524,6 +545,7 @@ batch_anim_tiles_draw = pg.graphics.Batch()
 batch_anim_obj_draw = pg.graphics.Batch()
 batch_fg_obj_draw = pg.graphics.Batch()
 batch_fg_anim_obj_draw = pg.graphics.Batch()
+batch_shadow_draw = pg.graphics.Batch()
 
 batch_anim_obj = []
 batch_anim_tiles = []
@@ -531,19 +553,17 @@ batch_sprites = []
 batch_obj = []
 batch_fg_obj = []
 batch_fg_anim_obj = []
+batch_shadow = []
 
 VIEWPORT_UPDATE = True
 
 # Positioning
-DISC_POS = [95,115]
+DISC_POS = [43,22]
 OFFSET = [0,0]
 PLAYER_DIRECTION = 0
 MOVEMENT_VECTOR = []
 LAST_RENDER_POS = [0,0]
 LAST_CALL_POS = [DISC_POS[0], DISC_POS[1], OFFSET[0], OFFSET[1]]
-
-# Game Mecanics
-NPCS = []
 
 # Paralellism
 LOCK = Lock()
@@ -562,7 +582,7 @@ menu_bev = Bevel([1344,0], "src\\Resources\\Menubevel.png")
 label = pg.text.Label(str(DISC_POS), font_name='Arial', font_size=16, x=1800, y=1010)
 label2 = pg.text.Label(str(OFFSET), font_name='Arial', font_size=16, x=1800, y=950)
 # Map
-m, inter_map, inter_map_obj = loadmap("map\\draconis")
+m, inter_map, inter_map_obj, shadow_map = loadmap("map\\draconis")
 #m.check_unsigned_data(tile_dictionary, obj_dictionary)
 
 # FPS Clock
@@ -579,15 +599,13 @@ NPC([103, 116], [0,0], "src\\Char\\Lianna.png")
 NPC([96, 111], [0,0], "src\\Char\\Lianna.png")
 label3 = pg.text.Label(str([NPC.all_npcs[0].IS_LOADED, NPC.all_npcs[1].IS_LOADED, NPC.all_npcs[2].IS_LOADED]), font_name='Arial', font_size=16, x=1800, y=900)
 
-### TESTER
-
 # Threads
 pg.clock.schedule_interval(draw_tiles, FPS)
 pg.clock.schedule_interval(movement_handler, FPS)
 pg.clock.schedule_interval(animate, 0.3)
 pg.clock.schedule_interval(NPC_run, 1/60)
 pg.clock.schedule_interval(reload_entity_layer, 1)
-#pg.app.run()
+
 
 while(True):
 	pg.clock.tick()
