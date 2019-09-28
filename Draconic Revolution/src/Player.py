@@ -22,10 +22,10 @@ class Player:
 		pg.image.Animation.from_image_sequence(self.img[3:6], 0.3, loop=True),
 		pg.image.Animation.from_image_sequence(self.img[6:9], 0.3, loop=True),
 		pg.image.Animation.from_image_sequence(self.img[9:12], 0.3, loop=True)]
-		self.movingframe = [pg.sprite.Sprite(self.animation[0], x=704, y=594), pg.sprite.Sprite(self.animation[3], x=704, y=594),
-			pg.sprite.Sprite(self.animation[1], x=704, y=594), pg.sprite.Sprite(self.animation[2], x=704, y=594)]
-		self.stillframe = [pg.sprite.Sprite(self.img[0], x=704, y=594), pg.sprite.Sprite(self.img[9], x=704, y=594), 
-			pg.sprite.Sprite(self.img[3], x=704, y=594), pg.sprite.Sprite(self.img[6], x=704, y=594)]
+		self.movingframe = [pg.sprite.Sprite(self.animation[0], x=704, y=570), pg.sprite.Sprite(self.animation[3], x=704, y=570),
+			pg.sprite.Sprite(self.animation[1], x=704, y=570), pg.sprite.Sprite(self.animation[2], x=704, y=570)]
+		self.stillframe = [pg.sprite.Sprite(self.img[0], x=704, y=570), pg.sprite.Sprite(self.img[9], x=704, y=570), 
+			pg.sprite.Sprite(self.img[3], x=704, y=570), pg.sprite.Sprite(self.img[6], x=704, y=570)]
 
 		del self.animation
 		del self.img	

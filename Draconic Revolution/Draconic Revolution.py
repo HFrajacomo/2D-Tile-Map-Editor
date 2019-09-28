@@ -145,18 +145,22 @@ def movement_handler(non):
 	if(MOVEMENT_VECTOR[0] == "KU"):
 		LOCK.acquire()
 		DISC_POS = list_sum(DISC_POS, [0,-1])
+		p.direction = 0
 		LOCK.release()
 	elif(MOVEMENT_VECTOR[0] == "KD"):
 		LOCK.acquire()
 		DISC_POS = list_sum(DISC_POS, [0,1])
+		p.direction = 1
 		LOCK.release()
 	elif(MOVEMENT_VECTOR[0] == "KR"):
 		LOCK.acquire()
 		DISC_POS = list_sum(DISC_POS, [1,0])
+		p.direction = 2
 		LOCK.release()
 	elif(MOVEMENT_VECTOR[0] == "KL"):
 		LOCK.acquire()
 		DISC_POS = list_sum(DISC_POS, [-1,0])
+		p.direction = 3
 		LOCK.release()
 
 	# Collision Check
