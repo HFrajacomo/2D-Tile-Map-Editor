@@ -54,4 +54,4 @@ def loadmap(filename):
 				shadow_map[-1].append(Lightning(light_data[i][j]))
 
 		return Map(map_data, obj_data, light_data, mapname=map_name), inter_map_tiles, inter_map_obj, shadow_map
-	return None, None, None
+	return None, None, None, None
