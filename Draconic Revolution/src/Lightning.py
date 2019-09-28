@@ -8,6 +8,9 @@ def check_transparency(x,y,tilemap,objmap):
 	else:
 		return True
 
+def color_sum(t,s):
+	return (t[0]+s[0], t[1]+s[1], t[2]+s[2], 255)
+
 class Lightning:
 	dictionary = {}
 
@@ -72,8 +75,9 @@ class Lightning:
 
 		decay = int((255 - level)/(radius+1))
 		decayment = (255-level) - decay
-		color_decay = (int(color[0]/(radius+1)), int(color[1]/(radius+1)), int(color[2]/(radius+1)), 255)
-		
+		color_decay = (-int(color[0]/(radius+1)), -int(color[1]/(radius+1)), -int(color[2]/(radius+1)), 255)
+		new_color = color_sum(color, color_decay)
+
 		if(bypass_wall):
 			transparency = True
 		else:
@@ -81,7 +85,7 @@ class Lightning:
 
 		visited = []
 		available = [[y,x]]
-		data = [[color_decay, decayment, transparency]]
+		data = [[new_color, decayment, transparency]]
 
 		while(available != []):
 			x,y = available.pop(0)
@@ -92,25 +96,25 @@ class Lightning:
 				Lightning.propagate(x+1, y, cd, dc, shadow_map)
 				if([x+1,y] not in available and dc>decay):
 					available.append([x+1,y])
-					data.append([cd+color_decay, dc-decay, check_transparency(x+1,y,tilemap, objmap)])
+					data.append([color_sum(cd,color_decay), dc-decay, check_transparency(x+1,y,tilemap, objmap)])
 			
 			if([x-1,y] not in visited and [x-1,y] not in available and trans):
 				Lightning.propagate(x-1, y, cd, dc, shadow_map)
 				if([x-1,y] not in available and dc>decay):
 					available.append([x-1,y])
-					data.append([cd+color_decay, dc-decay, check_transparency(x-1,y,tilemap, objmap)])
+					data.append([color_sum(cd,color_decay), dc-decay, check_transparency(x-1,y,tilemap, objmap)])
 			
 			if([x,y+1] not in visited and [x,y+1] not in available and trans):
 				Lightning.propagate(x, y+1, cd, dc, shadow_map)
 				if([x,y+1] not in available and dc>decay):
 					available.append([x,y+1])
-					data.append([cd+color_decay, dc-decay, check_transparency(x,y+1,tilemap, objmap)])
+					data.append([color_sum(cd,color_decay), dc-decay, check_transparency(x,y+1,tilemap, objmap)])
 
 			if([x,y-1] not in visited and [x,y-1] not in available and trans):
 				Lightning.propagate(x, y-1, cd, dc, shadow_map)
 				if([x,y-1] not in available and dc>decay):
 					available.append([x,y-1])
-					data.append([cd+color_decay, dc-decay, check_transparency(x,y-1,tilemap, objmap)])
+					data.append([color_sum(cd,color_decay), dc-decay, check_transparency(x,y-1,tilemap, objmap)])
 			
 
 	@staticmethod
@@ -129,8 +133,9 @@ class Lightning:
 
 		decay = int((255 - level)/(radius+1))
 		decayment = (255-level) - decay
-		color_decay = (int(color[0]/(radius+1)), int(color[1]/(radius+1)), int(color[2]/(radius+1)), 255)
-		
+		color_decay = (-int(color[0]/(radius+1)), -int(color[1]/(radius+1)), -int(color[2]/(radius+1)), 255)
+		new_color = color_sum(color, color_decay)
+
 		if(bypass_wall):
 			transparency = True
 		else:
@@ -138,7 +143,7 @@ class Lightning:
 
 		visited = []
 		available = [[y,x]]
-		data = [[color_decay, decayment, transparency]]
+		data = [[new_color, decayment, transparency]]
 
 		while(available != []):
 			x,y = available.pop(0)
@@ -149,25 +154,25 @@ class Lightning:
 				Lightning.unpropagate(x+1, y, cd, dc, shadow_map)
 				if([x+1,y] not in available and dc>decay):
 					available.append([x+1,y])
-					data.append([cd+color_decay, dc-decay, check_transparency(x+1,y,tilemap, objmap)])
+					data.append([color_sum(cd,color_decay), dc-decay, check_transparency(x+1,y,tilemap, objmap)])
 			
 			if([x-1,y] not in visited and [x-1,y] not in available and trans):
 				Lightning.unpropagate(x-1, y, cd, dc, shadow_map)
 				if([x-1,y] not in available and dc>decay):
 					available.append([x-1,y])
-					data.append([cd+color_decay, dc-decay, check_transparency(x-1,y,tilemap, objmap)])
+					data.append([color_sum(cd,color_decay), dc-decay, check_transparency(x-1,y,tilemap, objmap)])
 			
 			if([x,y+1] not in visited and [x,y+1] not in available and trans):
 				Lightning.unpropagate(x, y+1, cd, dc, shadow_map)
 				if([x,y+1] not in available and dc>decay):
 					available.append([x,y+1])
-					data.append([cd+color_decay, dc-decay, check_transparency(x,y+1,tilemap, objmap)])
+					data.append([color_sum(cd,color_decay), dc-decay, check_transparency(x,y+1,tilemap, objmap)])
 
 			if([x,y-1] not in visited and [x,y-1] not in available and trans):
 				Lightning.unpropagate(x, y-1, cd, dc, shadow_map)
 				if([x,y-1] not in available and dc>decay):
 					available.append([x,y-1])
-					data.append([cd+color_decay, dc-decay, check_transparency(x,y-1,tilemap, objmap)])
+					data.append([color_sum(cd,color_decay), dc-decay, check_transparency(x,y-1,tilemap, objmap)])
 
 	@staticmethod
 	def unpropagate(x, y, color_decay, decay, shadow_map):

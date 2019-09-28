@@ -298,13 +298,13 @@ def on_key_press(symbol, modifiers):
 			npc.add_wander([100,115], 5, 3)
 
 	elif(symbol == key.Z):
-		Lightning.propagate_light(118, 21, inter_map, inter_map_obj, shadow_map)
+		#Lightning.propagate_light(118, 21, inter_map, inter_map_obj, shadow_map)
 		Lightning.propagate_light(123, 21, inter_map, inter_map_obj, shadow_map)
 		Lightning.propagate_light(131, 21, inter_map, inter_map_obj, shadow_map)
 	elif(symbol == key.X):
-		Lightning.unpropagate_light(118, 21, Lightning(0,5), inter_map, inter_map_obj, shadow_map)
-		Lightning.unpropagate_light(123, 21, Lightning(0,5), inter_map, inter_map_obj, shadow_map)
-		Lightning.unpropagate_light(131, 21, Lightning(0,5), inter_map, inter_map_obj, shadow_map)
+		#Lightning.unpropagate_light(118, 21, Lightning(0,5), inter_map, inter_map_obj, shadow_map)
+		Lightning.unpropagate_light(123, 21, Lightning(200,5, (100,0,0,255)), inter_map, inter_map_obj, shadow_map)
+		Lightning.unpropagate_light(131, 21, Lightning(200,5, (60,60,0,255)), inter_map, inter_map_obj, shadow_map)
 	elif(symbol == key.C):
 		Lightning.unpropagate_light(131, 21, Lightning(0,5), inter_map, inter_map_obj, shadow_map)
 
@@ -616,9 +616,9 @@ NPC([96, 111], [0,0], "src\\Char\\Lianna.png")
 label3 = pg.text.Label(str([NPC.all_npcs[0].IS_LOADED, NPC.all_npcs[1].IS_LOADED, NPC.all_npcs[2].IS_LOADED]), font_name='Arial', font_size=16, x=1800, y=900)
 
 ### Test
-shadow_map[21][118].set_real_light(0)
-shadow_map[21][123].set_real_light(0)
-shadow_map[21][131].set_real_light(0)
+#shadow_map[21][118].set_real_light(0)
+shadow_map[21][123] = Lightning(200, 5, (100,0,0,255)) #.set_real_light(0)
+shadow_map[21][131] = Lightning(200, 5, (60,60,0,255)) #.set_real_light(0)
 
 # Threads
 pg.clock.schedule_interval(draw_tiles, FPS)
