@@ -422,7 +422,8 @@ def draw_tiles(Non):
 
 				# Shadow handling
 				batch_shadow.append(pg.sprite.Sprite(img=Lightning.get(shadows[j][i].color), x=i*64-OFFSET[0]-128, y=(1272-(j*64))+OFFSET[1], batch=batch_shadow_draw))
-				batch_shadow[-1].opacity = shadows[j][i].current_light
+				batch_shadow[-1].opacity = shadows[j][i].light
+
 
 		LAST_RENDER_POS = DISC_POS.copy()
 		p.pos = DISC_POS.copy()
@@ -562,7 +563,7 @@ batch_shadow = []
 VIEWPORT_UPDATE = True
 
 # Positioning
-DISC_POS = [43,22]
+DISC_POS = [118,26]
 OFFSET = [0,0]
 PLAYER_DIRECTION = 0
 MOVEMENT_VECTOR = []
@@ -602,6 +603,16 @@ NPC([100, 115], [0,0], "src\\Char\\Lianna.png")
 NPC([103, 116], [0,0], "src\\Char\\Lianna.png")
 NPC([96, 111], [0,0], "src\\Char\\Lianna.png")
 label3 = pg.text.Label(str([NPC.all_npcs[0].IS_LOADED, NPC.all_npcs[1].IS_LOADED, NPC.all_npcs[2].IS_LOADED]), font_name='Arial', font_size=16, x=1800, y=900)
+
+### Test
+shadow_map[21][126].set_light(0)
+Lightning.propagate_light(126, 21, 5, inter_map, inter_map_obj, shadow_map)
+shadows = get_submatrix(shadow_map, DISC_POS, 13,11, non_circular=False)
+for line in shadows:
+	print()
+	for item in line:
+		print("{:4}".format(item.light), end=" ")
+print()
 
 # Threads
 pg.clock.schedule_interval(draw_tiles, FPS)
