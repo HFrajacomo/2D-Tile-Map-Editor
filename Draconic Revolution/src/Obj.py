@@ -270,7 +270,7 @@ class Bush(GeneralObj):
 		self.multiblock = False
 		self.hp = 100
 		self.solid = True
-		self.transparency = False
+		self.transparency = True
 		self.special_collision = False
 		self.luminosity = None
 
@@ -486,7 +486,11 @@ class LightPole(GeneralObj):
 		self.solid = True
 		self.transparency = True
 		self.special_collision = False
-		self.luminosity = Lightning(60, 8, (236,240,80,255), bypass=True)
+		self.luminosity = None
+
+		if(id == 597):
+			self.luminosity = Lightning(60, 8, (255,232,176,255), bypass=True)
+
 
 		self.add_special_collision([598,599])
 
@@ -657,7 +661,7 @@ class PineTree(GeneralObj):
 		self.multiblock = True
 		self.hp = 2000
 		self.solid = True
-		self.transparency = False
+		self.transparency = True
 		self.special_collision = False
 		self.luminosity = None
 

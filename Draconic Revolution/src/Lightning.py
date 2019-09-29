@@ -71,7 +71,7 @@ class Lightning:
 
 	def set_real_light(self, n):
 		self.natural_light = n
-		self.set_light(n)
+		self.set_light(int(n))
 
 	def set_light(self, n):
 		if(n>255):

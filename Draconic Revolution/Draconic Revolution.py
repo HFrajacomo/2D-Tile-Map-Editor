@@ -132,7 +132,11 @@ def collision_check(DISC_POS, OFFSET, MOVEMENT_VECTOR):
 
 def global_time_run(Non):
 	global GLOBAL_TIME
+	global DLconf
+	global shadow_map
+
 	GLOBAL_TIME.inc()
+	DLconf.update_daylight("Surface", shadow_map, GLOBAL_TIME)
 
 def movement_handler(non):
 	global DISC_POS
@@ -308,7 +312,8 @@ def on_key_press(symbol, modifiers):
 		GLOBAL_TIME.inc()
 	elif(symbol == key.X):
 		GLOBAL_TIME.inc_hour()
-
+	elif(symbol == key.C):
+		print(shadow_map[DISC_POS[1]][DISC_POS[0]])
 
 
 @window.event
@@ -426,25 +431,27 @@ def draw_tiles(Non):
 				if(l>=len(inter_map_obj)):
 					l -= len(inter_map_obj)
 
-				# Tiles and animated tiles
-				if(matrixes[0][j][i] in all_tiles_img.keys()):
-					batch_sprites.append(pg.sprite.Sprite(img=all_tiles_img[matrixes[0][j][i]], x=i*64-OFFSET[0]-128, y=(1272-(j*64))+OFFSET[1], batch=batch_draw))
-				elif(matrixes[0][j][i] in animated_codelist):
-					batch_anim_tiles.append([pg.sprite.Sprite(img=animated_dictionary[animation_handle][matrixes[0][j][i]], x=i*64-OFFSET[0]-128, y=(1272-(j*64))+OFFSET[1], batch=batch_anim_tiles_draw), matrixes[0][j][i]])				
-				
-				# Objects and animated objects
-				if(matrixes[1][j][i] > 0): # If found an object in this tile
-					# If it has special collision
-					if(interact[j][i].special_collision):
-						if(matrixes[1][j][i] in all_obj_img.keys()): # if not animated
-							batch_fg_obj.append(pg.sprite.Sprite(img=all_obj_img[matrixes[1][j][i]], x=i*64-OFFSET[0]-128, y=(1272-(j*64))+OFFSET[1], batch=batch_fg_obj_draw))
-						elif(matrixes[1][j][i] in animated_obj_codelist):
-							batch_fg_anim_obj.append([pg.sprite.Sprite(img=animated_obj_dictionary[animation_handle][matrixes[1][j][i]], x=i*64-OFFSET[0]-128, y=(1272-(j*64))+OFFSET[1], batch=batch_fg_anim_obj_draw), matrixes[1][j][i]])
-					else: # If normal collision
-						if(matrixes[1][j][i] in all_obj_img.keys()):
-							batch_obj.append(pg.sprite.Sprite(img=all_obj_img[matrixes[1][j][i]], x=i*64-OFFSET[0]-128, y=(1272-(j*64))+OFFSET[1], batch=batch_obj_draw))
-						elif(matrixes[1][j][i] in animated_obj_codelist):
-							batch_anim_obj.append([pg.sprite.Sprite(img=animated_obj_dictionary[animation_handle][matrixes[1][j][i]], x=i*64-OFFSET[0]-128, y=(1272-(j*64))+OFFSET[1], batch=batch_anim_obj_draw), matrixes[1][j][i]])				
+				if(shadow_map[l][k].light != 255): # If it's not completely dark
+
+					# Tiles and animated tiles
+					if(matrixes[0][j][i] in all_tiles_img.keys()):
+						batch_sprites.append(pg.sprite.Sprite(img=all_tiles_img[matrixes[0][j][i]], x=i*64-OFFSET[0]-128, y=(1272-(j*64))+OFFSET[1], batch=batch_draw))
+					elif(matrixes[0][j][i] in animated_codelist):
+						batch_anim_tiles.append([pg.sprite.Sprite(img=animated_dictionary[animation_handle][matrixes[0][j][i]], x=i*64-OFFSET[0]-128, y=(1272-(j*64))+OFFSET[1], batch=batch_anim_tiles_draw), matrixes[0][j][i]])				
+					
+					# Objects and animated objects
+					if(matrixes[1][j][i] > 0): # If found an object in this tile
+						# If it has special collision
+						if(interact[j][i].special_collision):
+							if(matrixes[1][j][i] in all_obj_img.keys()): # if not animated
+								batch_fg_obj.append(pg.sprite.Sprite(img=all_obj_img[matrixes[1][j][i]], x=i*64-OFFSET[0]-128, y=(1272-(j*64))+OFFSET[1], batch=batch_fg_obj_draw))
+							elif(matrixes[1][j][i] in animated_obj_codelist):
+								batch_fg_anim_obj.append([pg.sprite.Sprite(img=animated_obj_dictionary[animation_handle][matrixes[1][j][i]], x=i*64-OFFSET[0]-128, y=(1272-(j*64))+OFFSET[1], batch=batch_fg_anim_obj_draw), matrixes[1][j][i]])
+						else: # If normal collision
+							if(matrixes[1][j][i] in all_obj_img.keys()):
+								batch_obj.append(pg.sprite.Sprite(img=all_obj_img[matrixes[1][j][i]], x=i*64-OFFSET[0]-128, y=(1272-(j*64))+OFFSET[1], batch=batch_obj_draw))
+							elif(matrixes[1][j][i] in animated_obj_codelist):
+								batch_anim_obj.append([pg.sprite.Sprite(img=animated_obj_dictionary[animation_handle][matrixes[1][j][i]], x=i*64-OFFSET[0]-128, y=(1272-(j*64))+OFFSET[1], batch=batch_anim_obj_draw), matrixes[1][j][i]])				
 
 				# Shadow handling
 				if(shadow_map[l][k].light != 0):
@@ -603,7 +610,7 @@ LOCK = Lock()
 
 # Time
 FPS = 1/30
-GLOBAL_TIME = Time(0,0)
+GLOBAL_TIME = Time(18,0)
 
 # Animation
 animation_handle = 0
@@ -622,6 +629,7 @@ m, inter_map, inter_map_obj, shadow_map = loadmap("map\\draconis")
 
 # Lightning
 Lightning.propagate_all(inter_map, inter_map_obj, shadow_map)
+DLconf = DaylightConfigurator()
 
 # FPS Clock
 fps_clock  = pyglet.window.FPSDisplay(window=window)
@@ -652,4 +660,4 @@ while(True):
 	NPC.timer.tick()
 	window.switch_to()
 	window.dispatch_events()
-	window.dispatch_event('on_draw')
+	window.dispatch_event('on_draw') # Goes up to 2100 FPS. Minimize Drawing!
