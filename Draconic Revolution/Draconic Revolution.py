@@ -289,24 +289,23 @@ def on_key_press(symbol, modifiers):
 
 	## Debug Key
 	if(symbol == key.Q):
-		a = get_submatrix(inter_map_obj, DISC_POS, 1, 1, non_circular=False)
-		for element in a:
-			print(str(element) + "\n")
+		print("Position: " + str(DISC_POS) + "\n")
+		print(shadow_map[DISC_POS[1]][DISC_POS[0]])
 
 	elif(symbol == key.NUM_9):  
 		for npc in NPC.all_npcs:
 			npc.add_wander([100,115], 5, 3)
 
 	elif(symbol == key.Z):
-		#Lightning.propagate_light(118, 21, inter_map, inter_map_obj, shadow_map)
-		Lightning.propagate_light(123, 21, inter_map, inter_map_obj, shadow_map)
-		Lightning.propagate_light(131, 21, inter_map, inter_map_obj, shadow_map)
+		Lightning.unpropagate_light(28,103,Lightning(80,7, (50,10,0,255), bypass=True), inter_map, inter_map_obj, shadow_map)
+		Lightning.unpropagate_light(25,103,Lightning(80,7, (50,10,0,255), bypass=True), inter_map, inter_map_obj, shadow_map)
 	elif(symbol == key.X):
-		#Lightning.unpropagate_light(118, 21, Lightning(0,5), inter_map, inter_map_obj, shadow_map)
-		Lightning.unpropagate_light(123, 21, Lightning(200,5, (100,0,0,255)), inter_map, inter_map_obj, shadow_map)
-		Lightning.unpropagate_light(131, 21, Lightning(200,5, (60,60,0,255)), inter_map, inter_map_obj, shadow_map)
+		Lightning.unpropagate_light(28,108,Lightning(80,7, (50,10,0,255), bypass=True), inter_map, inter_map_obj, shadow_map)
+		Lightning.unpropagate_light(25,108,Lightning(80,7, (50,10,0,255), bypass=True), inter_map, inter_map_obj, shadow_map)
 	elif(symbol == key.C):
-		Lightning.unpropagate_light(131, 21, Lightning(0,5), inter_map, inter_map_obj, shadow_map)
+		Lightning.unpropagate_light(42,53,Lightning(80,7, (50,10,0,255), bypass=True), inter_map, inter_map_obj, shadow_map)
+
+
 
 @window.event
 def on_key_release(symbol, modifiers):
@@ -391,7 +390,6 @@ def draw_tiles(Non):
 
 		matrixes = m.get_region(DISC_POS, 13, 11, non_circular=False)
 		interact = get_submatrix(inter_map_obj, DISC_POS, 13, 11, non_circular=False)
-		shadows = get_submatrix(shadow_map, DISC_POS, 13,11, non_circular=False)
 
 		VIEWPORT_UPDATE = False
 
@@ -410,7 +408,17 @@ def draw_tiles(Non):
 		LAST_CALL_POS = [DISC_POS[0], DISC_POS[1], OFFSET[0], OFFSET[1]]
 
 		for i in range(0,27):
+
+			k = (DISC_POS[0] - 13) + i  # For shadow optimization
+			if(k>=len(inter_map_obj[0])):
+				k -= len(inter_map_obj[0])
+
 			for j in range(0,23):
+
+				l = (DISC_POS[1]-11) + j # For shadow optimization
+				if(l>=len(inter_map_obj)):
+					l -= len(inter_map_obj)
+
 				# Tiles and animated tiles
 				if(matrixes[0][j][i] in all_tiles_img.keys()):
 					batch_sprites.append(pg.sprite.Sprite(img=all_tiles_img[matrixes[0][j][i]], x=i*64-OFFSET[0]-128, y=(1272-(j*64))+OFFSET[1], batch=batch_draw))
@@ -432,8 +440,9 @@ def draw_tiles(Non):
 							batch_anim_obj.append([pg.sprite.Sprite(img=animated_obj_dictionary[animation_handle][matrixes[1][j][i]], x=i*64-OFFSET[0]-128, y=(1272-(j*64))+OFFSET[1], batch=batch_anim_obj_draw), matrixes[1][j][i]])				
 
 				# Shadow handling
-				batch_shadow.append(pg.sprite.Sprite(img=Lightning.get(shadows[j][i].color), x=i*64-OFFSET[0]-128, y=(1272-(j*64))+OFFSET[1], batch=batch_shadow_draw))
-				batch_shadow[-1].opacity = shadows[j][i].light
+				batch_shadow.append(pg.sprite.Sprite(img=Lightning.get(shadow_map[l][k].color), x=i*64-OFFSET[0]-128, y=(1272-(j*64))+OFFSET[1], batch=batch_shadow_draw))
+				batch_shadow[-1].opacity = shadow_map[l][k].light
+
 
 
 		LAST_RENDER_POS = DISC_POS.copy()
@@ -519,7 +528,6 @@ def on_draw():
 	global NPCS
 
 	LOCK.acquire()
-	window.flip()
 	# Tiles
 	batch_draw.draw()
 	batch_anim_tiles_draw.draw()
@@ -574,7 +582,7 @@ batch_shadow = []
 VIEWPORT_UPDATE = True
 
 # Positioning
-DISC_POS = [118,26]
+DISC_POS = [55,40]
 OFFSET = [0,0]
 PLAYER_DIRECTION = 0
 MOVEMENT_VECTOR = []
@@ -585,7 +593,7 @@ LAST_CALL_POS = [DISC_POS[0], DISC_POS[1], OFFSET[0], OFFSET[1]]
 LOCK = Lock()
 
 # Time
-FPS = 1/60
+FPS = 1/30
 
 # Animation
 animation_handle = 0
@@ -594,12 +602,15 @@ animation_handle = 0
 side_bev = Bevel([1440, 0], "src\\Resources\\Sidebevel.png")
 bar_bev = Bevel([0,0], "src\\Resources\\Barbevel.png")
 menu_bev = Bevel([1344,0], "src\\Resources\\Menubevel.png")
-#player_bev = Bevel([704, 568], "src\\Resources\\Player.png")
 label = pg.text.Label(str(DISC_POS), font_name='Arial', font_size=16, x=1800, y=1010)
 label2 = pg.text.Label(str(OFFSET), font_name='Arial', font_size=16, x=1800, y=950)
+
 # Map
 m, inter_map, inter_map_obj, shadow_map = loadmap("map\\draconis")
 #m.check_unsigned_data(tile_dictionary, obj_dictionary)
+
+# Lightning
+Lightning.propagate_all(inter_map, inter_map_obj, shadow_map)
 
 # FPS Clock
 fps_clock  = pyglet.window.FPSDisplay(window=window)
@@ -615,20 +626,16 @@ NPC([103, 116], [0,0], "src\\Char\\Lianna.png")
 NPC([96, 111], [0,0], "src\\Char\\Lianna.png")
 label3 = pg.text.Label(str([NPC.all_npcs[0].IS_LOADED, NPC.all_npcs[1].IS_LOADED, NPC.all_npcs[2].IS_LOADED]), font_name='Arial', font_size=16, x=1800, y=900)
 
-### Test
-#shadow_map[21][118].set_real_light(0)
-shadow_map[21][123] = Lightning(200, 5, (100,0,0,255)) #.set_real_light(0)
-shadow_map[21][131] = Lightning(200, 5, (60,60,0,255)) #.set_real_light(0)
-
 # Threads
 pg.clock.schedule_interval(draw_tiles, FPS)
-pg.clock.schedule_interval(movement_handler, FPS)
+pg.clock.schedule_interval_soft(movement_handler, FPS)
 pg.clock.schedule_interval(animate, 0.3)
-pg.clock.schedule_interval(NPC_run, 1/60)
+pg.clock.schedule_interval_soft(NPC_run, FPS)
 pg.clock.schedule_interval(reload_entity_layer, 1)
 
 
 while(True):
+	window.flip()
 	pg.clock.tick()
 	NPC.timer.tick()
 	window.switch_to()

@@ -281,13 +281,13 @@ class NPC:
 
 	# Add wait command to high_level queue
 	def add_highlevel_wait(self, fixed_seconds, variant_seconds):
-		wait_time = fixed_seconds*60 + int(rd.random()*30)*variant_seconds		
+		wait_time = fixed_seconds*30 + int(rd.random()*15)*variant_seconds		
 		self.high_queue.append("Wait," + str(wait_time))	
 
 	# Walks around a pos
 	# INFINITE ACTION UNLESS INTERRUPTED
 	def wander(self, pos, radius, hurry):
-		wait_time = hurry*60 + int(rd.random()*30)*hurry
+		wait_time = hurry*30 + int(rd.random()*15)*hurry
 		walk_x = pos[0] + rd.randint(-radius,radius)
 		walk_y = pos[1] + rd.randint(-radius,radius)
 

@@ -48,6 +48,7 @@ class GeneralTile:
 		self.hp = None
 		self.solid = None
 		self.transparency = None
+		self.luminosity = None
 		self.work = 1
 
 	# Overload function
@@ -90,6 +91,7 @@ class NoneTile(GeneralTile):
 		self.solid = False
 		self.transparency = True
 		self.work = 999
+		self.luminosity = None
 
 	def examine(self, entity):
 		return "It goes deep down"
@@ -104,6 +106,7 @@ class CobbleHard(GeneralTile):
 		self.solid = False
 		self.transparency = True
 		self.work = 1
+		self.luminosity = None
 
 	def examine(self,entity):
 		return "A dense cobblestone pathway"
@@ -116,6 +119,7 @@ class CobbleLight(GeneralTile):
 		self.solid = False
 		self.transparency = True
 		self.work = 1
+		self.luminosity = None
 
 	def examine(self,entity):
 		return "A cobblestone pathway"
@@ -128,7 +132,8 @@ class WoodBlock(GeneralTile):
 		self.solid = True
 		self.transparency = False
 		self.work = 9999
-
+		self.luminosity = None
+		
 	def examine(self,entity):
 		return "A solid wood block used in building"
 
@@ -148,6 +153,7 @@ class StoneBrick(GeneralTile):
 		self.solid = True
 		self.transparency = False
 		self.work = 9999
+		self.luminosity = None
 
 	def examine(self,entity):
 		return "A solid stone block used in building"
@@ -168,6 +174,7 @@ class BasaltFloor(GeneralTile):
 		self.solid = False
 		self.transparency = True
 		self.work = 1
+		self.luminosity = None
 
 	def examine(self,entity):
 		return "A resilient basalt pathway"
@@ -180,6 +187,7 @@ class BasaltBrick(GeneralTile):
 		self.solid = True
 		self.transparency = False
 		self.work = 9999
+		self.luminosity = None
 
 	def examine(self,entity):
 		return "A solid block of basalt used in secure buildings"
@@ -200,6 +208,7 @@ class CheckerFloor(GeneralTile):
 		self.solid = False
 		self.transparency = True
 		self.work = 1
+		self.luminosity = None
 
 	def examine(self,entity):
 		return "A beautifully crafted checkers floor"
@@ -212,6 +221,7 @@ class CobbleStairs(GeneralTile):
 		self.solid = False
 		self.transparency = True
 		self.work = 2
+		self.luminosity = None
 
 	def examine(self,entity):
 		return "Cobblestone Stairs. You climb them."
@@ -224,6 +234,7 @@ class GrassCliff(GeneralTile):
 		self.solid = True
 		self.transparency = True
 		self.work = 9999
+		self.luminosity = None
 
 	def examine(self,entity):
 		return "Be careful not to walk off the edge"
@@ -236,6 +247,7 @@ class Grass(GeneralTile):
 		self.solid = False
 		self.transparency = True
 		self.work = 1
+		self.luminosity = None
 
 	def examine(self,entity):
 		return "It's just grass"
@@ -252,6 +264,7 @@ class WoodPlank(GeneralTile):
 		self.solid = False
 		self.transparency = True
 		self.work = 1
+		self.luminosity = None
 
 	def examine(self,entity):
 		return "Be careful not to walk off the edge"
@@ -268,6 +281,7 @@ class Water(GeneralTile):
 		self.solid = False
 		self.transparency = True
 		self.work = 8
+		self.luminosity = None
 
 	def examine(self, entity):
 		return "It's water"
@@ -284,6 +298,7 @@ class Sand(GeneralTile):
 		self.solid = False
 		self.transparency = True
 		self.work = 1
+		self.luminosity = None
 
 	def examine(self, entity):
 		return "Several thousands of sand grains together"
@@ -300,6 +315,7 @@ class Dirt(GeneralTile):
 		self.solid = False
 		self.transparency = True
 		self.work = 1
+		self.luminosity = None
 
 	def examine(self, entity):
 		return "Several thousands sand grains together"
@@ -316,6 +332,7 @@ class RedCarpet(GeneralTile):
 		self.solid = False
 		self.transparency = True
 		self.work = 1
+		self.luminosity = None
 
 	def examine(self, entity):
 		return "Royal red carpet"

@@ -36,7 +36,7 @@ class SaveButton(Button):
 	def save(self, tiledmap):
 		# Save as
 		if(tiledmap.map_.name == "" or self.saveas):
-			name = filesavebox(title="Save Map", default="MapEditor\\Maps\\")
+			name = filesavebox(title="Save Map", default="\\Draconic Revolution\\map\\")
 			if(name != None):
 				file = open(os.path.splitext(name)[0] + ".map", "w")
 				file.write(">" + os.path.splitext(os.path.basename(name))[0] + "\t" + str(tiledmap.win_cord) + "\n")
@@ -52,7 +52,7 @@ class SaveButton(Button):
 				
 		# Save
 		else:
-			file = open("MapEditor\\Maps\\" + tiledmap.map_.name + ".map", "w")
+			file = open("Draconic Revolution\\map\\" + tiledmap.map_.name + ".map", "w")
 			file.write(">" + tiledmap.map_.name + "\t" + str(tiledmap.win_cord) + "\n")
 			for row in tiledmap.map_.grid:
 				file.write(",".join([str(x) for x in row]) + "\n")
@@ -76,7 +76,7 @@ class LoadButton(Button):
 		return self.load()
 
 	def load(self):	
-		filename = fileopenbox(title="Load map", filetypes=["*.map"], default="MapEditor\\Maps\\")
+		filename = fileopenbox(title="Load map", filetypes=["*.map"], default="\\Draconic Revolution\\map\\")
 		map_name = ""
 		map_data = []
 		obj_data = []

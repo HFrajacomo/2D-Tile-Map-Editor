@@ -1,24 +1,47 @@
 import pyglet as pg
 
 def check_transparency(x,y,tilemap,objmap):
-	if(not tilemap[x][y].transparency):
+	try:
+		if(not tilemap[x][y].transparency):
+			return False
+		elif(not objmap[x][y].transparency):
+			return False
+		else:
+			return True
+	except:
 		return False
-	elif(not objmap[x][y].transparency):
-		return False
-	else:
-		return True
+
 
 def color_sum(t,s):
-	return (t[0]+s[0], t[1]+s[1], t[2]+s[2], 255)
+	red = t[0]+s[0]
+	green = t[1]+s[1]
+	blue = t[2]+s[2]
+
+	if(red > 255):
+		red = 255
+	if(blue > 255):
+		blue = 255
+	if(green > 255):
+		green = 255
+
+	if(red < 0):
+		red = 0
+	if(blue < 0):
+		blue = 0
+	if(green < 0):
+		green = 0
+
+	return (red, green, blue, 255)
 
 class Lightning:
 	dictionary = {}
 
-	def __init__(self, light, radius, color=(0,0,0,255)):
+	def __init__(self, light, radius, color=(0,0,0,255), bypass=False):
 		self.natural_light = light  # Natural light level for saving and loading maps
 		self.light = light
 		self.color = color
 		self.radius = radius
+		self.bypass = bypass
 
 		if(light == 0):
 			self.daylight = True
@@ -42,6 +65,9 @@ class Lightning:
 			new.daylight = False
 
 		return new 
+
+	def __repr__(self):
+		return "Daylight: " + str(self.daylight) + "\nLight: " + str(self.natural_light) + "\nColor: " + str(self.color)
 
 	def set_real_light(self, n):
 		self.natural_light = n
@@ -68,10 +94,139 @@ class Lightning:
 	# Propagates light from a Light tile
 	# If limit == None, that it's propagating daylight. Else for object light
 	@staticmethod
-	def propagate_light(x, y, tilemap, objmap, shadow_map, bypass_wall=False):
-		level = shadow_map[y][x].natural_light
-		color = shadow_map[y][x].color
-		radius = shadow_map[y][x].radius
+	def propagate_light(x, y, Light, tilemap, objmap, shadow_map):
+		level = Light.light
+		color = Light.color
+		radius = Light.radius
+
+		decay = int((255 - level)/(radius+1))
+		decayment = (255-level) - decay
+		color_decay = (-int(color[0]/(radius+1)), -int(color[1]/(radius+1)), -int(color[2]/(radius+1)), 255)
+		new_color = color_sum(color, color_decay)
+
+		if(Light.bypass):
+			transparency = True
+		else:
+			transparency = check_transparency(x,y, tilemap, objmap)
+
+		visited = []
+		available = [[x,y]]
+		data = [[new_color, decayment, transparency]]
+		flip = None
+
+		while(available != []):
+			x,y = available.pop(0)
+			cd, dc, trans = data.pop(0)
+			visited.append([x,y])
+
+			if([x+1,y] not in visited and [x+1,y] not in available and trans):
+				flip = Lightning.propagate(x+1, y, cd, dc, shadow_map)
+				if([x+1,y] not in available and dc>decay and flip):
+					available.append([x+1,y])
+					data.append([color_sum(cd,color_decay), dc-decay, check_transparency(x+1,y,tilemap, objmap)])
+			
+			if([x-1,y] not in visited and [x-1,y] not in available and trans):
+				flip = Lightning.propagate(x-1, y, cd, dc, shadow_map)
+				if([x-1,y] not in available and dc>decay and flip):
+					available.append([x-1,y])
+					data.append([color_sum(cd,color_decay), dc-decay, check_transparency(x-1,y,tilemap, objmap)])
+			
+			if([x,y+1] not in visited and [x,y+1] not in available and trans):
+				flip = Lightning.propagate(x, y+1, cd, dc, shadow_map)
+				if([x,y+1] not in available and dc>decay and flip):
+					available.append([x,y+1])
+					data.append([color_sum(cd,color_decay), dc-decay, check_transparency(x,y+1,tilemap, objmap)])
+
+			if([x,y-1] not in visited and [x,y-1] not in available and trans):
+				flip = Lightning.propagate(x, y-1, cd, dc, shadow_map)
+				if([x,y-1] not in available and dc>decay and flip):
+					available.append([x,y-1])
+					data.append([color_sum(cd,color_decay), dc-decay, check_transparency(x,y-1,tilemap, objmap)])
+			
+
+	@staticmethod
+	def propagate(x, y, color_decay, decay, shadow_map):
+		try:
+			shadow_map[x][y].set_real_light(shadow_map[x][y].natural_light - decay)
+			shadow_map[x][y].color = color_sum(shadow_map[x][y].color, color_decay)
+			return True
+		except IndexError:
+			return False
+
+	# Removes light from light emiting objects or tiles
+	@staticmethod
+	def unpropagate_light(x, y, Light, tilemap, objmap, shadow_map, bypass_wall=False):
+		level = Light.light
+		color = Light.color
+		radius = Light.radius
+
+		decay = int((255 - level)/(radius+1))
+		decayment = (255-level) - decay
+		color_decay = (-int(color[0]/(radius+1)), -int(color[1]/(radius+1)), -int(color[2]/(radius+1)), 255)
+		new_color = color_sum(color, color_decay)
+
+		if(Light.bypass):
+			transparency = True
+		else:
+			transparency = check_transparency(x,y, tilemap, objmap)
+
+		visited = []
+		available = [[x,y]]
+		data = [[new_color, decayment, transparency]]
+		flip = None
+
+		while(available != []):
+			x,y = available.pop(0)
+			cd, dc, trans = data.pop(0)
+			visited.append([x,y])
+
+			if([x+1,y] not in visited and [x+1,y] not in available and trans):
+				flip = Lightning.unpropagate(x+1, y, cd, dc, shadow_map)
+				if([x+1,y] not in available and dc>decay and flip):
+					available.append([x+1,y])
+					data.append([color_sum(cd,color_decay), dc-decay, check_transparency(x+1,y,tilemap, objmap)])
+			
+			if([x-1,y] not in visited and [x-1,y] not in available and trans):
+				flip = Lightning.unpropagate(x-1, y, cd, dc, shadow_map)
+				if([x-1,y] not in available and dc>decay and flip):
+					available.append([x-1,y])
+					data.append([color_sum(cd,color_decay), dc-decay, check_transparency(x-1,y,tilemap, objmap)])
+			
+			if([x,y+1] not in visited and [x,y+1] not in available and trans):
+				flip = Lightning.unpropagate(x, y+1, cd, dc, shadow_map)
+				if([x,y+1] not in available and dc>decay and flip):
+					available.append([x,y+1])
+					data.append([color_sum(cd,color_decay), dc-decay, check_transparency(x,y+1,tilemap, objmap)])
+
+			if([x,y-1] not in visited and [x,y-1] not in available and trans):
+				flip = Lightning.unpropagate(x, y-1, cd, dc, shadow_map)
+				if([x,y-1] not in available and dc>decay and flip):
+					available.append([x,y-1])
+					data.append([color_sum(cd,color_decay), dc-decay, check_transparency(x,y-1,tilemap, objmap)])
+	
+	@staticmethod
+	def unpropagate(x, y, color_decay, decay, shadow_map):
+		try:
+			shadow_map[x][y].set_real_light(shadow_map[x][y].natural_light + decay)
+			shadow_map[x][y].color = color_sum(shadow_map[x][y].color, (-color_decay[0], -color_decay[1], -color_decay[2], 255))
+			return True
+		except:
+			return False
+
+	############## Propagate all functions
+
+	# Propagates daylight to shadows (used in propagate all)
+	@staticmethod
+	def propagate_to_shadow(x, y, tilemap, objmap, shadow_map, bypass_wall=False):
+		try:
+			if(shadow_map[x+1][y].daylight and shadow_map[x-1][y].daylight and shadow_map[x][y+1].daylight and shadow_map[x][y-1].daylight):
+				return
+		except IndexError:
+			return
+
+		level = shadow_map[x][y].natural_light
+		color = shadow_map[x][y].color
+		radius = shadow_map[x][y].radius
 
 		decay = int((255 - level)/(radius+1))
 		decayment = (255-level) - decay
@@ -84,7 +239,7 @@ class Lightning:
 			transparency = check_transparency(x,y, tilemap, objmap)
 
 		visited = []
-		available = [[y,x]]
+		available = [[x,y]]
 		data = [[new_color, decayment, transparency]]
 
 		while(available != []):
@@ -116,76 +271,33 @@ class Lightning:
 					available.append([x,y-1])
 					data.append([color_sum(cd,color_decay), dc-decay, check_transparency(x,y-1,tilemap, objmap)])
 			
-
+	# Natural light propagation
 	@staticmethod
-	def propagate(x, y, color_decay, decay, shadow_map):
-		shadow_map[x][y].set_real_light(shadow_map[x][y].natural_light - decay)
-		shadow_map[x][y].color = (shadow_map[x][y].color[0]+color_decay[0], shadow_map[x][y].color[1]+color_decay[1],
-				shadow_map[x][y].color[2]+color_decay[2], 255)
-
-
-	# Removes light from light emiting objects or tiles
-	@staticmethod
-	def unpropagate_light(x, y, Light, tilemap, objmap, shadow_map, bypass_wall=False):
-		level = Light.natural_light
-		color = Light.color
-		radius = Light.radius
-
-		decay = int((255 - level)/(radius+1))
-		decayment = (255-level) - decay
-		color_decay = (-int(color[0]/(radius+1)), -int(color[1]/(radius+1)), -int(color[2]/(radius+1)), 255)
-		new_color = color_sum(color, color_decay)
-
-		if(bypass_wall):
-			transparency = True
-		else:
-			transparency = check_transparency(x,y, tilemap, objmap)
-
-		visited = []
-		available = [[y,x]]
-		data = [[new_color, decayment, transparency]]
-
-		while(available != []):
-			x,y = available.pop(0)
-			cd, dc, trans = data.pop(0)
-			visited.append([x,y])
-
-			if([x+1,y] not in visited and [x+1,y] not in available and trans):
-				Lightning.unpropagate(x+1, y, cd, dc, shadow_map)
-				if([x+1,y] not in available and dc>decay):
-					available.append([x+1,y])
-					data.append([color_sum(cd,color_decay), dc-decay, check_transparency(x+1,y,tilemap, objmap)])
-			
-			if([x-1,y] not in visited and [x-1,y] not in available and trans):
-				Lightning.unpropagate(x-1, y, cd, dc, shadow_map)
-				if([x-1,y] not in available and dc>decay):
-					available.append([x-1,y])
-					data.append([color_sum(cd,color_decay), dc-decay, check_transparency(x-1,y,tilemap, objmap)])
-			
-			if([x,y+1] not in visited and [x,y+1] not in available and trans):
-				Lightning.unpropagate(x, y+1, cd, dc, shadow_map)
-				if([x,y+1] not in available and dc>decay):
-					available.append([x,y+1])
-					data.append([color_sum(cd,color_decay), dc-decay, check_transparency(x,y+1,tilemap, objmap)])
-
-			if([x,y-1] not in visited and [x,y-1] not in available and trans):
-				Lightning.unpropagate(x, y-1, cd, dc, shadow_map)
-				if([x,y-1] not in available and dc>decay):
-					available.append([x,y-1])
-					data.append([color_sum(cd,color_decay), dc-decay, check_transparency(x,y-1,tilemap, objmap)])
-
-	@staticmethod
-	def unpropagate(x, y, color_decay, decay, shadow_map):
-		shadow_map[x][y].set_real_light(shadow_map[x][y].natural_light + decay)
-		shadow_map[x][y].color = (shadow_map[x][y].color[0]-color_decay[0], shadow_map[x][y].color[1]-color_decay[1],
-				shadow_map[x][y].color[2]-color_decay[2], 255)
-	'''
-	@staticmethod
-	def propagate_all(tilemap, objmap, shadowmap):
-		# Natural light propagation
+	def propagate_daylight(tilemap, objmap, shadowmap):
 		for i in range(len(shadowmap)):
 			for j in range(len(shadowmap[0])):
-				if(shadowmap[j][i].daylight):
-					Lightning.propagate_light(i,j, 5, tilemap, objmap, shadowmap)
-	'''
+				if(shadowmap[i][j].daylight):
+					Lightning.propagate_to_shadow(i,j, tilemap, objmap, shadowmap)		
 
+	# Object light propagation
+	@staticmethod
+	def propagate_element_light(tilemap, objmap, shadowmap):
+		for i in range(len(tilemap)):
+			for j in range(len(tilemap[0])):
+				if(tilemap[i][j].luminosity != None):
+					shadowmap[i][j].set_real_light(shadowmap[i][j].natural_light - (255 - tilemap[i][j].luminosity.light))
+					#shadowmap[i][j].color = color_sum(shadowmap[i][j].color, tilemap[i][j].luminosity.color)
+					Lightning.propagate_light(i,j,tilemap[i][j].luminosity,tilemap,objmap,shadowmap)
+
+		for i in range(0,len(objmap)):
+			for j in range(0,len(objmap[0])):
+				if(objmap[i][j].luminosity != None):
+					shadowmap[i][j].set_real_light(shadowmap[i][j].natural_light - (255 - objmap[i][j].luminosity.light))
+					#shadowmap[i][j].color = color_sum(shadowmap[i][j].color, objmap[i][j].luminosity.color)
+					Lightning.propagate_light(i,j,objmap[i][j].luminosity,tilemap,objmap,shadowmap)
+
+	@staticmethod
+	def propagate_all(tilemap, objmap, shadowmap):
+		Lightning.propagate_daylight(tilemap,objmap,shadowmap)
+		Lightning.propagate_element_light(tilemap,objmap,shadowmap)
+		

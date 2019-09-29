@@ -1,5 +1,6 @@
 import pyglet as pg
 from pyglet.gl import *
+from Lightning import *
 
 class Obj:
 
@@ -37,6 +38,8 @@ class GeneralObj:
 		self.hp = None
 		self.solid = None
 		self.transparency = None
+		self.luminosity = None
+
 
 	# Overload function
 	# Code to be run when player interacts with block
@@ -85,6 +88,7 @@ class NoneObj(GeneralObj):
 		self.solid = False
 		self.transparency = True
 		self.special_collision = False
+		self.luminosity = None
 
 class VegetableStand(GeneralObj):
 	def __init__(self, id):
@@ -94,6 +98,7 @@ class VegetableStand(GeneralObj):
 		self.solid = True
 		self.transparency = True
 		self.special_collision = False		
+		self.luminosity = None
 
 	def examine(self, entity):
 		return "It contains lots of food"
@@ -106,6 +111,7 @@ class FoodBasket(GeneralObj):
 		self.solid = True
 		self.transparency = True
 		self.special_collision = False
+		self.luminosity = None
 
 	def examine(self, entity):
 		return "It contains lots of food"
@@ -116,8 +122,9 @@ class Blackboard(GeneralObj):
 		self.multiblock = True
 		self.hp = 120
 		self.solid = True
-		self.transparency = False
+		self.transparency = True
 		self.special_collision = False
+		self.luminosity = None
 
 	def examine(self, entity):
 		return "Some chalk dust is on it's surface"
@@ -130,6 +137,7 @@ class ItemCrate(GeneralObj):
 		self.solid = True
 		self.transparency = True
 		self.special_collision = False
+		self.luminosity = None
 
 	def examine(self, entity):
 		return "There are items inside"
@@ -142,6 +150,7 @@ class Crate(GeneralObj):
 		self.solid = True
 		self.transparency = True
 		self.special_collision = False
+		self.luminosity = None
 
 	def examine(self, entity):
 		return "A solid wooden crate"
@@ -154,6 +163,7 @@ class EmptyCrate(GeneralObj):
 		self.solid = True
 		self.transparency = True
 		self.special_collision = False
+		self.luminosity = None
 
 	def examine(self, entity):
 		return "There's only dust inside"
@@ -166,6 +176,7 @@ class Flower(GeneralObj):
 		self.solid = False
 		self.transparency = True
 		self.special_collision = False
+		self.luminosity = None
 
 	def examine(self, entity):
 		return "A pretty nature's child"
@@ -178,6 +189,7 @@ class Logs(GeneralObj):
 		self.solid = False
 		self.transparency = True
 		self.special_collision = False
+		self.luminosity = None
 
 	def examine(self, entity):
 		return "Some logs"
@@ -190,6 +202,7 @@ class Fountain(GeneralObj):
 		self.solid = True
 		self.transparency = True
 		self.special_collision = False
+		self.luminosity = None
 
 	def examine(self, entity):
 		return "A beautiful fontain"
@@ -202,6 +215,7 @@ class Statue(GeneralObj):
 		self.transparency = False
 		self.solid = True
 		self.special_collision = False
+		self.luminosity = None
 
 		# Special Collision
 		self.add_special_collision([544])
@@ -217,6 +231,7 @@ class GraveStone(GeneralObj):
 		self.solid = True
 		self.transparency = True
 		self.special_collision = False
+		self.luminosity = None
 
 		self.add_special_collision([31,34])
 
@@ -231,6 +246,7 @@ class WoodenBarrel(GeneralObj):
 		self.solid = True
 		self.transparency = True
 		self.special_collision = False
+		self.luminosity = None
 
 	def examine(self, entity):
 		return "I wonder what's inside..."
@@ -243,6 +259,7 @@ class Bucket(GeneralObj):
 		self.solid = False
 		self.transparency = True
 		self.special_collision = False
+		self.luminosity = None
 
 	def examine(self, entity):
 		return "It's a bucket"
@@ -255,6 +272,7 @@ class Bush(GeneralObj):
 		self.solid = True
 		self.transparency = False
 		self.special_collision = False
+		self.luminosity = None
 
 	def examine(self, entity):
 		return "Dense foliage"
@@ -267,6 +285,7 @@ class Chair(GeneralObj):
 		self.solid = False
 		self.transparency = True
 		self.special_collision = False
+		self.luminosity = None
 
 	def examine(self, entity):
 		return "You can sit on it"
@@ -279,6 +298,7 @@ class Table(GeneralObj):
 		self.solid = True
 		self.transparency = True
 		self.special_collision = False
+		self.luminosity = None
 
 	def examine(self, entity):
 		return "A plain table"
@@ -291,6 +311,7 @@ class Bed(GeneralObj):
 		self.solid = True
 		self.transparency = True
 		self.special_collision = False
+		self.luminosity = None
 
 	def examine(self, entity):
 		return "Real comfy"
@@ -303,6 +324,7 @@ class Piles(GeneralObj):
 		self.solid = True
 		self.transparency = False
 		self.special_collision = False
+		self.luminosity = None
 
 	def examine(self, entity):
 		return "There's a pile of stuff here"
@@ -315,6 +337,7 @@ class Hangings(GeneralObj):
 		self.solid = False
 		self.transparency = True
 		self.special_collision = False
+		self.luminosity = None
 
 	def examine(self, entity):
 		return "Nice decoration"
@@ -327,6 +350,7 @@ class Altar(GeneralObj):
 		self.solid = True
 		self.transparency = True
 		self.special_collision = False
+		self.luminosity = None
 
 	def examine(self, entity):
 		return "I can see candles and undecipherable symbols"
@@ -339,6 +363,7 @@ class Fence(GeneralObj):
 		self.solid = True
 		self.transparency = True
 		self.special_collision = False
+		self.luminosity = None
 
 	def examine(self, entity):
 		return "Secure fence"
@@ -351,6 +376,7 @@ class Window(GeneralObj):
 		self.solid = True
 		self.transparency = True
 		self.special_collision = False
+		self.luminosity = None
 
 	def examine(self, entity):
 		return "A glassy frame"
@@ -363,6 +389,7 @@ class Sign(GeneralObj):
 		self.solid = True
 		self.transparency = True
 		self.special_collision = False
+		self.luminosity = None
 
 	def examine(self, entity):
 		return "There's something written on it"
@@ -373,8 +400,9 @@ class Pillar(GeneralObj):
 		self.multiblock = True
 		self.hp = 800
 		self.solid = True
-		self.transparency = False
+		self.transparency = True
 		self.special_collision = False
+		self.luminosity = None
 
 		self.add_special_collision([570])
 
@@ -389,6 +417,7 @@ class Stone(GeneralObj):
 		self.solid = True
 		self.transparency = False
 		self.special_collision = False
+		self.luminosity = None
 
 	def examine(self, entity):
 		return "A boulder"
@@ -401,6 +430,7 @@ class TallGrass(GeneralObj):
 		self.solid = False
 		self.transparency = True
 		self.special_collision = False
+		self.luminosity = None
 
 	def examine(self, entity):
 		return "It has overgrown"
@@ -411,8 +441,9 @@ class Bookshelf(GeneralObj):
 		self.multiblock = True
 		self.hp = 300
 		self.solid = True
-		self.transparency = False
+		self.transparency = True
 		self.special_collision = False
+		self.luminosity = None
 
 		self.add_special_collision([578,576,244,237,239,241])
 
@@ -427,6 +458,7 @@ class SilverwoodTree(GeneralObj):
 		self.solid = True
 		self.transparency = False
 		self.special_collision = False
+		self.luminosity = Lightning(160, 2, (0,160,230,255), bypass=True)
 
 		self.add_special_collision([595])
 
@@ -441,6 +473,7 @@ class Stairs(GeneralObj):
 		self.solid = False
 		self.transparency = True
 		self.special_collision = False
+		self.luminosity = None
 
 	def examine(self, entity):
 		return "I wonder where it goes"
@@ -453,6 +486,7 @@ class LightPole(GeneralObj):
 		self.solid = True
 		self.transparency = True
 		self.special_collision = False
+		self.luminosity = Lightning(60, 8, (236,240,80,255), bypass=True)
 
 		self.add_special_collision([598,599])
 
@@ -467,6 +501,7 @@ class Torch(GeneralObj):
 		self.solid = False
 		self.transparency = True
 		self.special_collision = True
+		self.luminosity = Lightning(80,7, (50,10,0,255), bypass=True)
 
 	def examine(self, entity):
 		return "Gives off light"
@@ -479,6 +514,7 @@ class Counter(GeneralObj):
 		self.solid = True
 		self.transparency = True
 		self.special_collision = False
+		self.luminosity = None
 
 	def examine(self, entity):
 		return "A plain surface"
@@ -491,6 +527,7 @@ class Door(GeneralObj):
 		self.solid = True
 		self.transparency = False
 		self.special_collision = False
+		self.luminosity = None
 
 	def examine(self, entity):
 		return "You can open it"
@@ -530,6 +567,7 @@ class OpenDoor(GeneralObj):
 		self.solid = False
 		self.transparency = True
 		self.special_collision = False
+		self.luminosity = None
 
 	def examine(self, entity):
 		return "You can open it"
@@ -569,6 +607,7 @@ class Sack(GeneralObj):
 		self.solid = True
 		self.transparency = True
 		self.special_collision = False
+		self.luminosity = None
 
 	def examine(self, entity):
 		return "There's something inside"
@@ -581,6 +620,7 @@ class Anvil(GeneralObj):
 		self.solid = True
 		self.transparency = True
 		self.special_collision = False
+		self.luminosity = None
 		
 	def examine(self, entity):
 		return "A heavy iron anvil for blacksmithing"
@@ -593,6 +633,7 @@ class Forge(GeneralObj):
 		self.solid = True
 		self.transparency = False
 		self.special_collision = False
+		self.luminosity = Lightning(80,2, (160,40,10,255), bypass=True)
 		
 	def examine(self, entity):
 		return "It's scorching hot"
@@ -605,6 +646,7 @@ class OakTree(GeneralObj):
 		self.solid = True
 		self.transparency = False
 		self.special_collision = False
+		self.luminosity = None
 		
 	def examine(self, entity):
 		return "A quiet calming Oak Tree"
@@ -617,6 +659,7 @@ class PineTree(GeneralObj):
 		self.solid = True
 		self.transparency = False
 		self.special_collision = False
+		self.luminosity = None
 
 		self.add_special_collision([219,222])
 		
@@ -629,8 +672,9 @@ class Cupboard(GeneralObj):
 		self.multiblock = True
 		self.hp = 700
 		self.solid = True
-		self.transparency = False
+		self.transparency = True
 		self.special_collision = False
+		self.luminosity = None
 
 		self.add_special_collision([449,432,587,427])
 		
@@ -645,6 +689,7 @@ class Bottle(GeneralObj):
 		self.solid = False
 		self.transparency = True
 		self.special_collision = False
+		self.luminosity = None
 		
 	def examine(self, entity):
 		return "Some alcohol"
@@ -657,6 +702,7 @@ class Slider(GeneralObj):
 		self.solid = True
 		self.transparency = True
 		self.special_collision = False
+		self.luminosity = None
 
 		self.add_special_collision([251,254])
 		
@@ -671,6 +717,7 @@ class FlowerPot(GeneralObj):
 		self.solid = True
 		self.transparency = True
 		self.special_collision = False
+		self.luminosity = None
 		
 	def examine(self, entity):
 		return "A beautiful plant lives here"
@@ -683,6 +730,7 @@ class Throne(GeneralObj):
 		self.solid = False
 		self.transparency = True
 		self.special_collision = False
+		self.luminosity = None
 		
 	def examine(self, entity):
 		return "Someone important seems to live here"
