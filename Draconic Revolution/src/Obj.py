@@ -334,7 +334,7 @@ class Hangings(GeneralObj):
 		self.id = id
 		self.multiblock = False
 		self.hp = 50
-		self.solid = False
+		self.solid = True
 		self.transparency = True
 		self.special_collision = False
 		self.luminosity = None

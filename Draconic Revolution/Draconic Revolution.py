@@ -29,6 +29,7 @@ from ServerHolder import *
 from NPC import *
 from Player import *
 from Lightning import *
+from Time import *
 
 # Game Events
 dispatcher = NPC_Dispatcher()
@@ -128,6 +129,10 @@ def collision_check(DISC_POS, OFFSET, MOVEMENT_VECTOR):
 		OFFSET[0] = 0
 
 	return False
+
+def global_time_run(Non):
+	global GLOBAL_TIME
+	GLOBAL_TIME.inc()
 
 def movement_handler(non):
 	global DISC_POS
@@ -242,8 +247,7 @@ def on_key_press(symbol, modifiers):
 	global MOVEMENT_VECTOR
 	global VIEWPORT_UPDATE
 	global p
-	global NPCS
-
+	global GLOBAL_TIME
 
 	if(symbol == key.Y):
 		PLAYER_DIRECTION = 0
@@ -289,21 +293,21 @@ def on_key_press(symbol, modifiers):
 
 	## Debug Key
 	if(symbol == key.Q):
-		print("Position: " + str(DISC_POS) + "\n")
-		print(shadow_map[DISC_POS[1]][DISC_POS[0]])
+		surroundings = get_submatrix(inter_map_obj, DISC_POS,1,1, non_circular=False)
+
+		for line in surroundings:
+			print()
+			for element in line:
+				print(element, end="\t")
 
 	elif(symbol == key.NUM_9):  
 		for npc in NPC.all_npcs:
 			npc.add_wander([100,115], 5, 3)
 
 	elif(symbol == key.Z):
-		Lightning.unpropagate_light(28,103,Lightning(80,7, (50,10,0,255), bypass=True), inter_map, inter_map_obj, shadow_map)
-		Lightning.unpropagate_light(25,103,Lightning(80,7, (50,10,0,255), bypass=True), inter_map, inter_map_obj, shadow_map)
+		GLOBAL_TIME.inc()
 	elif(symbol == key.X):
-		Lightning.unpropagate_light(28,108,Lightning(80,7, (50,10,0,255), bypass=True), inter_map, inter_map_obj, shadow_map)
-		Lightning.unpropagate_light(25,108,Lightning(80,7, (50,10,0,255), bypass=True), inter_map, inter_map_obj, shadow_map)
-	elif(symbol == key.C):
-		Lightning.unpropagate_light(42,53,Lightning(80,7, (50,10,0,255), bypass=True), inter_map, inter_map_obj, shadow_map)
+		GLOBAL_TIME.inc_hour()
 
 
 
@@ -370,6 +374,7 @@ def draw_tiles(Non):
 	global label
 	global label2
 	global label3
+	global time_label
 	global inter_map_obj
 	global shadow_map
 	global MOVEMENT_VECTOR
@@ -384,6 +389,8 @@ def draw_tiles(Non):
 	label = pg.text.Label(str(DISC_POS), font_name='Arial', font_size=16, x=1800, y=1010)
 	label2 = pg.text.Label(str(OFFSET), font_name='Arial', font_size=16, x=1800, y=950)
 	label3 = pg.text.Label(str([NPC.all_npcs[0].IS_LOADED, NPC.all_npcs[1].IS_LOADED, NPC.all_npcs[2].IS_LOADED]), font_name='Arial', font_size=16, x=1800, y=850)
+	time_label = pg.text.Label(str(GLOBAL_TIME), font_name='Arial', font_size=20, x=1450, y=1010)
+
 
 	# If needs to load new chunks
 	if(abs(LAST_RENDER_POS[0] - DISC_POS[0]) + abs(LAST_RENDER_POS[1] - DISC_POS[1]) >= 2 or VIEWPORT_UPDATE):
@@ -440,8 +447,9 @@ def draw_tiles(Non):
 							batch_anim_obj.append([pg.sprite.Sprite(img=animated_obj_dictionary[animation_handle][matrixes[1][j][i]], x=i*64-OFFSET[0]-128, y=(1272-(j*64))+OFFSET[1], batch=batch_anim_obj_draw), matrixes[1][j][i]])				
 
 				# Shadow handling
-				batch_shadow.append(pg.sprite.Sprite(img=Lightning.get(shadow_map[l][k].color), x=i*64-OFFSET[0]-128, y=(1272-(j*64))+OFFSET[1], batch=batch_shadow_draw))
-				batch_shadow[-1].opacity = shadow_map[l][k].light
+				if(shadow_map[l][k].light == 0):
+					batch_shadow.append(pg.sprite.Sprite(img=Lightning.get(shadow_map[l][k].color), x=i*64-OFFSET[0]-128, y=(1272-(j*64))+OFFSET[1], batch=batch_shadow_draw))
+					batch_shadow[-1].opacity = shadow_map[l][k].light
 
 
 
@@ -556,6 +564,7 @@ def on_draw():
 	label2.draw()
 	label3.draw()
 	fps_clock.draw()
+	time_label.draw()
 	LOCK.release()
 
 @window.event
@@ -594,6 +603,7 @@ LOCK = Lock()
 
 # Time
 FPS = 1/30
+GLOBAL_TIME = Time(0,0)
 
 # Animation
 animation_handle = 0
@@ -604,6 +614,7 @@ bar_bev = Bevel([0,0], "src\\Resources\\Barbevel.png")
 menu_bev = Bevel([1344,0], "src\\Resources\\Menubevel.png")
 label = pg.text.Label(str(DISC_POS), font_name='Arial', font_size=16, x=1800, y=1010)
 label2 = pg.text.Label(str(OFFSET), font_name='Arial', font_size=16, x=1800, y=950)
+time_label = pg.text.Label(str(GLOBAL_TIME), font_name='Arial', font_size=20, x=1450, y=1010)
 
 # Map
 m, inter_map, inter_map_obj, shadow_map = loadmap("map\\draconis")
@@ -632,6 +643,7 @@ pg.clock.schedule_interval_soft(movement_handler, FPS)
 pg.clock.schedule_interval(animate, 0.3)
 pg.clock.schedule_interval_soft(NPC_run, FPS)
 pg.clock.schedule_interval(reload_entity_layer, 1)
+pg.clock.schedule_interval(global_time_run, 1)
 
 
 while(True):
