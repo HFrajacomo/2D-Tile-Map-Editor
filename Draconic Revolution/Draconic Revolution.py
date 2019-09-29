@@ -447,7 +447,7 @@ def draw_tiles(Non):
 							batch_anim_obj.append([pg.sprite.Sprite(img=animated_obj_dictionary[animation_handle][matrixes[1][j][i]], x=i*64-OFFSET[0]-128, y=(1272-(j*64))+OFFSET[1], batch=batch_anim_obj_draw), matrixes[1][j][i]])				
 
 				# Shadow handling
-				if(shadow_map[l][k].light == 0):
+				if(shadow_map[l][k].light != 0):
 					batch_shadow.append(pg.sprite.Sprite(img=Lightning.get(shadow_map[l][k].color), x=i*64-OFFSET[0]-128, y=(1272-(j*64))+OFFSET[1], batch=batch_shadow_draw))
 					batch_shadow[-1].opacity = shadow_map[l][k].light
 
