@@ -309,9 +309,15 @@ class Lightning:
 		else:
 			transparency = check_transparency(x,y, tilemap, objmap)
 
+		# 1.775
+		if(level < 0):
+			decay = 0.35
+		else:
+			decay = -0.35
+
 		visited = []
 		available = [[x,y]]
-		data = [[decayment, transparency, radius]]
+		data = [[decayment+decay, transparency, radius]]
 		flip = None
 
 		while(available != []):
@@ -323,25 +329,25 @@ class Lightning:
 				flip = Lightning.unpropagate_shadow(x+1, y, dc, shadow_map)
 				if([x+1,y] not in available and flip and rd != 0):
 					available.append([x+1,y])
-					data.append([dc, check_transparency(x+1,y,tilemap, objmap), rd])
+					data.append([dc+decay, check_transparency(x+1,y,tilemap, objmap), rd-1])
 			
 			if([x-1,y] not in visited and [x-1,y] not in available and trans and not shadow_map[x-1][y].daylight):
 				flip = Lightning.unpropagate_shadow(x-1, y, dc, shadow_map)
 				if([x-1,y] not in available and flip and rd != 0):
 					available.append([x-1,y])
-					data.append([dc, check_transparency(x-1,y,tilemap, objmap), rd])
+					data.append([dc+decay, check_transparency(x-1,y,tilemap, objmap), rd-1])
 			
 			if([x,y+1] not in visited and [x,y+1] not in available and trans and not shadow_map[x][y+1].daylight):
 				flip = Lightning.unpropagate_shadow(x, y+1, dc, shadow_map)
 				if([x,y+1] not in available and flip and rd != 0):
 					available.append([x,y+1])
-					data.append([dc, check_transparency(x,y+1,tilemap, objmap), rd-1])
+					data.append([dc+decay, check_transparency(x,y+1,tilemap, objmap), rd-1])
 
 			if([x,y-1] not in visited and [x,y-1] not in available and trans and not shadow_map[x][y-1].daylight):
 				flip = Lightning.unpropagate_shadow(x, y-1, dc, shadow_map)
 				if([x,y-1] not in available and flip and rd != 0):
 					available.append([x,y-1])
-					data.append([dc, check_transparency(x,y-1,tilemap, objmap), rd-1])
+					data.append([dc+decay, check_transparency(x,y-1,tilemap, objmap), rd-1])
 	
 	@staticmethod
 	def unpropagate_shadow(x, y, decay, shadow_map):
