@@ -48,49 +48,26 @@ class DaylightConfigurator:
 		self.current_level = 0
 
 	# Controls global daylight depending on time of day and map config
-	def update_daylight(self, config, shadowmap, clock):
+	def update_daylight(self, config, tilemap, objmap, shadowmap, clock):
 		if(config != "Surface"):
 			return
 
 		h = clock.get_hour()
 		s = clock.get_seconds()
 
-		# Surface Light configuration
-
-		if(h >= 20 or h < 5):
-			self.current_level = 255
-		elif(h == 5 and s == 0):
-			self.current_level = 0
-		elif(h == 5):
-			self.current_level = -2.372
-		elif(h == 6 and s == 0):
-			self.current_level = -0.052
-		elif(h == 6):
-			self.current_level = -1.694
-		elif(h == 7 and s == 0):
-			self.current_level = -0.054
-		elif(h == 18 and s == 0):
-			self.current_level = 0	
-		elif(h == 18):
-			self.current_level = 1.694
-		elif(h == 19 and s == 0):
-			self.current_level = 0.054
-		elif(h == 19):
-			self.current_level = 2.372
-		elif(h == 20 and s == 0):
-			self.current_level = 0.052
-		if(h >= 20 or h < 5):
-			self.current_level = 0
-		if(h >= 7 and h < 18):
-			self.current_level = 0		
-
-		if(self.current_level == 0): # If no change, return
+		# Surface Light Configuration
+		if(h == 5 or h == 6):
+			self.current_level = -2.125
+		elif(h == 18 or h == 19 or (h == 20 and s == 0)):
+			self.current_level = 2.125
+		else:
 			return
 
-		self.__change_daylight(shadowmap)
+		self.__change_daylight(tilemap, objmap, shadowmap)
 
-	def __change_daylight(self, shadowmap):
+	def __change_daylight(self, tilemap, objmap, shadowmap):
 		for i in range(len(shadowmap)):
 			for j in range(len(shadowmap[0])):
 				if(shadowmap[i][j].daylight):
-					shadowmap[i][j].set_real_light(shadowmap[i][j].natural_light + self.current_level)
+					shadowmap[i][j].set_real_light(shadowmap[i][j].natural_light + int(self.current_level))
+					Lightning.unpropagate_to_shadow(i,j, Lightning(self.current_level, 5), tilemap, objmap, shadowmap)

@@ -37,6 +37,7 @@ class Lightning:
 	dictionary = {}
 
 	def __init__(self, light, radius, color=(0,0,0,255), bypass=False):
+		self.darkness_compensation = 0
 		self.natural_light = light  # Natural light level for saving and loading maps
 		self.light = light
 		self.color = color
@@ -67,11 +68,27 @@ class Lightning:
 		return new 
 
 	def __repr__(self):
-		return "Daylight: " + str(self.daylight) + "\nLight: " + str(self.natural_light) + "\nColor: " + str(self.color)
+		return "Daylight: " + str(self.daylight) + "\nLight: " + str(self.natural_light) + "\nColor: " + str(self.color) + "\nDarkness Compensation: " + str(self.darkness_compensation)
 
 	def set_real_light(self, n):
+		if(n >255):
+			self.darkness_compensation = 255 - n
+			n = 255
+
 		self.natural_light = n
 		self.set_light(int(n))
+
+	def add_real_light(self, n):
+		if(self.darkness_compensation > 0):
+			if(self.darkness_compensation + n < 0):
+				self.set_real_light(self.natural_light + (self.darkness_compensation + n))
+				self.darkness_compensation = 0
+				return
+			elif(self.darkness_compensation >= n):
+				self.darkness_compensation += n
+				return
+
+		self.set_real_light(self.natural_light + n)
 
 	def set_light(self, n):
 		if(n>255):
@@ -247,30 +264,97 @@ class Lightning:
 			cd, dc, trans = data.pop(0)
 			visited.append([x,y])
 
-			if([x+1,y] not in visited and [x+1,y] not in available and trans):
+
+			if([x+1,y] not in visited and [x+1,y] not in available and trans and not shadow_map[x+1][y].daylight):
 				Lightning.propagate(x+1, y, cd, dc, shadow_map)
 				if([x+1,y] not in available and dc>decay):
 					available.append([x+1,y])
 					data.append([color_sum(cd,color_decay), dc-decay, check_transparency(x+1,y,tilemap, objmap)])
 			
-			if([x-1,y] not in visited and [x-1,y] not in available and trans):
+			if([x-1,y] not in visited and [x-1,y] not in available and trans and not shadow_map[x-1][y].daylight):
 				Lightning.propagate(x-1, y, cd, dc, shadow_map)
 				if([x-1,y] not in available and dc>decay):
 					available.append([x-1,y])
 					data.append([color_sum(cd,color_decay), dc-decay, check_transparency(x-1,y,tilemap, objmap)])
 			
-			if([x,y+1] not in visited and [x,y+1] not in available and trans):
+			if([x,y+1] not in visited and [x,y+1] not in available and trans and not shadow_map[x][y+1].daylight):
 				Lightning.propagate(x, y+1, cd, dc, shadow_map)
 				if([x,y+1] not in available and dc>decay):
 					available.append([x,y+1])
 					data.append([color_sum(cd,color_decay), dc-decay, check_transparency(x,y+1,tilemap, objmap)])
 
-			if([x,y-1] not in visited and [x,y-1] not in available and trans):
+			if([x,y-1] not in visited and [x,y-1] not in available and trans and not shadow_map[x][y-1].daylight):
 				Lightning.propagate(x, y-1, cd, dc, shadow_map)
 				if([x,y-1] not in available and dc>decay):
 					available.append([x,y-1])
 					data.append([color_sum(cd,color_decay), dc-decay, check_transparency(x,y-1,tilemap, objmap)])
 			
+
+	# Darkens sunset propagated daylight
+	@staticmethod
+	def unpropagate_to_shadow(x, y, Light, tilemap, objmap, shadow_map, bypass_wall=False):
+		try:
+			if(shadow_map[x+1][y].daylight and shadow_map[x-1][y].daylight and shadow_map[x][y+1].daylight and shadow_map[x][y-1].daylight):
+				return
+		except IndexError:
+			return
+
+		level = Light.light
+		radius = Light.radius
+
+		decayment = level
+
+		if(Light.bypass):
+			transparency = True
+		else:
+			transparency = check_transparency(x,y, tilemap, objmap)
+
+		visited = []
+		available = [[x,y]]
+		data = [[decayment, transparency, radius]]
+		flip = None
+
+		while(available != []):
+			x,y = available.pop(0)
+			dc, trans, rd = data.pop(0)
+			visited.append([x,y])
+
+			if([x+1,y] not in visited and [x+1,y] not in available and trans and not shadow_map[x+1][y].daylight):
+				flip = Lightning.unpropagate_shadow(x+1, y, dc, shadow_map)
+				if([x+1,y] not in available and flip and rd != 0):
+					available.append([x+1,y])
+					data.append([dc, check_transparency(x+1,y,tilemap, objmap), rd])
+			
+			if([x-1,y] not in visited and [x-1,y] not in available and trans and not shadow_map[x-1][y].daylight):
+				flip = Lightning.unpropagate_shadow(x-1, y, dc, shadow_map)
+				if([x-1,y] not in available and flip and rd != 0):
+					available.append([x-1,y])
+					data.append([dc, check_transparency(x-1,y,tilemap, objmap), rd])
+			
+			if([x,y+1] not in visited and [x,y+1] not in available and trans and not shadow_map[x][y+1].daylight):
+				flip = Lightning.unpropagate_shadow(x, y+1, dc, shadow_map)
+				if([x,y+1] not in available and flip and rd != 0):
+					available.append([x,y+1])
+					data.append([dc, check_transparency(x,y+1,tilemap, objmap), rd-1])
+
+			if([x,y-1] not in visited and [x,y-1] not in available and trans and not shadow_map[x][y-1].daylight):
+				flip = Lightning.unpropagate_shadow(x, y-1, dc, shadow_map)
+				if([x,y-1] not in available and flip and rd != 0):
+					available.append([x,y-1])
+					data.append([dc, check_transparency(x,y-1,tilemap, objmap), rd-1])
+	
+	@staticmethod
+	def unpropagate_shadow(x, y, decay, shadow_map):
+		try:
+			if(shadow_map[x][y].natural_light + decay > 255):
+				shadow_map[x][y].darkness_compensation += shadow_map[x][y].natural_light + decay - 255
+				shadow_map[x][y].set_real_light(255)
+			else:
+				shadow_map[x][y].add_real_light(decay)
+			return True
+		except:
+			return False
+
 	# Natural light propagation
 	@staticmethod
 	def propagate_daylight(tilemap, objmap, shadowmap):

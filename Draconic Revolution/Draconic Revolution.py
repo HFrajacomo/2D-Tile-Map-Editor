@@ -134,9 +134,11 @@ def global_time_run(Non):
 	global GLOBAL_TIME
 	global DLconf
 	global shadow_map
+	global inter_map
+	global inter_map_obj
 
 	GLOBAL_TIME.inc()
-	DLconf.update_daylight("Surface", shadow_map, GLOBAL_TIME)
+	DLconf.update_daylight("Surface", inter_map, inter_map_obj, shadow_map, GLOBAL_TIME)
 
 def movement_handler(non):
 	global DISC_POS
@@ -610,7 +612,7 @@ LOCK = Lock()
 
 # Time
 FPS = 1/30
-GLOBAL_TIME = Time(18,0)
+GLOBAL_TIME = Time(12,00)
 
 # Animation
 animation_handle = 0
@@ -651,7 +653,7 @@ pg.clock.schedule_interval_soft(movement_handler, FPS)
 pg.clock.schedule_interval(animate, 0.3)
 pg.clock.schedule_interval_soft(NPC_run, FPS)
 pg.clock.schedule_interval(reload_entity_layer, 1)
-pg.clock.schedule_interval(global_time_run, 1)
+pg.clock.schedule_interval(global_time_run, 1/4)
 
 
 while(True):
