@@ -37,6 +37,9 @@ class Time:
 		self.min = min
 		self.sec = sec
 
+	def set_string(self, text):
+		self.min, self.sec = [int(x) for x in text.split(":")]
+
 	def get_hour(self):
 		return self.min
 

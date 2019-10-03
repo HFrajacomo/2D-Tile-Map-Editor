@@ -146,7 +146,6 @@ def global_time_run(Non):
 	global shader_area_1
 	global p
 
-	GLOBAL_TIME.inc()
 	DLconf.update_daylight("Surface", inter_map, inter_map_obj, shadow_map, GLOBAL_TIME)
 
 	# Area control
@@ -243,13 +242,15 @@ def movement_handler(non):
 
 def server_connection(Non):
 	global socket
+	global GLOBAL_TIME
 
 	try:
 		m = NetMessage(socket.recv_string(zmq.NOBLOCK))
 	except zmq.Again:
 		return
-		
-	print(m)
+
+	if(m.type == "TIME"):
+		GLOBAL_TIME.set_string(m.data)
 
 def NPC_run(Non):
 	global NPCS
@@ -685,7 +686,7 @@ HOST = "127.0.0.1"
 PORT = 33000
 con_string = "tcp://" + HOST + ":" + str(PORT)
 socket.connect(con_string)
-socket.send_string("IDENTITY")
+socket.send_string(-NetMessage("IDENTITY", ""))
 ident = socket.recv()
 socket.close()
 socket = context.socket(zmq.DEALER)

@@ -1,10 +1,13 @@
 class NetMessage:
-	def __init__(self, type, data):
-		self.type = type
-		self.data = data
+	def __init__(self, type, data=None):
+		# If serialized
+		if(data == None):
+			self.type, self.data = type.split("@")	
+		# If constructed	
+		else:	
+			self.type = type
+			self.data = data
 
-	def __init__(self, serialized):
-		self.type, self.data = serialized.split("@")
 
 	def __str__(self):
 		return self.type + "@" + self.data
