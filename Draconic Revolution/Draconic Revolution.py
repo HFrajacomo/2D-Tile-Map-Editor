@@ -30,6 +30,8 @@ from NPC import *
 from Player import *
 from Lightning import *
 from Time import *
+from Area import *
+from Shader import *
 
 # Game Events
 dispatcher = NPC_Dispatcher()
@@ -136,9 +138,21 @@ def global_time_run(Non):
 	global shadow_map
 	global inter_map
 	global inter_map_obj
+	global shader_layer
+	global shader_area_1
+	global p
 
 	GLOBAL_TIME.inc()
 	DLconf.update_daylight("Surface", inter_map, inter_map_obj, shadow_map, GLOBAL_TIME)
+
+	# Area control
+	if(p in shader_area_1):
+		shader_area_1.enter(p, shader_layer)
+
+	for pl in shader_area_1.entities:
+		if(pl not in shader_area_1):
+			shader_area_1.exit(pl, shader_layer)
+
 
 def movement_handler(non):
 	global DISC_POS
@@ -532,6 +546,7 @@ def on_draw():
 	global batch_fg_anim_obj_draw
 	global batch_shadow
 	global batch_shadow_draw
+	global shader_layer
 
 	global side_bev
 	global bar_bev
@@ -564,6 +579,8 @@ def on_draw():
 	batch_fg_anim_obj_draw.draw()
 	# Light Layer
 	batch_shadow_draw.draw()
+	# Shader Layer
+	shader_layer.draw()
 	# Screen
 	side_bev.draw()
 	bar_bev.draw()
@@ -633,6 +650,12 @@ m, inter_map, inter_map_obj, shadow_map = loadmap("map\\draconis")
 Lightning.propagate_all(inter_map, inter_map_obj, shadow_map)
 DLconf = DaylightConfigurator()
 
+# Areas
+shader_area_1 = ShaderArea([[30,30], [30,40], [40,30],[40,40]], (0,0,100,255), 50)
+
+# Shader
+shader_layer = Shader()
+
 # FPS Clock
 fps_clock  = pyglet.window.FPSDisplay(window=window)
 fps_clock.label.x = 1800
@@ -653,7 +676,7 @@ pg.clock.schedule_interval_soft(movement_handler, FPS)
 pg.clock.schedule_interval(animate, 0.3)
 pg.clock.schedule_interval_soft(NPC_run, FPS)
 pg.clock.schedule_interval(reload_entity_layer, 1)
-pg.clock.schedule_interval(global_time_run, 1/4)
+pg.clock.schedule_interval(global_time_run, 1)
 
 
 while(True):
