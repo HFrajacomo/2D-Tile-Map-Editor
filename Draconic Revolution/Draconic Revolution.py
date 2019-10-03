@@ -5,6 +5,9 @@ from pyglet.gl import *
 from pyglet.window import key
 import sys
 from threading import Lock
+import zmq
+from subprocess import Popen
+
 glEnable(GL_BLEND)
 glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
 
@@ -32,6 +35,7 @@ from Lightning import *
 from Time import *
 from Area import *
 from Shader import *
+from NetMessage import *
 
 # Game Events
 dispatcher = NPC_Dispatcher()
@@ -236,6 +240,16 @@ def movement_handler(non):
 		DISC_POS[1] = m.get_size()[0]-1
 		p.pos[0] = 0
 
+
+def server_connection(Non):
+	global socket
+
+	try:
+		m = NetMessage(socket.recv_string(zmq.NOBLOCK))
+	except zmq.Again:
+		return
+		
+	print(m)
 
 def NPC_run(Non):
 	global NPCS
@@ -595,6 +609,11 @@ def on_draw():
 
 @window.event
 def on_close():
+	global socket
+	global LAN_SERVER 
+
+	socket.close()
+	LAN_SERVER.kill()
 	exit()
 
 # Blitting Queues
@@ -656,6 +675,23 @@ shader_area_1 = ShaderArea([[30,30], [30,40], [40,30],[40,40]], (0,0,100,255), 5
 # Shader
 shader_layer = Shader()
 
+# Start LAN
+LAN_SERVER = Popen("python src\\LAN.py")
+
+# Socket Connection
+context = zmq.Context()
+socket = context.socket(zmq.DEALER)
+HOST = "127.0.0.1"
+PORT = 33000
+con_string = "tcp://" + HOST + ":" + str(PORT)
+socket.connect(con_string)
+socket.send_string("IDENTITY")
+ident = socket.recv()
+socket.close()
+socket = context.socket(zmq.DEALER)
+socket.setsockopt(zmq.IDENTITY, ident)
+socket.connect(con_string)
+
 # FPS Clock
 fps_clock  = pyglet.window.FPSDisplay(window=window)
 fps_clock.label.x = 1800
@@ -677,6 +713,7 @@ pg.clock.schedule_interval(animate, 0.3)
 pg.clock.schedule_interval_soft(NPC_run, FPS)
 pg.clock.schedule_interval(reload_entity_layer, 1)
 pg.clock.schedule_interval(global_time_run, 1)
+pg.clock.schedule_interval(server_connection, 1/120)
 
 
 while(True):
