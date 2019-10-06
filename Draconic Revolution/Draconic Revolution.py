@@ -7,7 +7,10 @@ import sys
 from threading import Lock
 import zmq
 from subprocess import Popen
+import colorama
+from colorama import Fore
 
+colorama.init(autoreset=True)
 glEnable(GL_BLEND)
 glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
 
@@ -165,34 +168,34 @@ def movement_handler(non):
 	global MOVEMENT_VECTOR
 	global p
 	global C_LOCK
-	global socket
+	global receive_socket
 
 	if(MOVEMENT_VECTOR == []):
-		socket.send_string(-NetMessage("POSITION", f"{p.pos[0]},{p.pos[1]};{p.offset[0]},{p.offset[1]};{p.direction};{p.IS_MOVING}"))
+		receive_socket.send_string(-NetMessage("POSITION", f"{p.pos[0]},{p.pos[1]};{p.offset[0]},{p.offset[1]};{p.direction};{p.IS_MOVING}"))
 		return
 
 	# Admin Movement
 	if(MOVEMENT_VECTOR[0] == "KU"):
 		LOCK.acquire()
-		socket.send_string(-NetMessage("CHANGE_POS", f"{DISC_POS[0]},{DISC_POS[1]}"))
+		receive_socket.send_string(-NetMessage("CHANGE_POS", f"{DISC_POS[0]},{DISC_POS[1]}"))
 		DISC_POS = list_sum(DISC_POS, [0,-1])
 		p.direction = 0
 		LOCK.release()
 	elif(MOVEMENT_VECTOR[0] == "KD"):
 		LOCK.acquire()
-		socket.send_string(-NetMessage("CHANGE_POS", f"{DISC_POS[0]},{DISC_POS[1]}"))
+		receive_socket.send_string(-NetMessage("CHANGE_POS", f"{DISC_POS[0]},{DISC_POS[1]}"))
 		DISC_POS = list_sum(DISC_POS, [0,1])
 		p.direction = 1
 		LOCK.release()
 	elif(MOVEMENT_VECTOR[0] == "KR"):
 		LOCK.acquire()
-		socket.send_string(-NetMessage("CHANGE_POS", f"{DISC_POS[0]},{DISC_POS[1]}"))
+		receive_socket.send_string(-NetMessage("CHANGE_POS", f"{DISC_POS[0]},{DISC_POS[1]}"))
 		DISC_POS = list_sum(DISC_POS, [1,0])
 		p.direction = 2
 		LOCK.release()
 	elif(MOVEMENT_VECTOR[0] == "KL"):
 		LOCK.acquire()
-		socket.send_string(-NetMessage("CHANGE_POS", f"{DISC_POS[0]},{DISC_POS[1]}"))
+		receive_socket.send_string(-NetMessage("CHANGE_POS", f"{DISC_POS[0]},{DISC_POS[1]}"))
 		DISC_POS = list_sum(DISC_POS, [-1,0])
 		p.direction = 3
 		LOCK.release()
@@ -219,19 +222,19 @@ def movement_handler(non):
 
 	# Tile Change
 	if(OFFSET[0]>31):
-		socket.send_string(-NetMessage("CHANGE_POS", f"{DISC_POS[0]},{DISC_POS[1]}"))
+		receive_socket.send_string(-NetMessage("CHANGE_POS", f"{DISC_POS[0]},{DISC_POS[1]}"))
 		OFFSET[0] -= 64
 		DISC_POS[0] += 1
 	elif(OFFSET[0]<-32):
-		socket.send_string(-NetMessage("CHANGE_POS", f"{DISC_POS[0]},{DISC_POS[1]}"))
+		receive_socket.send_string(-NetMessage("CHANGE_POS", f"{DISC_POS[0]},{DISC_POS[1]}"))
 		OFFSET[0] += 64
 		DISC_POS[0] -= 1
 	if(OFFSET[1]>31):
-		socket.send_string(-NetMessage("CHANGE_POS", f"{DISC_POS[0]},{DISC_POS[1]}"))
+		receive_socket.send_string(-NetMessage("CHANGE_POS", f"{DISC_POS[0]},{DISC_POS[1]}"))
 		OFFSET[1] -= 64
 		DISC_POS[1] += 1
 	elif(OFFSET[1]<-32):
-		socket.send_string(-NetMessage("CHANGE_POS", f"{DISC_POS[0]},{DISC_POS[1]}"))
+		receive_socket.send_string(-NetMessage("CHANGE_POS", f"{DISC_POS[0]},{DISC_POS[1]}"))
 		OFFSET[1] += 64
 		DISC_POS[1] -= 1
 
@@ -249,35 +252,62 @@ def movement_handler(non):
 		DISC_POS[1] = m.get_size()[0]-1
 		p.pos[0] = 0
 
-	socket.send_string(-NetMessage("POSITION", f"{DISC_POS[0]},{DISC_POS[1]};{OFFSET[0]},{OFFSET[1]};{p.direction};{p.IS_MOVING}"))
+	receive_socket.send_string(-NetMessage("POSITION", f"{DISC_POS[0]},{DISC_POS[1]};{OFFSET[0]},{OFFSET[1]};{p.direction};{p.IS_MOVING}"))
 
-def server_connection(Non):
-	global socket
-	global GLOBAL_TIME
+def layer_connection(Non):
+	global layer_socket
 	global entity_dict
-	global p
 
 	try:
-		m = NetMessage(socket.recv_string(zmq.NOBLOCK))
+		message = layer_socket.recv(zmq.NOBLOCK).decode()
+		m = NetMessage(message)
 	except zmq.Again:
 		return
+
+	print(Fore.RED + "ENTITY: " + message)
+
+	# If gets entity layer refreshment
+	if(m.type == "ENTITIES"):
+		known = list(entity_dict.keys())
+
+		for e in m.data.split(","):
+			if(e not in known):
+				layer_socket.send_string(-NetMessage("REQ_ENTITY", str(e)))
+
+def timer_connection(Non):
+	global timer_socket
+	global GLOBAL_TIME
+	global LAN_SERVER
+
+	try:
+		message = timer_socket.recv(zmq.NOBLOCK).decode()
+		m = NetMessage(message)
+	except zmq.Again:
+		return
+
+	print(Fore.RED + "TIMER: " + message)
 
 	# If receives time data
 	if(m.type == "TIME"):
 		GLOBAL_TIME.set_string(m.data)
 
+def receive_connection(Non):
+	global receive_socket
+	global entity_dict
+	global p
+
+	try:
+		message = receive_socket.recv(zmq.NOBLOCK).decode()
+		m = NetMessage(message)
+	except zmq.Again:
+		return
+
+	print(Fore.RED + "RECEIVE: " + message)
+
 	# If gets your own ID
-	elif(m.type == "PLAYER_ID"):
+	if(m.type == "PLAYER_ID"):
 		entity_dict[int(m.data)] = p
 		p.id = int(m.data)
-
-	# If gets entity layer refreshment
-	elif(m.type == "ENTITIES"):
-		known = list(entity_dict.keys())
-
-		for e in m.data.split(","):
-			if(e not in known):
-				socket.send_string(-NetMessage("REQ_ENTITY", str(e)))
 
 	# If gets individual entity information
 	elif(m.type == "ENTITY_INFO"):
@@ -301,6 +331,7 @@ def NPC_run(Non):
 		else:
 			break
 '''
+
 def reload_entity_layer(Non):
 	global DISC_POS
 	global entity_dict
@@ -621,6 +652,7 @@ def on_draw():
 	batch_obj_draw.draw()
 	batch_anim_obj_draw.draw()
 	# Entity
+
 	for npc in NPC.all_npcs:
 		if(npc.IS_LOADED):
 			npc.draw(DISC_POS, OFFSET)
@@ -726,14 +758,24 @@ context = zmq.Context()
 socket = context.socket(zmq.DEALER)
 HOST = "127.0.0.1"
 PORT = 33000
-con_string = "tcp://" + HOST + ":" + str(PORT)
-socket.connect(con_string)
+receive_string = "tcp://" + HOST + ":" + str(PORT)
+timer_string = "tcp://" + HOST + ":" + str(PORT+1)
+layer_string = "tcp://" + HOST + ":" + str(PORT+2)
+socket.connect(receive_string)
 socket.send_string(-NetMessage("IDENTITY", f"{DISC_POS[0]},{DISC_POS[1]};{OFFSET[0]},{OFFSET[1]};{p.filename}"))
 ident = socket.recv()
 socket.close()
-socket = context.socket(zmq.DEALER)
-socket.setsockopt(zmq.IDENTITY, ident)
-socket.connect(con_string)
+
+# Actual Sockets
+receive_socket = context.socket(zmq.DEALER)
+timer_socket = context.socket(zmq.DEALER)
+layer_socket = context.socket(zmq.DEALER)
+receive_socket.setsockopt(zmq.IDENTITY, ident)
+timer_socket.setsockopt(zmq.IDENTITY, ident)
+layer_socket.setsockopt(zmq.IDENTITY, ident)
+receive_socket.connect(receive_string)
+timer_socket.connect(timer_string)
+layer_socket.connect(layer_string)
 
 
 # FPS Clock
@@ -749,7 +791,9 @@ pg.clock.schedule_interval_soft(movement_handler, FPS)
 pg.clock.schedule_interval(animate, 0.3)
 #pg.clock.schedule_interval_soft(NPC_run, FPS)
 pg.clock.schedule_interval(global_time_run, 1)
-pg.clock.schedule_interval(server_connection, 1/120)
+pg.clock.schedule_interval(receive_connection, 1/120)
+pg.clock.schedule_interval(timer_connection, 1/30)
+pg.clock.schedule_interval(layer_connection, 1/60)
 
 
 while(True):

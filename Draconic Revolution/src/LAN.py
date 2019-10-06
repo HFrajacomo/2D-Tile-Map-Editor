@@ -45,7 +45,6 @@ def add_entity(e):
 	global entities_dict
 	global connected_entity_ids
 	global entity_layer
-	print(connected_entity_ids)
 
 	i = -1
 	while(i in connected_entity_ids):
@@ -58,20 +57,19 @@ def add_entity(e):
 
 # Converts string to byte string
 def byt(text):
-	return bytes(text, "UTF-8")
+	return text.encode("UTF-8")
 
 # Sends a message to all connected
-def broadcast(m):
-	global s
+def broadcast(sock, m):
 	global connections
 
 	for conn in connections:
-		s.send_multipart([conn, byt(-m)])
+		timer_socket.send_multipart([conn, byt(-m)])
 
 # Sends layer information to connected users Thread
 def layer_refreshment():
 	global entity_layer
-	global s
+	global layer_socket
 	global connections
 	global player_known_ids
 	global LOCK
@@ -105,9 +103,9 @@ def layer_refreshment():
 								found_ids.append(entity)
 
 			player_known_ids[id] = found_ids
-			print(found_ids)
 			n = NetMessage("ENTITIES", str(found_ids)[1:-1])
-			s.send_multipart([conn, byt(-n)])
+			layer_socket.send_multipart([conn, byt(-n)])
+			print("ENTITY: " + -n)
 
 		# FPS calibrator
 		dt = (t - datetime.now()).total_seconds()
@@ -116,19 +114,19 @@ def layer_refreshment():
 		else:
 			sleep(1 - dt)	
 
-
-
-
 # Time processing thread
 def timer():
 	global global_timer
 	global LOCK
+	global timer_socket
+	global receive_socket
 
 	while(not QUIT):
 		t = datetime.now()
-		broadcast(NetMessage("TIME", str(global_timer)))
+		broadcast(timer_socket, NetMessage("TIME", str(global_timer)))
 		
 		global_timer.inc()
+		print("TIMER: " + str(global_timer))
 
 		# FPS calibrator
 		dt = (t - datetime.now()).total_seconds()
@@ -139,7 +137,7 @@ def timer():
 
 # Global Receive
 def receive():
-	global s
+	global receive_socket
 	global connections
 	global players_dict
 	global connection_player_dict
@@ -147,31 +145,30 @@ def receive():
 
 	while(not QUIT):
 		try:
-			address, data = s.recv_multipart(zmq.NOBLOCK)
+			address, data = receive_socket.recv_multipart(zmq.NOBLOCK)
 		except zmq.Again:
 			continue
 
-		print("Recebi mensagem: " + data.decode())
-
 		data = data.decode()
 		m = NetMessage(data)
+		print("RECEIVE: " + data)
 
 		# Assigning ID and connection to entrant users
 		if(m.type == "IDENTITY"):
 			if(connections == []):
 				new_ident = byt("0")
-				s.send_multipart([address, new_ident])
+				receive_socket.send_multipart([address, new_ident])
 				connections.append(new_ident)
 			else:
 				new_ident = byt(str(int(connections[-1])+1))
-				s.send_multipart([address, new_ident])
+				receive_socket.send_multipart([address, new_ident])
 				connections.append(new_ident)
 
 			disc_pos, offset, filename = m.data.split(";")
 			disc_pos = [int(x) for x in disc_pos.split(",")]
 			offset = [int(x) for x in offset.split(",")]
 			id = add_player(Player(disc_pos, offset, filename, server=True))
-			s.send_multipart([new_ident, byt(-NetMessage("PLAYER_ID", str(id)))])
+			receive_socket.send_multipart([new_ident, byt(-NetMessage("PLAYER_ID", str(id)))])
 			connection_player_dict[new_ident] = id
 			entity_layer[disc_pos[0]][disc_pos[1]].append(id)
 
@@ -238,11 +235,17 @@ entity_layer = generate_entity_layer(m)
 QUIT = False
 
 context = zmq.Context()
-s = context.socket(zmq.ROUTER)
+receive_socket = context.socket(zmq.ROUTER)
+timer_socket = context.socket(zmq.ROUTER)
+layer_socket = context.socket(zmq.ROUTER)
 HOST = "127.0.0.1"
 PORT = 33000
-con_string = "tcp://" + HOST + ":" + str(PORT)
-s.bind(con_string)
+receive_string = "tcp://" + HOST + ":" + str(PORT)
+timer_string = "tcp://" + HOST + ":" + str(PORT+1)
+layer_string = "tcp://" + HOST + ":" + str(PORT+2)
+receive_socket.bind(receive_string)
+timer_socket.bind(timer_string)
+layer_socket.bind(layer_string)
 
 global_timer = Time(12,0)
 
@@ -263,7 +266,7 @@ add_entity(NPC([103, 115], [0,0], "src\\Char\\Lianna.png"))
 receive_thread = Thread(target=receive)
 time_thread = Thread(target=timer)
 layer_refreshment_thread = Thread(target=layer_refreshment)
-time_thread.start()
 receive_thread.start()
+time_thread.start()
 layer_refreshment_thread.start()
 receive_thread.join()
