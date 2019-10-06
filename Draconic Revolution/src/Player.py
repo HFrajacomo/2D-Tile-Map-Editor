@@ -58,6 +58,13 @@ class Player:
 		else:
 			return False
 
+	# Sets position received from socket
+	def set_pos(DISC_POS=None, OFFSET=None, DIRECTION=None, is_moving=None):
+		self.pos = DISC_POS
+		self.offset = OFFSET
+		self.direction = DIRECTION
+		self.IS_MOVING = is_moving
+
 	def get_total_x(self):
 		return self.pos[0]*64 + self.offset[0]
 

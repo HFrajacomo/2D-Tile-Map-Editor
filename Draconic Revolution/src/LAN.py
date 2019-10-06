@@ -8,6 +8,10 @@ from NPC import *
 from Player import *
 from Map import *
 from datetime import datetime
+import colorama
+from colorama import Fore
+
+colorama.init(autoreset=True)
 
 def list_remove(lista, e):
 	aux = []
@@ -64,7 +68,45 @@ def broadcast(sock, m):
 	global connections
 
 	for conn in connections:
-		timer_socket.send_multipart([conn, byt(-m)])
+		sock.send_multipart([conn, byt(-m)])
+
+# Sends entities position to players
+def npc_info():
+	global npc_socket
+	global connections
+	global player_known_ids
+	global players_dict
+	global entities_dict
+	global loaded_npcs
+
+	while(not QUIT):
+		currently_loaded = set()
+		t = datetime.now()
+		for conn in connections:
+			try:
+				for id in player_known_ids[connection_to_id[conn]]:
+					currently_loaded.add(id)
+					if(id == connection_to_id[conn]):
+						continue
+					if(id > 0):
+						entity = players_dict[id]
+					else:
+						entity = entities_dict[id]
+
+					data = str(id) + ";" + str(entity.pos)[1:-1] + ";" + str(entity.offset)[1:-1] + ";" + str(entity.direction) + ";" + str(entity.IS_MOVING)
+					npc_socket.send_multipart([conn, byt(-NetMessage("NPC_INFO", data))])
+			except KeyError:
+				continue
+
+		loaded_npcs = currently_loaded
+
+
+		# FPS calibrator
+		dt = (t - datetime.now()).total_seconds()
+		if(dt > 1/60):
+			print("Npc information is overloaded!")
+		else:
+			sleep(1/60 - dt)	
 
 # Sends layer information to connected users Thread
 def layer_refreshment():
@@ -79,7 +121,7 @@ def layer_refreshment():
 		
 		for conn in connections:
 			found_ids = []
-			id = connection_player_dict[conn]
+			id = connection_to_id[conn]
 			pos = players_dict[id].pos
 
 			for i in range(pos[0] - 24, pos[0] + 25): # 24 25
@@ -103,9 +145,9 @@ def layer_refreshment():
 								found_ids.append(entity)
 
 			player_known_ids[id] = found_ids
+			found_ids = list(set(found_ids))
 			n = NetMessage("ENTITIES", str(found_ids)[1:-1])
 			layer_socket.send_multipart([conn, byt(-n)])
-			print("ENTITY: " + -n)
 
 		# FPS calibrator
 		dt = (t - datetime.now()).total_seconds()
@@ -119,7 +161,6 @@ def timer():
 	global global_timer
 	global LOCK
 	global timer_socket
-	global receive_socket
 
 	while(not QUIT):
 		t = datetime.now()
@@ -140,7 +181,7 @@ def receive():
 	global receive_socket
 	global connections
 	global players_dict
-	global connection_player_dict
+	global connection_to_id
 	global entity_layer
 
 	while(not QUIT):
@@ -169,27 +210,27 @@ def receive():
 			offset = [int(x) for x in offset.split(",")]
 			id = add_player(Player(disc_pos, offset, filename, server=True))
 			receive_socket.send_multipart([new_ident, byt(-NetMessage("PLAYER_ID", str(id)))])
-			connection_player_dict[new_ident] = id
+			connection_to_id[new_ident] = id
 			entity_layer[disc_pos[0]][disc_pos[1]].append(id)
 
 		# Update users position data (Every step)
 		elif(m.type == "POSITION"):
-			players_dict[connection_player_dict[address]].pos = [int(x) for x in m.data.split(";")[0].split(",")]
-			players_dict[connection_player_dict[address]].offset = [int(x) for x in m.data.split(";")[1].split(",")]
-			players_dict[connection_player_dict[address]].direction = int(m.data.split(";")[2])
+			players_dict[connection_to_id[address]].pos = [int(x) for x in m.data.split(";")[0].split(",")]
+			players_dict[connection_to_id[address]].offset = [int(x) for x in m.data.split(";")[1].split(",")]
+			players_dict[connection_to_id[address]].direction = int(m.data.split(";")[2])
 			if(m.data.split(";")[3] == "True"):
-				players_dict[connection_player_dict[address]].IS_MOVING = True
+				players_dict[connection_to_id[address]].IS_MOVING = True
 			else:
-				players_dict[connection_player_dict[address]].IS_MOVING = False
+				players_dict[connection_to_id[address]].IS_MOVING = False
 
-			disc_pos = players_dict[connection_player_dict[address]].pos
-			id = int(connection_player_dict[address])
+			disc_pos = players_dict[connection_to_id[address]].pos
+			id = int(connection_to_id[address])
 			if(id not in entity_layer[disc_pos[0]][disc_pos[1]]):
 				entity_layer[disc_pos[0]][disc_pos[1]].append(id)
 
 		# Change users position in entity layer (Every block change)
 		elif(m.type == "CHANGE_POS"):
-			id = int(connection_player_dict[address])
+			id = int(connection_to_id[address])
 			disc_pos = [int(x) for x in m.data.split(",")]
 			
 			if(id in entity_layer[disc_pos[0]][disc_pos[1]]):
@@ -198,10 +239,12 @@ def receive():
 		# Sends requested id information
 		elif(m.type == "REQ_ENTITY"):
 			id = int(m.data)
-			if(id > 0):
-				s.send_multipart([address, byt(-NetMessage("ENTITY_INFO", str(id) + "#" + str(players_dict[id])))])
+			if(id == connection_to_id[address]):
+				continue
+			elif(id > 0):
+				receive_socket.send_multipart([address, byt(-NetMessage("ENTITY_INFO", str(id) + "#" + str(players_dict[id])))])
 			else:
-				s.send_multipart([address, byt(-NetMessage("ENTITY_INFO", str(id) + "#" + str(entities_dict[id])))])
+				receive_socket.send_multipart([address, byt(-NetMessage("ENTITY_INFO", str(id) + "#" + str(entities_dict[id])))])
 
 # NPC activities thread
 def NPC_run(FPS):
@@ -216,10 +259,8 @@ def NPC_run(FPS):
 	while(not QUIT):
 		t = datetime.now()
 		for npc in NPC.all_npcs:
-			if(npc.IS_LOADED):
-				npc.run(FPS, inter_map, inter_map_obj, s, entity_layer)
-			else:
-				break
+			if(npc.id in loaded_npcs):
+				npc.run(FPS, inter_map, inter_map_obj, entity_layer)
 
 		# FPS calibrator
 		dt = (t - datetime.now()).total_seconds()
@@ -238,14 +279,17 @@ context = zmq.Context()
 receive_socket = context.socket(zmq.ROUTER)
 timer_socket = context.socket(zmq.ROUTER)
 layer_socket = context.socket(zmq.ROUTER)
+npc_socket = context.socket(zmq.ROUTER)
 HOST = "127.0.0.1"
 PORT = 33000
 receive_string = "tcp://" + HOST + ":" + str(PORT)
 timer_string = "tcp://" + HOST + ":" + str(PORT+1)
 layer_string = "tcp://" + HOST + ":" + str(PORT+2)
+npc_string = "tcp://" + HOST + ":" + str(PORT+3)
 receive_socket.bind(receive_string)
 timer_socket.bind(timer_string)
 layer_socket.bind(layer_string)
+npc_socket.bind(npc_string)
 
 global_timer = Time(12,0)
 
@@ -256,17 +300,24 @@ players_dict = {}
 entities_dict = {}
 connected_player_ids = []
 connected_entity_ids = []
-connection_player_dict = {}
+connection_to_id = {}
 player_known_ids = {}
+loaded_npcs = {}
 
 add_entity(NPC([101, 115], [0,0], "src\\Char\\Lianna.png"))
 add_entity(NPC([102, 115], [0,0], "src\\Char\\Lianna.png"))
 add_entity(NPC([103, 115], [0,0], "src\\Char\\Lianna.png"))
+NPC.all_npcs[0].add_wander([103, 115], 8, 0)
 
+# Threads
 receive_thread = Thread(target=receive)
 time_thread = Thread(target=timer)
 layer_refreshment_thread = Thread(target=layer_refreshment)
+npc_info_thread = Thread(target=npc_info)
+npc_run_thread = Thread(target=NPC_run, args=(1/60,))
 receive_thread.start()
 time_thread.start()
 layer_refreshment_thread.start()
+npc_info_thread.start()
+npc_run_thread.start()
 receive_thread.join()

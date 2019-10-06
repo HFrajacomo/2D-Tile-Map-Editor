@@ -69,6 +69,13 @@ class NPC:
 		else:
 			return False
 
+	# Sets position received from socket
+	def set_pos(DISC_POS=None, OFFSET=None, DIRECTION=None, is_moving=None):
+		self.pos = DISC_POS
+		self.offset = OFFSET
+		self.direction = DIRECTION
+		self.IS_MOVING = is_moving
+
 	# Loads all NPC's assets for Entity Layer rendering
 	def load(self):
 		if(self.IS_LOADED):
@@ -110,8 +117,8 @@ class NPC:
 		return self.pos[1]*64 + self.offset[1]
 
 	def draw(self, DISC_POS, OFFSET):
-		if(self.IS_LOADED == 0):
-			return
+		#if(self.IS_LOADED == 0):
+		#	return
 
 		total_x = DISC_POS[0]*64 + OFFSET[0] - 704
 		total_y = DISC_POS[1]*64 + OFFSET[1] + 568
@@ -308,18 +315,18 @@ class NPC:
 	def add_wander(self, pos, radius, hurry):
 		self.high_queue.append("Wander;" + str(pos) + ";" + str(radius) + ";" + str(hurry))
 
-	def run(self, Non, intermap, intermap_obj, socket, entity_layer):
+	def run(self, Non, intermap, intermap_obj, entity_layer):
 		if(self.action_queue != []):
 			action = self.action_queue.pop(0)
 
 			if(action == "L"):
-				self.step_left(socket)
+				self.step_left(entity_layer)
 			elif(action == "R"):
-				self.step_right(socket)			
+				self.step_right(entity_layer)			
 			elif(action == "U"):
-				self.step_up(socket)	
+				self.step_up(entity_layer)	
 			elif(action == "D"):
-				self.step_down(socket)	
+				self.step_down(entity_layer)	
 			elif(action == "MIDV"):
 				self.offset[1] = 0
 			elif(action == "MIDH"):

@@ -254,9 +254,41 @@ def movement_handler(non):
 
 	receive_socket.send_string(-NetMessage("POSITION", f"{DISC_POS[0]},{DISC_POS[1]};{OFFSET[0]},{OFFSET[1]};{p.direction};{p.IS_MOVING}"))
 
+def npc_info_connection(Non):
+	global entity_dict
+	global npc_socket
+
+	try:
+		message = npc_socket.recv(zmq.NOBLOCK).decode()
+		m = NetMessage(message)
+	except zmq.Again:
+		return
+
+	print(Fore.RED + "NPC_INFO: " + message)
+
+	if(m.type == "NPC_INFO"):
+		id, disc_pos, offset, direction, is_moving = m.data.split(";")
+		id = int(id)
+		disc_pos = [int(x) for x in disc_pos.split(",")]
+		offset = [int(x) for x in offset.split(",")]
+		direction = int(direction)
+		if(is_moving == "True"):
+			is_moving = True
+		else:
+			is_moving = False	
+
+		try:
+			entity_dict[id].pos = disc_pos
+			entity_dict[id].offset = offset
+			entity_dict[id].direction = direction
+			entity_dict[id].IS_MOVING = is_moving
+		except KeyError:
+			pass
+
 def layer_connection(Non):
 	global layer_socket
 	global entity_dict
+	global receive_socket
 
 	try:
 		message = layer_socket.recv(zmq.NOBLOCK).decode()
@@ -271,8 +303,8 @@ def layer_connection(Non):
 		known = list(entity_dict.keys())
 
 		for e in m.data.split(","):
-			if(e not in known):
-				layer_socket.send_string(-NetMessage("REQ_ENTITY", str(e)))
+			if(int(e) not in known):
+				receive_socket.send_string(-NetMessage("REQ_ENTITY", str(int(e))))
 
 def timer_connection(Non):
 	global timer_socket
@@ -315,6 +347,8 @@ def receive_connection(Non):
 		id = int(id)
 		ent_data = ent_data.split(";")
 		if(id > 0):
+			if(id == p.id):
+				return
 			entity_dict[id] = Player([int(x) for x in ent_data[0].split(",")], [int(x) for x in ent_data[1].split(",")], ent_data[2])
 		else:
 			entity_dict[id] = NPC([int(x) for x in ent_data[0].split(",")], [int(x) for x in ent_data[1].split(",")], ent_data[2])
@@ -652,13 +686,8 @@ def on_draw():
 	batch_obj_draw.draw()
 	batch_anim_obj_draw.draw()
 	# Entity
-
-	for npc in NPC.all_npcs:
-		if(npc.IS_LOADED):
-			npc.draw(DISC_POS, OFFSET)
-		else:
-			break
-
+	for npc in entity_dict.values():
+		npc.draw(DISC_POS, OFFSET)
 	p.draw(DISC_POS, OFFSET)
 	# Foreground Objects
 	batch_fg_obj_draw.draw()
@@ -707,7 +736,7 @@ batch_shadow = []
 VIEWPORT_UPDATE = True
 
 # Positioning
-DISC_POS = [55,40]
+DISC_POS = [110,110]
 OFFSET = [0,0]
 PLAYER_DIRECTION = 0
 MOVEMENT_VECTOR = []
@@ -761,6 +790,7 @@ PORT = 33000
 receive_string = "tcp://" + HOST + ":" + str(PORT)
 timer_string = "tcp://" + HOST + ":" + str(PORT+1)
 layer_string = "tcp://" + HOST + ":" + str(PORT+2)
+npc_string = "tcp://" + HOST + ":" + str(PORT+3)
 socket.connect(receive_string)
 socket.send_string(-NetMessage("IDENTITY", f"{DISC_POS[0]},{DISC_POS[1]};{OFFSET[0]},{OFFSET[1]};{p.filename}"))
 ident = socket.recv()
@@ -770,13 +800,15 @@ socket.close()
 receive_socket = context.socket(zmq.DEALER)
 timer_socket = context.socket(zmq.DEALER)
 layer_socket = context.socket(zmq.DEALER)
+npc_socket = context.socket(zmq.DEALER)
 receive_socket.setsockopt(zmq.IDENTITY, ident)
 timer_socket.setsockopt(zmq.IDENTITY, ident)
 layer_socket.setsockopt(zmq.IDENTITY, ident)
+npc_socket.setsockopt(zmq.IDENTITY, ident)
 receive_socket.connect(receive_string)
 timer_socket.connect(timer_string)
 layer_socket.connect(layer_string)
-
+npc_socket.connect(npc_string)
 
 # FPS Clock
 fps_clock  = pyglet.window.FPSDisplay(window=window)
@@ -794,6 +826,7 @@ pg.clock.schedule_interval(global_time_run, 1)
 pg.clock.schedule_interval(receive_connection, 1/120)
 pg.clock.schedule_interval(timer_connection, 1/30)
 pg.clock.schedule_interval(layer_connection, 1/60)
+pg.clock.schedule_interval(npc_info_connection, 1/120)
 
 
 while(True):
