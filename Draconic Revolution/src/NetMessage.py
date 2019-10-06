@@ -10,7 +10,7 @@ class NetMessage:
 
 
 	def __str__(self):
-		return self.type + "@" + self.data
+		return str(self.type) + "@" + str(self.data)
 
 	def __repr__(self):
 		return "Type: " + self.type + "\n" + "Data: " + self.data + "\n"

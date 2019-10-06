@@ -12,23 +12,26 @@ def easy_sum(l1, l2):
 
 
 class Player:
-	def __init__(self, DP, OFFSET, filename):
+	def __init__(self, DP, OFFSET, filename, server=False):
 		### Image works
+		self.id = 0
 		self.filename = filename
-		self.img = pg.image.load(self.filename)
-		self.img = pg.image.ImageGrid(self.img, 4,3, item_width=64, item_height=64)
-		self.img = pg.image.TextureGrid(self.img)
-		self.animation = [pg.image.Animation.from_image_sequence(self.img[1:3], 0.3, loop=True), 
-		pg.image.Animation.from_image_sequence(self.img[3:6], 0.3, loop=True),
-		pg.image.Animation.from_image_sequence(self.img[6:9], 0.3, loop=True),
-		pg.image.Animation.from_image_sequence(self.img[9:12], 0.3, loop=True)]
-		self.movingframe = [pg.sprite.Sprite(self.animation[0], x=704, y=570), pg.sprite.Sprite(self.animation[3], x=704, y=570),
-			pg.sprite.Sprite(self.animation[1], x=704, y=570), pg.sprite.Sprite(self.animation[2], x=704, y=570)]
-		self.stillframe = [pg.sprite.Sprite(self.img[0], x=704, y=570), pg.sprite.Sprite(self.img[9], x=704, y=570), 
-			pg.sprite.Sprite(self.img[3], x=704, y=570), pg.sprite.Sprite(self.img[6], x=704, y=570)]
 
-		del self.animation
-		del self.img	
+		if(not server):
+			self.img = pg.image.load(self.filename)
+			self.img = pg.image.ImageGrid(self.img, 4,3, item_width=64, item_height=64)
+			self.img = pg.image.TextureGrid(self.img)
+			self.animation = [pg.image.Animation.from_image_sequence(self.img[1:3], 0.3, loop=True), 
+			pg.image.Animation.from_image_sequence(self.img[3:6], 0.3, loop=True),
+			pg.image.Animation.from_image_sequence(self.img[6:9], 0.3, loop=True),
+			pg.image.Animation.from_image_sequence(self.img[9:12], 0.3, loop=True)]
+			self.movingframe = [pg.sprite.Sprite(self.animation[0], x=704, y=570), pg.sprite.Sprite(self.animation[3], x=704, y=570),
+				pg.sprite.Sprite(self.animation[1], x=704, y=570), pg.sprite.Sprite(self.animation[2], x=704, y=570)]
+			self.stillframe = [pg.sprite.Sprite(self.img[0], x=704, y=570), pg.sprite.Sprite(self.img[9], x=704, y=570), 
+				pg.sprite.Sprite(self.img[3], x=704, y=570), pg.sprite.Sprite(self.img[6], x=704, y=570)]
+
+			del self.animation
+			del self.img	
 
 		self.direction = 1
 		self.pos = DP.copy()
@@ -43,6 +46,17 @@ class Player:
 		self.command_queue = [] # Mid Level actions
 		self.high_queue = []  # High level actions
 		self.wait_timer = 0
+
+	def __str__(self):
+		return f"{self.pos[0]},{self.pos[1]};{self.offset[0]},{self.offset[1]};{self.filename}"
+
+	# Checks if entity is 50 blocks away from the player or not
+	def is_in_entity_layer(self, DISC_POS):
+		self.distance_from_player = abs(self.pos[0] - DISC_POS[0]) + abs(self.pos[1] - DISC_POS[1])
+		if(self.distance_from_player <= 50):
+			return True
+		else:
+			return False
 
 	def get_total_x(self):
 		return self.pos[0]*64 + self.offset[0]

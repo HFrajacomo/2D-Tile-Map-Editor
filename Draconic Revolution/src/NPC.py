@@ -24,9 +24,9 @@ class NPC:
 	ev = NPC_Dispatcher()
 	all_npcs = []
 
-
 	def __init__(self, DP, OFFSET, filename):
 		### Image works
+		self.id = 0
 		self.filename = filename
 		self.img = None
 		self.animation = None
@@ -51,6 +51,8 @@ class NPC:
 		self.distance_from_player = 999999
 		NPC.all_npcs.append(self)
 
+	def __str__(self):
+		return f"{self.pos[0]},{self.pos[1]};{self.offset[0]},{self.offset[1]};{self.filename}"
 
 	def get_distance(self):
 		return self.distance_from_player
@@ -59,7 +61,7 @@ class NPC:
 	def sort_npc_list(self):
 		NPC.all_npcs.sort(key=lambda x: x.get_distance())
 
-	# Checks if entity is 30 blocks away from the player or not
+	# Checks if entity is 50 blocks away from the player or not
 	def is_in_entity_layer(self, DISC_POS):
 		self.distance_from_player = abs(self.pos[0] - DISC_POS[0]) + abs(self.pos[1] - DISC_POS[1])
 		if(self.distance_from_player <= 50):
@@ -157,26 +159,34 @@ class NPC:
 
 		
 	###### TIER 1 MOVEMENT ######
-	def step_right(self):
+	def step_right(self, entity_layer):
 		self.offset[0] += self.speed
 		if(self.offset[0]>=32):
+			entity_layer[self.pos[0]][self.pos[1]].remove(self.id)
 			self.offset[0] = -32
 			self.pos[0] += 1
-	def step_left(self):
+			entity_layer[self.pos[0]][self.pos[1]].append(self.id)
+	def step_left(self, entity_layer):
 		self.offset[0] -= self.speed	
 		if(self.offset[0]<-32):
+			entity_layer[self.pos[0]][self.pos[1]].remove(self.id)
 			self.offset[0] = 32
 			self.pos[0] -= 1
-	def step_up(self):
+			entity_layer[self.pos[0]][self.pos[1]].append(self.id)
+	def step_up(self, entity_layer):
 		self.offset[1] -= self.speed	
 		if(self.offset[1]<-32):
+			entity_layer[self.pos[0]][self.pos[1]].remove(self.id)
 			self.offset[1] = 32
 			self.pos[1] -= 1
-	def step_down(self):
+			entity_layer[self.pos[0]][self.pos[1]].append(self.id)
+	def step_down(self, entity_layer):
 		self.offset[1] += self.speed	
 		if(self.offset[1]>=32):
+			entity_layer[self.pos[0]][self.pos[1]].remove(self.id)
 			self.offset[1] = -32
 			self.pos[1] += 1
+			entity_layer[self.pos[0]][self.pos[1]].append(self.id)
 
 	###### TIER 2 MOVEMENT ######
 	def add_mv_right(self):
@@ -298,18 +308,18 @@ class NPC:
 	def add_wander(self, pos, radius, hurry):
 		self.high_queue.append("Wander;" + str(pos) + ";" + str(radius) + ";" + str(hurry))
 
-	def run(self, Non, intermap, intermap_obj):
+	def run(self, Non, intermap, intermap_obj, socket, entity_layer):
 		if(self.action_queue != []):
 			action = self.action_queue.pop(0)
 
 			if(action == "L"):
-				self.step_left()
+				self.step_left(socket)
 			elif(action == "R"):
-				self.step_right()			
+				self.step_right(socket)			
 			elif(action == "U"):
-				self.step_up()	
+				self.step_up(socket)	
 			elif(action == "D"):
-				self.step_down()	
+				self.step_down(socket)	
 			elif(action == "MIDV"):
 				self.offset[1] = 0
 			elif(action == "MIDH"):

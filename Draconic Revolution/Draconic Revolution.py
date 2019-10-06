@@ -165,28 +165,34 @@ def movement_handler(non):
 	global MOVEMENT_VECTOR
 	global p
 	global C_LOCK
+	global socket
 
 	if(MOVEMENT_VECTOR == []):
+		socket.send_string(-NetMessage("POSITION", f"{p.pos[0]},{p.pos[1]};{p.offset[0]},{p.offset[1]};{p.direction};{p.IS_MOVING}"))
 		return
 
 	# Admin Movement
 	if(MOVEMENT_VECTOR[0] == "KU"):
 		LOCK.acquire()
+		socket.send_string(-NetMessage("CHANGE_POS", f"{DISC_POS[0]},{DISC_POS[1]}"))
 		DISC_POS = list_sum(DISC_POS, [0,-1])
 		p.direction = 0
 		LOCK.release()
 	elif(MOVEMENT_VECTOR[0] == "KD"):
 		LOCK.acquire()
+		socket.send_string(-NetMessage("CHANGE_POS", f"{DISC_POS[0]},{DISC_POS[1]}"))
 		DISC_POS = list_sum(DISC_POS, [0,1])
 		p.direction = 1
 		LOCK.release()
 	elif(MOVEMENT_VECTOR[0] == "KR"):
 		LOCK.acquire()
+		socket.send_string(-NetMessage("CHANGE_POS", f"{DISC_POS[0]},{DISC_POS[1]}"))
 		DISC_POS = list_sum(DISC_POS, [1,0])
 		p.direction = 2
 		LOCK.release()
 	elif(MOVEMENT_VECTOR[0] == "KL"):
 		LOCK.acquire()
+		socket.send_string(-NetMessage("CHANGE_POS", f"{DISC_POS[0]},{DISC_POS[1]}"))
 		DISC_POS = list_sum(DISC_POS, [-1,0])
 		p.direction = 3
 		LOCK.release()
@@ -213,15 +219,19 @@ def movement_handler(non):
 
 	# Tile Change
 	if(OFFSET[0]>31):
+		socket.send_string(-NetMessage("CHANGE_POS", f"{DISC_POS[0]},{DISC_POS[1]}"))
 		OFFSET[0] -= 64
 		DISC_POS[0] += 1
 	elif(OFFSET[0]<-32):
+		socket.send_string(-NetMessage("CHANGE_POS", f"{DISC_POS[0]},{DISC_POS[1]}"))
 		OFFSET[0] += 64
 		DISC_POS[0] -= 1
 	if(OFFSET[1]>31):
+		socket.send_string(-NetMessage("CHANGE_POS", f"{DISC_POS[0]},{DISC_POS[1]}"))
 		OFFSET[1] -= 64
 		DISC_POS[1] += 1
 	elif(OFFSET[1]<-32):
+		socket.send_string(-NetMessage("CHANGE_POS", f"{DISC_POS[0]},{DISC_POS[1]}"))
 		OFFSET[1] += 64
 		DISC_POS[1] -= 1
 
@@ -239,19 +249,47 @@ def movement_handler(non):
 		DISC_POS[1] = m.get_size()[0]-1
 		p.pos[0] = 0
 
+	socket.send_string(-NetMessage("POSITION", f"{DISC_POS[0]},{DISC_POS[1]};{OFFSET[0]},{OFFSET[1]};{p.direction};{p.IS_MOVING}"))
 
 def server_connection(Non):
 	global socket
 	global GLOBAL_TIME
+	global entity_dict
+	global p
 
 	try:
 		m = NetMessage(socket.recv_string(zmq.NOBLOCK))
 	except zmq.Again:
 		return
 
+	# If receives time data
 	if(m.type == "TIME"):
 		GLOBAL_TIME.set_string(m.data)
 
+	# If gets your own ID
+	elif(m.type == "PLAYER_ID"):
+		entity_dict[int(m.data)] = p
+		p.id = int(m.data)
+
+	# If gets entity layer refreshment
+	elif(m.type == "ENTITIES"):
+		known = list(entity_dict.keys())
+
+		for e in m.data.split(","):
+			if(e not in known):
+				socket.send_string(-NetMessage("REQ_ENTITY", str(e)))
+
+	# If gets individual entity information
+	elif(m.type == "ENTITY_INFO"):
+		id, ent_data = m.data.split("#")
+		id = int(id)
+		ent_data = ent_data.split(";")
+		if(id > 0):
+			entity_dict[id] = Player([int(x) for x in ent_data[0].split(",")], [int(x) for x in ent_data[1].split(",")], ent_data[2])
+		else:
+			entity_dict[id] = NPC([int(x) for x in ent_data[0].split(",")], [int(x) for x in ent_data[1].split(",")], ent_data[2])
+			entity_dict[id].load()
+'''
 def NPC_run(Non):
 	global NPCS
 	global inter_map
@@ -262,16 +300,20 @@ def NPC_run(Non):
 			NPC.timer.schedule_once(npc.run, Non, inter_map, inter_map_obj)
 		else:
 			break
-
+'''
 def reload_entity_layer(Non):
 	global DISC_POS
+	global entity_dict
+
+	pop_list = []
 
 	for npc in NPC.all_npcs:
-		if(npc.is_in_entity_layer(DISC_POS)):
-			npc.load()
-		else:
-			npc.unload()
-	NPC.all_npcs[0].sort_npc_list()
+		if(not npc.is_in_entity_layer(DISC_POS)):
+			pop_list.append(npc)
+
+	for npc in pop_list:
+		NPC.all_npcs.pop(npc)
+		entity_dict.pop(npc.id)
 
 @window.event
 def on_key_press(symbol, modifiers):
@@ -409,7 +451,6 @@ def draw_tiles(Non):
 	global LOCK
 	global label
 	global label2
-	global label3
 	global time_label
 	global inter_map_obj
 	global shadow_map
@@ -424,7 +465,6 @@ def draw_tiles(Non):
 
 	label = pg.text.Label(str(DISC_POS), font_name='Arial', font_size=16, x=1800, y=1010)
 	label2 = pg.text.Label(str(OFFSET), font_name='Arial', font_size=16, x=1800, y=950)
-	label3 = pg.text.Label(str([NPC.all_npcs[0].IS_LOADED, NPC.all_npcs[1].IS_LOADED, NPC.all_npcs[2].IS_LOADED]), font_name='Arial', font_size=16, x=1800, y=850)
 	time_label = pg.text.Label(str(GLOBAL_TIME), font_name='Arial', font_size=20, x=1450, y=1010)
 
 
@@ -569,7 +609,6 @@ def on_draw():
 	global menu_bev
 	global label
 	global label2
-	global label3
 	global fps_clock
 	global p
 	global NPCS
@@ -603,7 +642,6 @@ def on_draw():
 	# Labels
 	label.draw()
 	label2.draw()
-	label3.draw()
 	fps_clock.draw()
 	time_label.draw()
 	LOCK.release()
@@ -679,6 +717,10 @@ shader_layer = Shader()
 # Start LAN
 LAN_SERVER = Popen("python src\\LAN.py")
 
+# Entities
+p = Player(DISC_POS, OFFSET, "src\\Char\\Lianna.png")
+entity_dict = {}
+
 # Socket Connection
 context = zmq.Context()
 socket = context.socket(zmq.DEALER)
@@ -686,12 +728,13 @@ HOST = "127.0.0.1"
 PORT = 33000
 con_string = "tcp://" + HOST + ":" + str(PORT)
 socket.connect(con_string)
-socket.send_string(-NetMessage("IDENTITY", ""))
+socket.send_string(-NetMessage("IDENTITY", f"{DISC_POS[0]},{DISC_POS[1]};{OFFSET[0]},{OFFSET[1]};{p.filename}"))
 ident = socket.recv()
 socket.close()
 socket = context.socket(zmq.DEALER)
 socket.setsockopt(zmq.IDENTITY, ident)
 socket.connect(con_string)
+
 
 # FPS Clock
 fps_clock  = pyglet.window.FPSDisplay(window=window)
@@ -700,19 +743,11 @@ fps_clock.label.y = 890
 fps_clock.label.font_size = 12
 fps_clock.label.font_name='Arial'
 
-# Entities
-p = Player(DISC_POS, OFFSET, "src\\Char\\Lianna.png")
-NPC([100, 115], [0,0], "src\\Char\\Lianna.png")
-NPC([103, 116], [0,0], "src\\Char\\Lianna.png")
-NPC([96, 111], [0,0], "src\\Char\\Lianna.png")
-label3 = pg.text.Label(str([NPC.all_npcs[0].IS_LOADED, NPC.all_npcs[1].IS_LOADED, NPC.all_npcs[2].IS_LOADED]), font_name='Arial', font_size=16, x=1800, y=900)
-
 # Threads
 pg.clock.schedule_interval(draw_tiles, FPS)
 pg.clock.schedule_interval_soft(movement_handler, FPS)
 pg.clock.schedule_interval(animate, 0.3)
-pg.clock.schedule_interval_soft(NPC_run, FPS)
-pg.clock.schedule_interval(reload_entity_layer, 1)
+#pg.clock.schedule_interval_soft(NPC_run, FPS)
 pg.clock.schedule_interval(global_time_run, 1)
 pg.clock.schedule_interval(server_connection, 1/120)
 
